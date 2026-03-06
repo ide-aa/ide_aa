@@ -13,6 +13,7 @@
     --fancl: #3b82f6; --muji: #10b981; --orbis: #f59e0b; --elixir: #ec4899; --takami: #8b5cf6;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 18px; }
   body { font-family: 'Hiragino Sans','Yu Gothic',sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding: 20px; }
   h1 { font-size: 1.5rem; margin-bottom: 4px; }
   h2 { font-size: 1.15rem; margin-bottom: 10px; color: var(--accent); }
@@ -127,6 +128,24 @@
 
 <!-- ===== TAB 1: OVERVIEW ===== -->
 <div id="tab-overview" class="tab-content active">
+  <div class="card" style="margin-bottom:20px">
+    <h2>主要発見サマリー</h2>
+    <div class="grid3">
+      <div class="opp-card opp-high">
+        <h3>最大のミスマッチ</h3>
+        <p style="font-size:0.8rem">FANCLは広告SOVの<strong style="color:var(--danger)">88.8%</strong>を「エイジングケア」軸に投下。しかしCEPスコアは<strong style="color:var(--danger)">-7.8pt</strong>（劣位）。エリクシールが+25.5ptで圧倒的優位、かつ広告SOVも77.1%を集中投下。</p>
+      </div>
+      <div class="opp-card opp-med">
+        <h3>未活用のCEP優位性</h3>
+        <p style="font-size:0.8rem">FANCLのCEP最大優位は「優しい使い心地」<strong style="color:var(--success)">+8.5pt</strong>だが、広告SOVは19.0%。競合は0.1〜0.2%しか投下しておらず、<strong style="color:var(--warning)">独占可能なブルーオーシャン</strong>。</p>
+      </div>
+      <div class="opp-card opp-low">
+        <h3>競合が支配するCEP</h3>
+        <p style="font-size:0.8rem">「ニキビ・毛穴」軸はFANCLのCEP優位(+6.2pt)だが、オルビス<strong style="color:var(--warning)">84.3%</strong>とタカミ<strong style="color:var(--purple)">49.3%</strong>が市場を占有。タカミは観測数119万で全ブランド最大。FANCLは2.9%のみ。</p>
+      </div>
+    </div>
+  </div>
+
   <div class="kpi-row">
     <div class="kpi">
       <div class="kpi-value" style="color:var(--fancl)">47,213</div>
@@ -172,24 +191,6 @@
         <div class="legend-item"><div class="legend-dot" style="background:var(--takami)"></div>タカミ</div>
       </div>
       <div id="overview-experience-chart"></div>
-    </div>
-  </div>
-
-  <div class="card" style="margin-bottom:20px">
-    <h2>主要発見サマリー</h2>
-    <div class="grid3">
-      <div class="opp-card opp-high">
-        <h3>最大のミスマッチ</h3>
-        <p style="font-size:0.8rem">FANCLは広告SOVの<strong style="color:var(--danger)">88.8%</strong>を「エイジングケア」軸に投下。しかしCEPスコアは<strong style="color:var(--danger)">-7.8pt</strong>（劣位）。エリクシールが+25.5ptで圧倒的優位、かつ広告SOVも77.1%を集中投下。</p>
-      </div>
-      <div class="opp-card opp-med">
-        <h3>未活用のCEP優位性</h3>
-        <p style="font-size:0.8rem">FANCLのCEP最大優位は「優しい使い心地」<strong style="color:var(--success)">+8.5pt</strong>だが、広告SOVは19.0%。競合は0.1〜0.2%しか投下しておらず、<strong style="color:var(--warning)">独占可能なブルーオーシャン</strong>。</p>
-      </div>
-      <div class="opp-card opp-low">
-        <h3>競合が支配するCEP</h3>
-        <p style="font-size:0.8rem">「ニキビ・毛穴」軸はFANCLのCEP優位(+6.2pt)だが、オルビス<strong style="color:var(--warning)">84.3%</strong>とタカミ<strong style="color:var(--purple)">49.3%</strong>が市場を占有。タカミは観測数119万で全ブランド最大。FANCLは2.9%のみ。</p>
-      </div>
     </div>
   </div>
 </div>
@@ -446,6 +447,29 @@
 
 <!-- ===== TAB 8: MEDIA MIX (v2 NEW) ===== -->
 <div id="tab-mediamix" class="tab-content">
+  <!-- FANCL Recommendations (TOP) -->
+  <div class="card" style="margin-bottom:20px">
+    <h2>FANCL 媒体戦略への示唆</h2>
+    <div class="grid2">
+      <div class="strategy-card">
+        <h4>📱 LINE参入の検討</h4>
+        <p>タカミがLINE 52.9%（63万obs）、オルビスもLINE 23.8%で成果。FANCL現状は<span class="highlight">LINE配信ゼロ</span>。スキンケアカテゴリでLINEの有効性は実証済み。特に記事LPとの組み合わせで効果的。</p>
+      </div>
+      <div class="strategy-card">
+        <h4>📰 SmartNews活用の可能性</h4>
+        <p>タカミがSmartNews 15.7%で記事LP×ニュースフィード広告の成功モデルを確立。FANCLが記事LP戦略を開始する場合、<span class="highlight">SmartNewsは有力な配信面</span>。</p>
+      </div>
+      <div class="strategy-card">
+        <h4>🔍 Google広告の規模差</h4>
+        <p>エリクシールがGoogle 90.2%（68万obs）で圧倒。FANCL現状はGoogleほぼゼロ。エリクシールの<span class="highlight">静止画×Google</span>の大量配信モデルはコスト効率が高い可能性。</p>
+      </div>
+      <div class="strategy-card">
+        <h4>🎵 TikTok・YouTube維持</h4>
+        <p>FANCL固有の強み。TikTok 23.6%・YouTube 23.6%はカテゴリ内でトップクラス。<span class="highlight">動画フォーマット×SNS</span>の組み合わせは「無添加」の説明に適する。継続・強化推奨。</p>
+      </div>
+    </div>
+  </div>
+
   <div class="card" style="margin-bottom:20px">
     <h2>📡 媒体ミックス分析</h2>
     <p style="font-size:0.8rem;color:var(--muted);margin-bottom:16px">各ブランドの広告配信媒体の構成比率を比較。観測数ベース。</p>
@@ -499,33 +523,33 @@
       <tbody id="media-matrix-table"></tbody>
     </table>
   </div>
-
-  <!-- FANCL Recommendations -->
-  <div class="card" style="margin-bottom:20px">
-    <h2>FANCL 媒体戦略への示唆</h2>
-    <div class="grid2">
-      <div class="strategy-card">
-        <h4>📱 LINE参入の検討</h4>
-        <p>タカミがLINE 52.9%（63万obs）、オルビスもLINE 23.8%で成果。FANCL現状は<span class="highlight">LINE配信ゼロ</span>。スキンケアカテゴリでLINEの有効性は実証済み。特に記事LPとの組み合わせで効果的。</p>
-      </div>
-      <div class="strategy-card">
-        <h4>📰 SmartNews活用の可能性</h4>
-        <p>タカミがSmartNews 15.7%で記事LP×ニュースフィード広告の成功モデルを確立。FANCLが記事LP戦略を開始する場合、<span class="highlight">SmartNewsは有力な配信面</span>。</p>
-      </div>
-      <div class="strategy-card">
-        <h4>🔍 Google広告の規模差</h4>
-        <p>エリクシールがGoogle 90.2%（68万obs）で圧倒。FANCL現状はGoogleほぼゼロ。エリクシールの<span class="highlight">静止画×Google</span>の大量配信モデルはコスト効率が高い可能性。</p>
-      </div>
-      <div class="strategy-card">
-        <h4>🎵 TikTok・YouTube維持</h4>
-        <p>FANCL固有の強み。TikTok 23.6%・YouTube 23.6%はカテゴリ内でトップクラス。<span class="highlight">動画フォーマット×SNS</span>の組み合わせは「無添加」の説明に適する。継続・強化推奨。</p>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- ===== TAB 9: CEP × FORMAT CROSS (v2 NEW) ===== -->
 <div id="tab-crossformat" class="tab-content">
+  <!-- Strategy Implications (TOP) -->
+  <div class="card" style="margin-bottom:20px">
+    <h2>フォーマット×CEP 戦略示唆</h2>
+    <div class="grid2">
+      <div class="strategy-card">
+        <h4>🔴 ニキビ・毛穴訴求のフォーマット多様化</h4>
+        <p>FANCL現状：カルーセル99%×Instagram限定（1,352obs）。CEP優位+6.2ptを活かすには、<span class="highlight">動画（タカミは27%動画）＋LINE配信（オルビスは85%LINE）</span>への展開が必須。</p>
+      </div>
+      <div class="strategy-card">
+        <h4>🟢 「優しい使い心地」の動画訴求を拡大</h4>
+        <p>FANCL現状：動画54%×YouTube53%。CEP最大優位+8.5ptの軸で動画は効果的。<span class="highlight">TikTokへの展開</span>（現状ゼロ）で若年層リーチ拡大。</p>
+      </div>
+      <div class="strategy-card">
+        <h4>📝 記事LP戦略の導入検討</h4>
+        <p>FANCL：全CEP軸で<span class="highlight">記事LP 0%</span>。タカミは記事LP×LINE/SmartNewsでコスパ69%、ブランド信頼84%を記事LP化。「無添加の科学」を記事で訴求する可能性。</p>
+      </div>
+      <div class="strategy-card">
+        <h4>🔵 静止画×Google大量配信の検討</h4>
+        <p>エリクシールモデル：静止画×Google=70万obsの大量リーチ。FANCLの<span class="highlight">Google配信はほぼゼロ</span>。ブランド信頼やプロ推奨軸で静止画×Google展開の余地。</p>
+      </div>
+    </div>
+  </div>
+
   <div class="card" style="margin-bottom:20px">
     <h2>🔀 CEP × フォーマット・LPタイプ クロス分析</h2>
     <p style="font-size:0.8rem;color:var(--muted);margin-bottom:16px">各CEP訴求軸ごとに、どのフォーマット（動画/静止画/カルーセル）とLPタイプ（記事LP/非記事LP）で配信されているかを5ブランド比較</p>
@@ -566,33 +590,33 @@
     <p style="font-size:0.75rem;color:var(--muted);margin-bottom:10px">FANCLの各CEP軸で使用されているフォーマットの内訳</p>
     <div id="fancl-format-detail"></div>
   </div>
-
-  <!-- Strategy Implications -->
-  <div class="card">
-    <h2>フォーマット×CEP 戦略示唆</h2>
-    <div class="grid2">
-      <div class="strategy-card">
-        <h4>🔴 ニキビ・毛穴訴求のフォーマット多様化</h4>
-        <p>FANCL現状：カルーセル99%×Instagram限定（1,352obs）。CEP優位+6.2ptを活かすには、<span class="highlight">動画（タカミは27%動画）＋LINE配信（オルビスは85%LINE）</span>への展開が必須。</p>
-      </div>
-      <div class="strategy-card">
-        <h4>🟢 「優しい使い心地」の動画訴求を拡大</h4>
-        <p>FANCL現状：動画54%×YouTube53%。CEP最大優位+8.5ptの軸で動画は効果的。<span class="highlight">TikTokへの展開</span>（現状ゼロ）で若年層リーチ拡大。</p>
-      </div>
-      <div class="strategy-card">
-        <h4>📝 記事LP戦略の導入検討</h4>
-        <p>FANCL：全CEP軸で<span class="highlight">記事LP 0%</span>。タカミは記事LP×LINE/SmartNewsでコスパ69%、ブランド信頼84%を記事LP化。「無添加の科学」を記事で訴求する可能性。</p>
-      </div>
-      <div class="strategy-card">
-        <h4>🔵 静止画×Google大量配信の検討</h4>
-        <p>エリクシールモデル：静止画×Google=70万obsの大量リーチ。FANCLの<span class="highlight">Google配信はほぼゼロ</span>。ブランド信頼やプロ推奨軸で静止画×Google展開の余地。</p>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- ===== TAB 10: CEP × MEDIA CROSS (v2 NEW) ===== -->
 <div id="tab-crossmedia" class="tab-content">
+  <!-- Strategic Media Recommendations (TOP) -->
+  <div class="card" style="margin-bottom:20px">
+    <h2>CEP×媒体 戦略提案</h2>
+    <div class="grid2">
+      <div class="strategy-card">
+        <h4>📱 「ニキビ・毛穴」のLINE配信を開始</h4>
+        <p>CEP優位+6.2pt。オルビスの同軸は<span class="highlight">LINE 85%で46,000obs</span>を獲得。FANCLはInstagram100%の1,352obsのみ。LINEプッシュで「無添加×ニキビケア」訴求すれば大幅なリーチ拡大。</p>
+      </div>
+      <div class="strategy-card">
+        <h4>🔍 「ブランド信頼」のGoogle展開</h4>
+        <p>エリクシールの同軸は<span class="highlight">Google 90%で156,000obs</span>。FANCL現状はInstagram100%の4,043obsのみ。「研究×品質×無添加」の信頼訴求をGoogle静止画で大量配信する余地。</p>
+      </div>
+      <div class="strategy-card">
+        <h4>📰 「コスパ」のSmartNews/LINE展開</h4>
+        <p>タカミの同軸は<span class="highlight">SmartNews34%+LINE37%=541,000obs</span>。FANCL現状はX47%中心の27,000obs。記事LP×SmartNews/LINEの説得型コスパ訴求モデルを参考に。</p>
+      </div>
+      <div class="strategy-card">
+        <h4>🎵 「優しい使い心地」のTikTok追加</h4>
+        <p>FANCL最大CEP優位+8.5pt。現状YouTube53%+Instagram47%。<span class="highlight">TikTok配信ゼロ</span>は機会損失。タカミが同軸でLINE51%+Yahoo24%と異なる媒体を使用中。TikTok短尺動画で「やさしさ」体験を訴求。</p>
+      </div>
+    </div>
+  </div>
+
   <div class="card" style="margin-bottom:20px">
     <h2>🔀 CEP × 媒体 クロス分析</h2>
     <p style="font-size:0.8rem;color:var(--muted);margin-bottom:16px">各CEP訴求軸ごとに、どの媒体で配信されているかを5ブランド比較。「どのメッセージをどの媒体に出しているか」の完全マップ。</p>
@@ -625,29 +649,6 @@
     <h2>主要CEP軸：ブランド別 媒体構成比較</h2>
     <p style="font-size:0.75rem;color:var(--muted);margin-bottom:10px">FANCL CEP優位の主要軸で、各ブランドがどの媒体に出稿しているかを比較</p>
     <div id="cross-media-comparison"></div>
-  </div>
-
-  <!-- Strategic Media Recommendations -->
-  <div class="card">
-    <h2>CEP×媒体 戦略提案</h2>
-    <div class="grid2">
-      <div class="strategy-card">
-        <h4>📱 「ニキビ・毛穴」のLINE配信を開始</h4>
-        <p>CEP優位+6.2pt。オルビスの同軸は<span class="highlight">LINE 85%で46,000obs</span>を獲得。FANCLはInstagram100%の1,352obsのみ。LINEプッシュで「無添加×ニキビケア」訴求すれば大幅なリーチ拡大。</p>
-      </div>
-      <div class="strategy-card">
-        <h4>🔍 「ブランド信頼」のGoogle展開</h4>
-        <p>エリクシールの同軸は<span class="highlight">Google 90%で156,000obs</span>。FANCL現状はInstagram100%の4,043obsのみ。「研究×品質×無添加」の信頼訴求をGoogle静止画で大量配信する余地。</p>
-      </div>
-      <div class="strategy-card">
-        <h4>📰 「コスパ」のSmartNews/LINE展開</h4>
-        <p>タカミの同軸は<span class="highlight">SmartNews34%+LINE37%=541,000obs</span>。FANCL現状はX47%中心の27,000obs。記事LP×SmartNews/LINEの説得型コスパ訴求モデルを参考に。</p>
-      </div>
-      <div class="strategy-card">
-        <h4>🎵 「優しい使い心地」のTikTok追加</h4>
-        <p>FANCL最大CEP優位+8.5pt。現状YouTube53%+Instagram47%。<span class="highlight">TikTok配信ゼロ</span>は機会損失。タカミが同軸でLINE51%+Yahoo24%と異なる媒体を使用中。TikTok短尺動画で「やさしさ」体験を訴求。</p>
-      </div>
-    </div>
   </div>
 </div>
 
