@@ -111,18 +111,18 @@
 <p class="subtitle">CEPレポート(2025)のブランドポジショニング × 広告出稿データ(ad.com 2025/12/31時点) — FANCL vs 無印良品 vs オルビス vs エリクシール vs タカミ</p>
 
 <div class="tabs">
-  <div class="tab active" onclick="switchTab('overview')">全体像</div>
-  <div class="tab" onclick="switchTab('situation')">状況軸の比較</div>
-  <div class="tab" onclick="switchTab('experience')">体験価値軸の比較</div>
-  <div class="tab" onclick="switchTab('scatter')">ポジショニングマップ</div>
-  <div class="tab" onclick="switchTab('whitespace')">ホワイトスペース分析</div>
-  <div class="tab" onclick="switchTab('strategy')">広告戦略提案</div>
+  <div class="tab active" data-tab="overview" onclick="switchTab('overview')">全体像</div>
+  <div class="tab" data-tab="situation" onclick="switchTab('situation')">状況軸の比較</div>
+  <div class="tab" data-tab="experience" onclick="switchTab('experience')">体験価値軸の比較</div>
+  <div class="tab" data-tab="scatter" onclick="switchTab('scatter')">ポジショニングマップ</div>
+  <div class="tab" data-tab="whitespace" onclick="switchTab('whitespace')">ホワイトスペース分析</div>
+  <div class="tab" data-tab="strategy" onclick="switchTab('strategy')">広告戦略提案</div>
   <div class="tab-divider"></div>
-  <div class="tab" onclick="switchTab('adstructure')" style="border-color:var(--warning)">📊 広告配信構造</div>
-  <div class="tab" onclick="switchTab('mediamix')" style="border-color:var(--warning)">📡 媒体ミックス</div>
+  <div class="tab" data-tab="adstructure" onclick="switchTab('adstructure')" style="border-color:var(--warning)">📊 広告配信構造</div>
+  <div class="tab" data-tab="mediamix" onclick="switchTab('mediamix')" style="border-color:var(--warning)">📡 媒体ミックス</div>
   <div class="tab-divider"></div>
-  <div class="tab" onclick="switchTab('crossformat')" style="border-color:var(--cyan)">🔀 CEP×フォーマット</div>
-  <div class="tab" onclick="switchTab('crossmedia')" style="border-color:var(--cyan)">🔀 CEP×媒体</div>
+  <div class="tab" data-tab="crossformat" onclick="switchTab('crossformat')" style="border-color:var(--cyan)">🔀 CEP×フォーマット</div>
+  <div class="tab" data-tab="crossmedia" onclick="switchTab('crossmedia')" style="border-color:var(--cyan)">🔀 CEP×媒体</div>
 </div>
 
 <!-- ===== TAB 1: OVERVIEW ===== -->
@@ -831,15 +831,31 @@ const allFormats = ['動画','静止画','カルーセル'];
 const keyCepAxes = ['年齢による肌悩み','ニキビ・毛穴が気になる','敏感肌の悩み','乾燥が気になる','成分がシンプル','優しい使い心地','ベタつかない','しっとり潤い','素肌自信','コスパ良い','ブランド信頼','プロ推奨'];
 
 // ===== UTILITY FUNCTIONS =====
-function switchTab(name) {
+function switchTab(name, pushHash) {
+  const tabEl = document.getElementById('tab-' + name);
+  if (!tabEl) return;
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  event.target.classList.add('active');
+  tabEl.classList.add('active');
+  const tabBtn = document.querySelector(`.tab[data-tab="${name}"]`);
+  if (tabBtn) tabBtn.classList.add('active');
+  if (pushHash !== false) history.replaceState(null, '', '#' + name);
   if (name === 'scatter') drawScatter();
   if (name === 'situation') drawAxisCanvas('situation');
   if (name === 'experience') drawAxisCanvas('experience');
 }
+
+function initHashRouting() {
+  const hash = location.hash.replace('#', '');
+  if (hash && document.getElementById('tab-' + hash)) {
+    switchTab(hash, false);
+    history.replaceState(null, '', '#' + hash);
+  }
+}
+window.addEventListener('hashchange', () => {
+  const hash = location.hash.replace('#', '');
+  if (hash && document.getElementById('tab-' + hash)) switchTab(hash, false);
+});
 
 function makeBar(values, colors, maxVal) {
   return values.map((v, i) => {
@@ -1636,6 +1652,9 @@ renderCrossLPChart();
 renderFanclFormatDetail();
 renderFanclMediaHeatmap();
 renderCrossMediaComparison();
+
+// Hash routing
+initHashRouting();
 </script>
 </body>
 </html>
