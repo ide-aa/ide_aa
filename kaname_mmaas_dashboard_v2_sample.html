@@ -407,6 +407,149 @@ function getStrategy(id) {
 }
 
 // ============================================================
+// DATA-DRIVEN INSIGHTS GENERATOR
+// ============================================================
+function generateInsights(containerId, insights) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '<div class="card"><h2 style="margin-bottom:10px">Key Insights</h2><div class="grid2">' +
+    insights.map(i => `<div class="insight-box"><strong>${i.title}</strong>：${i.text}</div>`).join('') +
+    '</div></div>';
+}
+
+function renderOverviewInsights() {
+  const allIds = [...situationAxes,...experienceAxes];
+  // Find biggest SOV increase for A社
+  let maxUp = {id:null,d:0}, maxDown = {id:null,d:0};
+  allIds.forEach(id => {
+    const d = (currentSOV['A社'][id]||0) - (previousSOV['A社'][id]||0);
+    if (d > maxUp.d) maxUp = {id,d};
+    if (d < maxDown.d) maxDown = {id,d};
+  });
+  // Find biggest volume brand
+  const volEntries = Object.entries(observedVolume.current).sort((a,b)=>b[1]-a[1]);
+  const topVol = volEntries[0];
+  const fanclVol = observedVolume.current['A社']||0;
+  const fanclVolPrev = observedVolume.previous['A社']||0;
+  const fanclVolDelta = ((fanclVol-fanclVolPrev)/fanclVolPrev*100).toFixed(1);
+  // Count CEPs where A社 leads
+  const fanclLeads = allIds.filter(id => {
+    const f = currentSOV['A社'][id]||0;
+    return brands.slice(1).every(b => f >= (currentSOV[b][id]||0));
+  });
+  // CEP with highest advantage but lowest SOV
+  const underinvested = allIds.filter(id => cepAdv(id) > 3)
+    .sort((a,b) => (currentSOV['A社'][a]||0) - (currentSOV['A社'][b]||0));
+
+  const insights = [
+    {title:'A社総観測量', text:`${fmtNum(fanclVol)}件（前月比${fanclVolDelta>0?'+':''}${fanclVolDelta}%）。カテゴリ最大は${topVol[0]}の${fmtNum(topVol[1])}件で約${(topVol[1]/fanclVol).toFixed(0)}倍の規模差`},
+    {title:'最大SOV増加', text:maxUp.id ? `${cepLabel(maxUp.id)}(${maxUp.id})が+${maxUp.d.toFixed(1)}ptで今月最大の投資拡大` : 'なし'},
+    {title:'最大SOV減少', text:maxDown.id ? `${cepLabel(maxDown.id)}(${maxDown.id})が${maxDown.d.toFixed(1)}ptで今月最大の投資縮小` : 'なし'},
+    {title:'投資不足の注目CEP', text:underinvested.length>0 ? `${cepLabel(underinvested[0])}(${underinvested[0]}) — CEP優位+${cepAdv(underinvested[0])}ptだがSOV${currentSOV['A社'][underinvested[0]]}%と低い` : 'CEP優位の高い軸は概ね投資済み'},
+  ];
+  generateInsights('overview-insights', insights);
+}
+
+function renderAxisInsights(type) {
+  const axes = type === 'situation' ? situationAxes : experienceAxes;
+  const label = type === 'situation' ? '状況' : '体験価値';
+  // Overinvested: CEP < -3 but SOV high
+  const overinvested = axes.filter(id => cepAdv(id) < -3 && (currentSOV['A社'][id]||0) > 30)
+    .sort((a,b) => (currentSOV['A社'][b]||0) - (currentSOV['A社'][a]||0));
+  // Underinvested: CEP > 3 but SOV low
+  const underinvested = axes.filter(id => cepAdv(id) > 3 && (currentSOV['A社'][id]||0) < 20)
+    .sort((a,b) => cepAdv(b) - cepAdv(a));
+  // Biggest MoM move
+  let maxMove = {id:null,d:0};
+  axes.forEach(id => {
+    const d = Math.abs((currentSOV['A社'][id]||0) - (previousSOV['A社'][id]||0));
+    if (d > Math.abs(maxMove.d)) maxMove = {id, d: (currentSOV['A社'][id]||0) - (previousSOV['A社'][id]||0)};
+  });
+  // Most competitive (highest total SOV across all brands)
+  const mostCompetitive = axes.slice().sort((a,b) => {
+    const totA = brands.reduce((s,br) => s + (currentSOV[br][a]||0), 0);
+    const totB = brands.reduce((s,br) => s + (currentSOV[br][b]||0), 0);
+    return totB - totA;
+  })[0];
+  const mcTotal = brands.reduce((s,br) => s + (currentSOV[br][mostCompetitive]||0), 0);
+
+  const insights = [];
+  if (overinvested.length > 0) {
+    const id = overinvested[0];
+    insights.push({title:'過剰投資リスク', text:`${cepLabel(id)}(${id}) — CEP劣位${cepAdv(id)}ptにもかかわらずSOV${currentSOV['A社'][id]}%。配分見直しを推奨`});
+  }
+  if (underinvested.length > 0) {
+    const id = underinvested[0];
+    insights.push({title:'投資機会', text:`${cepLabel(id)}(${id}) — CEP優位+${cepAdv(id)}ptだがSOV${currentSOV['A社'][id]}%と低い。競合に先行される前の投資拡大余地あり`});
+  }
+  if (maxMove.id) {
+    const dir = maxMove.d > 0 ? '増加' : '減少';
+    insights.push({title:`最大変動（${label}軸）`, text:`${cepLabel(maxMove.id)}(${maxMove.id})が${maxMove.d>0?'+':''}${maxMove.d.toFixed(1)}ptで今月最大の${dir}`});
+  }
+  insights.push({title:'最も競争が激しい軸', text:`${cepLabel(mostCompetitive)}(${mostCompetitive}) — 5社SOV合計${mcTotal.toFixed(0)}%。全ブランドが投資を集中`});
+
+  generateInsights(type+'-insights', insights);
+}
+
+function renderScatterInsights() {
+  const allIds = [...situationAxes,...experienceAxes];
+  // Quadrant analysis
+  const q1=[], q2=[], q3=[], q4=[];
+  allIds.forEach(id => {
+    const adv = cepAdv(id);
+    const fSov = currentSOV['A社'][id]||0;
+    const compAvg = brands.slice(1).reduce((s,b)=>s+(currentSOV[b][id]||0),0)/(brands.length-1);
+    const diff = fSov - compAvg;
+    if (adv > 0 && diff > 0) q1.push(id);
+    else if (adv < 0 && diff > 0) q2.push(id);
+    else if (adv > 0 && diff < 0) q3.push(id);
+    else q4.push(id);
+  });
+  // Biggest movement
+  let biggestMove = {id:null,d:0};
+  allIds.forEach(id => {
+    const fSov = currentSOV['A社'][id]||0;
+    const pfSov = previousSOV['A社'][id]||0;
+    const compAvg = brands.slice(1).reduce((s,b)=>s+(currentSOV[b][id]||0),0)/(brands.length-1);
+    const prevCompAvg = brands.slice(1).reduce((s,b)=>s+(previousSOV[b][id]||0),0)/(brands.length-1);
+    const curDiff = fSov - compAvg;
+    const prevDiff = pfSov - prevCompAvg;
+    const move = Math.abs(curDiff - prevDiff);
+    if (move > Math.abs(biggestMove.d)) biggestMove = {id, d: curDiff - prevDiff};
+  });
+
+  const insights = [
+    {title:'強みを活かして投資中', text:q1.length > 0 ? `${q1.map(id=>cepLabel(id).slice(0,6)+'('+id+')').join('、')} — CEP優位かつ競合超過SOV。この投資姿勢を維持` : '該当なし'},
+    {title:'弱みに過剰投資', text:q2.length > 0 ? `${q2.map(id=>cepLabel(id).slice(0,6)+'('+id+')').join('、')} — CEP劣位なのに競合超過SOV。配分を他軸へシフト検討` : '該当なし'},
+    {title:'強みなのに投資不足', text:q3.length > 0 ? `${q3.map(id=>cepLabel(id).slice(0,6)+'('+id+')').join('、')} — CEP優位だが競合に負けているSOV。最優先の投資拡大候補` : '該当なし'},
+    {title:'最大ポジション変動', text:biggestMove.id ? `${cepLabel(biggestMove.id)}(${biggestMove.id}) — 対競合SOV差が${biggestMove.d>0?'+':''}${biggestMove.d.toFixed(1)}pt変動` : 'なし'},
+  ];
+  generateInsights('scatter-insights', insights);
+}
+
+function renderWhitespaceInsights() {
+  const allIds = [...situationAxes,...experienceAxes];
+  const scored = allIds.map(id => {
+    const adv = cepAdv(id);
+    const compAvg = brands.slice(1).reduce((s,b)=>s+(currentSOV[b][id]||0),0)/(brands.length-1);
+    const fSov = currentSOV['A社'][id]||0;
+    return {id, ws: adv * (1 - compAvg/100), adv, compAvg, fSov};
+  }).sort((a,b) => b.ws - a.ws);
+  const top = scored[0];
+  const bottom = scored[scored.length-1];
+  const blueOcean = scored.filter(s => s.ws > 5 && s.fSov < 15);
+  const alreadyCapturing = scored.filter(s => s.ws > 3 && s.fSov > 30);
+
+  const insights = [
+    {title:'最大ホワイトスペース', text:`${cepLabel(top.id)}(${top.id}) — スコア${top.ws.toFixed(1)}。CEP優位+${top.adv}pt × 競合平均SOV ${top.compAvg.toFixed(1)}%の空白地帯`},
+    {title:'ブルーオーシャン機会', text:blueOcean.length > 0 ? `${blueOcean.map(s=>cepLabel(s.id).slice(0,6)+'('+s.id+')').join('、')} — 高WSスコアかつA社 SOV低。即座に投資拡大の余地` : '高WSスコアの軸は概ねA社がカバー済み'},
+    {title:'成功事例', text:alreadyCapturing.length > 0 ? `${alreadyCapturing.map(s=>cepLabel(s.id).slice(0,6)+'('+s.id+')').join('、')} — WSスコアが高くA社が既に高SOV。ベストプラクティスとして継続` : '—'},
+    {title:'最もレッドオーシャン', text:`${cepLabel(bottom.id)}(${bottom.id}) — スコア${bottom.ws.toFixed(1)}。CEP劣位${bottom.adv}ptで競合が密集する領域`},
+  ];
+  generateInsights('whitespace-insights', insights);
+}
+
+// ============================================================
 // TAB NAVIGATION
 // ============================================================
 const tabConfig = [
@@ -547,6 +690,7 @@ function renderBrandLegend(containerId) {
 }
 
 function renderOverviewCharts() {
+  renderOverviewInsights();
   renderBrandLegend('brand-legend-s');
   renderBrandLegend('brand-legend-e');
   renderKPIRow('kpi-row-overview');
@@ -576,6 +720,8 @@ function renderOverviewCharts() {
 // TAB 3-4: SITUATION/EXPERIENCE RENDERERS
 // ============================================================
 function renderTables() {
+  renderAxisInsights('situation');
+  renderAxisInsights('experience');
   ['situation','experience'].forEach(type => {
     const axes = type === 'situation' ? situationAxes : experienceAxes;
     const tbody = document.getElementById(`${type}-table-body`);
@@ -652,6 +798,7 @@ function drawAxisCanvas(type) {
 // TAB 5: POSITIONING MAP (SCATTER)
 // ============================================================
 function drawScatter() {
+  renderScatterInsights();
   const canvas = document.getElementById('scatter-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
@@ -725,6 +872,7 @@ function drawScatter() {
 // TAB 6: WHITESPACE
 // ============================================================
 function renderWhitespace() {
+  renderWhitespaceInsights();
   const allAxes = [...situationAxes,...experienceAxes];
   const tbody = document.getElementById('whitespace-table-body');
   const items = allAxes.map(id => {
@@ -1122,6 +1270,7 @@ document.addEventListener('DOMContentLoaded', init);
 
 <!-- ===== TAB 2: OVERVIEW ===== -->
 <div id="tab-overview" class="tab-content">
+  <div id="overview-insights" style="margin-bottom:16px"></div>
   <div class="kpi-row" id="kpi-row-overview"></div>
   <div class="grid2">
     <div class="card">
@@ -1139,6 +1288,7 @@ document.addEventListener('DOMContentLoaded', init);
 
 <!-- ===== TAB 3: SITUATION ===== -->
 <div id="tab-situation" class="tab-content">
+  <div id="situation-insights" style="margin-bottom:16px"></div>
   <div class="card">
     <h2>状況軸 — CEP優位性 vs 広告SOV 5社比較</h2>
     <p style="font-size:0.75rem;color:var(--muted);margin-bottom:12px">CEP優位スコア(pt) = CEPレポートにおけるA社の相対優位度。広告SOV(%) = 各ブランドの全広告のうち該当CEP軸のキーワードを含む割合</p>
@@ -1165,6 +1315,7 @@ document.addEventListener('DOMContentLoaded', init);
 
 <!-- ===== TAB 4: EXPERIENCE ===== -->
 <div id="tab-experience" class="tab-content">
+  <div id="experience-insights" style="margin-bottom:16px"></div>
   <div class="card">
     <h2>体験価値軸 — CEP優位性 vs 広告SOV 5社比較</h2>
     <table>
@@ -1190,6 +1341,7 @@ document.addEventListener('DOMContentLoaded', init);
 
 <!-- ===== TAB 5: POSITIONING MAP ===== -->
 <div id="tab-scatter" class="tab-content">
+  <div id="scatter-insights" style="margin-bottom:16px"></div>
   <div class="card">
     <h2>CEPポジショニングマップ</h2>
     <p style="font-size:0.75rem;color:var(--muted);margin-bottom:8px">X軸: A社 CEP優位スコア(pt)。Y軸: A社広告SOV − 競合平均SOV。バブルサイズ = 絶対観測量。薄色 = 前月位置。</p>
@@ -1199,6 +1351,7 @@ document.addEventListener('DOMContentLoaded', init);
 
 <!-- ===== TAB 6: WHITESPACE ===== -->
 <div id="tab-whitespace" class="tab-content">
+  <div id="whitespace-insights" style="margin-bottom:16px"></div>
   <div class="card">
     <h2>ホワイトスペース分析</h2>
     <p style="font-size:0.75rem;color:var(--muted);margin-bottom:12px">A社 CEP優位スコアが正 かつ 競合SOVが低い領域 = 広告戦略上のブルーオーシャン</p>
