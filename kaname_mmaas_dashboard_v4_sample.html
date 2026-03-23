@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaname MMaaS — CEPs×広告SOV 月次訴求判断ダッシュボード v4</title>
+<style>
+  :root {
+    --bg: #0f172a; --card: #1e293b; --border: #334155;
+    --text: #e2e8f0; --muted: #94a3b8; --accent: #3b82f6;
+    --danger: #ef4444; --warning: #f59e0b; --success: #10b981;
+    --purple: #8b5cf6; --pink: #ec4899; --cyan: #06b6d4;
+    --brand-a: #3b82f6; --brand-b: #10b981; --brand-c: #f59e0b; --brand-d: #ec4899; --brand-e: #8b5cf6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; }
+  body { font-family: 'Hiragino Sans','Yu Gothic',sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding: 20px; }
+  h1 { font-size: 1.4rem; margin-bottom: 4px; }
+  h2 { font-size: 1.1rem; margin-bottom: 10px; color: var(--accent); }
+  h3 { font-size: 0.95rem; margin-bottom: 8px; }
+  .subtitle { color: var(--muted); font-size: 0.78rem; margin-bottom: 20px; }
+  /* Tab Navigation */
+  .tabs { display: flex; gap: 3px; margin-bottom: 20px; flex-wrap: wrap; align-items: stretch; }
+  .tab { padding: 7px 13px; border-radius: 8px 8px 0 0; cursor: pointer; background: var(--card); border: 1px solid var(--border); border-bottom: none; font-size: 0.78rem; color: var(--muted); transition: all .2s; white-space: nowrap; }
+  .tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .tab:hover:not(.active) { background: #2d3a4f; }
+  .tab.star { background: linear-gradient(135deg, var(--card), rgba(245,158,11,0.15)); }
+  .tab.star.active { background: linear-gradient(135deg, var(--accent), rgba(245,158,11,0.3)); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .tab-divider { width: 1px; background: var(--border); align-self: stretch; margin: 4px 6px; }
+  .tab-group-label { font-size: 0.6rem; color: var(--muted); display: block; margin-bottom: -2px; padding-left: 4px; }
+  /* Grid */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  /* Card */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .card-full { grid-column: 1 / -1; }
+  /* KPI compact */
+  .kpi-compact { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; font-size: 0.75rem; }
+  .kpi-compact-item { display: flex; align-items: center; gap: 6px; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; }
+  .kpi-compact-item .brand-name { font-weight: 700; min-width: 48px; }
+  .kpi-compact-item .kpi-val { font-weight: 800; font-size: 0.85rem; }
+  /* Table */
+  table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  th, td { padding: 7px 9px; border-bottom: 1px solid var(--border); text-align: left; }
+  th { color: var(--muted); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; background: rgba(0,0,0,0.2); }
+  tr:hover { background: rgba(59,130,246,0.05); }
+  /* Bars */
+  .bar-container { display: flex; align-items: center; gap: 6px; }
+  .bar { height: 16px; border-radius: 3px; min-width: 2px; transition: width 0.5s; }
+  .stacked-bar { display: flex; height: 24px; border-radius: 4px; overflow: hidden; width: 100%; }
+  .stacked-segment { height: 100%; transition: width 0.5s; position: relative; }
+  .h-bar-row { display: flex; align-items: center; margin-bottom: 8px; }
+  .h-bar-label { width: 100px; font-size: 0.78rem; font-weight: 600; text-align: right; padding-right: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .h-bar-track { flex: 1; display: flex; height: 28px; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,0.03); }
+  .h-bar-seg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.63rem; font-weight: 600; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.5); transition: width 0.6s; cursor: default; min-width: 0; }
+  .h-bar-seg:hover { filter: brightness(1.2); }
+  /* Badge */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.68rem; font-weight: 600; }
+  .badge-danger { background: rgba(239,68,68,0.2); color: var(--danger); }
+  .badge-warning { background: rgba(245,158,11,0.2); color: var(--warning); }
+  .badge-success { background: rgba(16,185,129,0.2); color: var(--success); }
+  .badge-info { background: rgba(59,130,246,0.2); color: var(--accent); }
+  /* Size badges */
+  .size-badge { display:inline-block; padding:1px 6px; border-radius:3px; font-size:0.62rem; font-weight:700; }
+  .size-large { background:rgba(16,185,129,0.2); color:var(--success); }
+  .size-medium { background:rgba(245,158,11,0.2); color:var(--warning); }
+  .size-small { background:rgba(239,68,68,0.2); color:var(--danger); }
+  .market-warning { color:var(--danger); font-size:0.68rem; }
+  /* Legend */
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin: 8px 0 14px; }
+  .legend-item { display: flex; align-items: center; gap: 4px; font-size: 0.72rem; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+  /* Delta indicators */
+  .delta-up { color: var(--success); font-weight: 600; font-size: 0.72rem; }
+  .delta-down { color: var(--danger); font-weight: 600; font-size: 0.72rem; }
+  .delta-flat { color: var(--muted); font-size: 0.72rem; }
+  /* Summary cards */
+  .summary-change { border-left: 3px solid; padding: 10px 14px; margin-bottom: 10px; border-radius: 0 8px 8px 0; background: rgba(0,0,0,0.15); }
+  .summary-change.high { border-color: var(--danger); }
+  .summary-change.medium { border-color: var(--warning); }
+  .summary-change.low { border-color: var(--success); }
+  .summary-change h4 { font-size: 0.88rem; margin-bottom: 4px; }
+  .summary-change p { font-size: 0.78rem; color: var(--muted); }
+  /* CEP action cards */
+  .cep-action-card { border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; }
+  .cep-action-card.maintain { background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.3); }
+  .cep-action-card.strengthen { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); }
+  .cep-action-card.reduce { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); }
+  .cep-action-card h4 { font-size: 0.85rem; margin-bottom: 3px; }
+  .cep-action-card p { font-size: 0.75rem; color: var(--muted); }
+  /* Next month actions */
+  .action-candidates { background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1)); border: 1px solid rgba(59,130,246,0.3); border-radius: 10px; padding: 16px; }
+  /* Strategy cards */
+  .strategy-card { background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1)); border: 1px solid rgba(59,130,246,0.3); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+  .strategy-card h4 { color: var(--accent); margin-bottom: 6px; font-size: 0.88rem; }
+  .strategy-card p { font-size: 0.78rem; color: var(--muted); }
+  .strategy-card .highlight { color: var(--warning); font-weight: 700; }
+  /* Insight box */
+  .insight-box { background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(239,68,68,0.08)); border: 1px solid rgba(245,158,11,0.2); border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; font-size: 0.78rem; }
+  .insight-box strong { color: var(--warning); }
+  /* Cross heatmap */
+  .cross-heatmap { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+  .cross-heatmap th { padding: 6px 8px; font-size: 0.68rem; text-align: center; white-space: nowrap; }
+  .cross-heatmap td { padding: 5px 6px; text-align: center; font-size: 0.68rem; border-bottom: 1px solid var(--border); }
+  .cross-heatmap td.axis-name { text-align: left; font-weight: 600; font-size: 0.72rem; min-width: 80px; }
+  /* Expansion card */
+  .expansion-card { background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(59,130,246,0.08)); border: 1px solid rgba(16,185,129,0.3); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+  .expansion-card .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .expansion-card .card-header h4 { font-size: 0.92rem; color: var(--success); }
+  .expansion-card .ws-score { font-size: 1.1rem; font-weight: 800; color: var(--warning); }
+  .expansion-card .media-candidate { padding: 8px 12px; margin-bottom: 6px; background: rgba(0,0,0,0.2); border-radius: 6px; border-left: 3px solid var(--success); }
+  .expansion-card .media-candidate .media-name-exp { font-weight: 700; color: var(--text); font-size: 0.82rem; }
+  .expansion-card .media-candidate .competitor-ref { font-size: 0.72rem; color: var(--muted); }
+  .expansion-card .fancl-current { font-size: 0.75rem; color: var(--muted); padding: 6px 0; border-top: 1px solid var(--border); margin-top: 8px; }
+  /* Coverage matrix */
+  .coverage-matrix { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+  .coverage-matrix th { padding: 6px 8px; font-size: 0.68rem; text-align: center; }
+  .coverage-matrix td { padding: 5px 6px; text-align: center; font-size: 0.68rem; border-bottom: 1px solid var(--border); }
+  .coverage-matrix td.cep-name { text-align: left; font-weight: 600; min-width: 100px; }
+  .gap-indicator { background: rgba(239,68,68,0.25); font-weight: 800; }
+  /* Cross card */
+  .cross-card { background: rgba(0,0,0,0.15); border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+  .cep-row-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .cep-row-header .axis { font-weight: 700; font-size: 0.85rem; }
+  .brand-mini-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; padding-left: 8px; }
+  .brand-mini-row .bname { width: 50px; font-size: 0.68rem; font-weight: 600; text-align: right; }
+  .brand-mini-row .btrack { flex: 1; display: flex; height: 18px; border-radius: 3px; overflow: hidden; background: rgba(255,255,255,0.03); }
+  .brand-mini-row .bseg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.58rem; font-weight: 600; color: white; text-shadow: 0 1px 1px rgba(0,0,0,0.5); }
+  /* Group header row in tables */
+  .group-header-row td { background: rgba(59,130,246,0.1); font-weight: 700; color: var(--accent); font-size: 0.75rem; padding: 6px 9px; }
+  /* Footer */
+  .dashboard-footer { text-align: center; padding: 16px; color: var(--muted); font-size: 0.72rem; border-top: 1px solid var(--border); margin-top: 30px; }
+  .disclaimer { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); border-radius: 6px; padding: 10px; text-align: center; font-size: 0.75rem; color: var(--warning); margin-top: 16px; }
+  /* Quarterly label */
+  .quarterly-badge { background: rgba(139,92,246,0.2); color: var(--purple); padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 600; }
+  /* Print */
+  @media print {
+    body { background: white; color: #1a1a1a; padding: 10px; font-size: 12px; }
+    .tabs { display: none; }
+    .tab-content { display: block !important; page-break-inside: avoid; margin-bottom: 20px; }
+    .card { border: 1px solid #ddd; background: white; }
+    .kpi-compact-item { border: 1px solid #ddd; background: #f9f9f9; }
+    :root { --text: #1a1a1a; --muted: #666; --card: white; --border: #ddd; --bg: white; }
+  }
+  @media (max-width: 900px) {
+    .grid2, .grid3 { grid-template-columns: 1fr; }
+    .kpi-compact { flex-direction: column; }
+    .tabs { gap: 2px; }
+    .tab { padding: 5px 8px; font-size: 0.7rem; }
+  }
+</style>
+</head>
+<body>
+<script>
+// ============================================================
+// DATA LAYER
+// ============================================================
+
+// === メタ情報 ===
+const reportMeta = {
+  reportMonth: "2025年12月",
+  previousMonth: "2025年11月",
+  brands: ['A社','B社','C社','D社','E社'],
+  brandColors: { 'A社':'#3b82f6','B社':'#10b981','C社':'#f59e0b','D社':'#ec4899','E社':'#8b5cf6' },
+  brandShort: { 'A社':'A社','B社':'B社','C社':'C社','D社':'D社','E社':'E社' },
+};
+
+// === CEPマスターテーブル（四半期更新） ===
+const cepMaster = {
+  'S01':{label:'年齢による肌悩み',type:'situation',advantage:-7.8,since:'2025Q3',status:'active',mergedInto:null,keywords:['エイジング','年齢肌','シワ','たるみ','ハリ'],marketSize:'large'},
+  'S02':{label:'ニキビ・毛穴が気になる',type:'situation',advantage:6.2,since:'2025Q3',status:'active',mergedInto:null,keywords:['ニキビ','毛穴','角質','吹き出物','黒ずみ'],marketSize:'large'},
+  'S03':{label:'敏感肌の悩み',type:'situation',advantage:4.0,since:'2025Q3',status:'active',mergedInto:null,keywords:['敏感肌','肌荒れ','刺激','低刺激','ゆらぎ'],marketSize:'medium'},
+  'S04':{label:'乾燥が気になる',type:'situation',advantage:2.6,since:'2025Q3',status:'active',mergedInto:null,keywords:['乾燥','保湿','うるおい','カサつき'],marketSize:'large'},
+  'S05':{label:'成分がシンプル',type:'situation',advantage:2.1,since:'2025Q3',status:'active',mergedInto:null,keywords:['成分','無添加','シンプル','天然','オーガニック'],marketSize:'small'},
+  'S06':{label:'紫外線・日焼けが気になる',type:'situation',advantage:0.8,since:'2025Q3',status:'active',mergedInto:null,keywords:['紫外線','日焼け','UV','美白','シミ'],marketSize:'medium'},
+  'S07':{label:'肌の調子を整えたい',type:'situation',advantage:0.5,since:'2025Q3',status:'active',mergedInto:null,keywords:['肌調子','整え','コンディション','肌質改善'],marketSize:'medium'},
+  'E01':{label:'優しい使い心地',type:'experience',advantage:8.5,since:'2025Q3',status:'active',mergedInto:null,keywords:['やさしい','優しい','マイルド','穏やか','低刺激'],marketSize:'medium'},
+  'E02':{label:'ベタつかない',type:'experience',advantage:7.4,since:'2025Q3',status:'active',mergedInto:null,keywords:['ベタつかない','さっぱり','軽い','浸透'],marketSize:'large'},
+  'E03':{label:'しっとり潤い',type:'experience',advantage:5.1,since:'2025Q3',status:'active',mergedInto:null,keywords:['しっとり','潤い','もちもち','うるおい'],marketSize:'large'},
+  'E04':{label:'素肌自信',type:'experience',advantage:-6.4,since:'2025Q3',status:'active',mergedInto:null,keywords:['素肌','自信','すっぴん','ノーファンデ'],marketSize:'medium'},
+  'E05':{label:'肌が変わった実感',type:'experience',advantage:-3.5,since:'2025Q3',status:'active',mergedInto:null,keywords:['実感','変わった','効果','違い'],marketSize:'large'},
+  'E06':{label:'コスパ良い',type:'experience',advantage:1.2,since:'2025Q3',status:'active',mergedInto:null,keywords:['コスパ','お得','値段','価格','安い'],marketSize:'medium'},
+  'E07':{label:'手軽さ',type:'experience',advantage:-0.9,since:'2025Q3',status:'active',mergedInto:null,keywords:['手軽','簡単','時短','ワンステップ'],marketSize:'small'},
+  'E08':{label:'ブランド信頼',type:'experience',advantage:-4.2,since:'2025Q3',status:'active',mergedInto:null,keywords:['信頼','安心','ブランド','歴史','品質'],marketSize:'small'},
+  'E09':{label:'プロ推奨',type:'experience',advantage:-2.8,since:'2025Q3',status:'active',mergedInto:null,keywords:['プロ','専門家','皮膚科','推奨','おすすめ'],marketSize:'medium'},
+};
+
+// === CEP言及数データ（四半期更新・Excelから取得） ===
+const cepMentions = {
+  // 状況（Situation）CEPs
+  'S01': {total:5508, byBrand:{'A社':932,'B社':853,'C社':1163,'D社':1057,'E社':1503}},
+  'S02': {total:5362, byBrand:{'A社':1163,'B社':489,'C社':1193,'D社':696,'E社':1821}},
+  'S03': {total:2247, byBrand:{'A社':528,'B社':705,'C社':108,'D社':483,'E社':423}},
+  'S04': {total:4108, byBrand:{'A社':830,'B社':709,'C社':173,'D社':1401,'E社':995}},
+  'S05': {total:602,  byBrand:{'A社':169,'B社':245,'C社':38,'D社':66,'E社':85}},
+  'S06': {total:1574, byBrand:{'A社':169,'B社':94,'C社':123,'D社':786,'E社':402}},
+  'S07': {total:1127, byBrand:{'A社':164,'B社':151,'C社':88,'D社':385,'E社':339}},
+  // 体験価値（Experience）CEPs
+  'E01': {total:1986, byBrand:{'A社':648,'B社':373,'C社':221,'D社':226,'E社':519}},
+  'E02': {total:3607, byBrand:{'A社':952,'B社':605,'C社':391,'D社':584,'E社':1076}},
+  'E03': {total:4162, byBrand:{'A社':1002,'B社':1366,'C社':380,'D社':701,'E社':713}},
+  'E04': {total:2711, byBrand:{'A社':380,'B社':619,'C社':203,'D社':498,'E社':1011}},
+  'E05': {total:4738, byBrand:{'A社':759,'B社':1044,'C社':322,'D社':1537,'E社':1076}},
+  'E06': {total:1570, byBrand:{'A社':354,'B社':539,'C社':130,'D社':132,'E社':415}},
+  'E07': {total:524,  byBrand:{'A社':56,'B社':180,'C社':51,'D社':44,'E社':194}},
+  'E08': {total:458,  byBrand:{'A社':172,'B社':161,'C社':33,'D社':41,'E社':52}},
+  'E09': {total:1149, byBrand:{'A社':329,'B社':345,'C社':116,'D社':126,'E社':233}},
+};
+// 全CEP言及数合計
+const totalMentions = {
+  situation: 20528,
+  experience: 20905,
+};
+
+// === CEPヘルパー関数 ===
+function cepLabel(id) { const c=cepMaster[id]; if(!c) return id; if(c.status==='merged'&&c.mergedInto) return cepMaster[c.mergedInto]?.label||id; return c.label; }
+function cepAdv(id) { return cepMaster[id]?.advantage||0; }
+function activeCEPs(type) { return Object.entries(cepMaster).filter(([_,c])=>c.type===type&&c.status==='active').map(([id])=>id); }
+function allActiveCEPs() { return Object.entries(cepMaster).filter(([_,c])=>c.status==='active').map(([id])=>id); }
+function cepIdTag(id) { return `<span title="${id}">${cepLabel(id)}</span> <span style="font-size:0.6rem;color:var(--muted)">${id}</span>`; }
+
+// === CEP言及数ヘルパー関数 ===
+function cepMentionCount(id) { return cepMentions[id]?.total || 0; }
+function cepMentionShare(id) {
+  const m = cepMentions[id];
+  if (!m) return 0;
+  const type = cepMaster[id]?.type;
+  const total = type === 'situation' ? totalMentions.situation : totalMentions.experience;
+  return (m.total / total * 100);
+}
+function marketSizeLabel(id) {
+  const count = cepMentionCount(id);
+  if (count >= 3000) return {label:'大', cls:'size-large', color:'var(--success)'};
+  if (count >= 1000) return {label:'中', cls:'size-medium', color:'var(--warning)'};
+  return {label:'小', cls:'size-small', color:'var(--danger)'};
+}
+function sizeBadgeHtml(id) {
+  const s = marketSizeLabel(id);
+  return `<span class="size-badge ${s.cls}">${s.label}</span>`;
+}
+
+// === Opportunity Score (v2) ===
+function opportunityScore(id) {
+  const adv = cepAdv(id);
+  const compAvg = (brands.slice(1).reduce((s,b) => s + (currentSOV[b][id]||0), 0)) / (brands.length - 1);
+  const mentionCount = cepMentionCount(id);
+  return adv * (1 - compAvg/100) * Math.log2(1 + mentionCount/1000);
+}
+
+// === 広告SOVデータ（月次更新・CEP IDキー） ===
+const currentSOV = {
+  'A社':{'S01':88.8,'S02':2.9,'S03':9.4,'S04':55.0,'S05':28.4,'S06':50.7,'S07':14.2,'E01':19.0,'E02':5.7,'E03':49.3,'E04':10.2,'E05':37.2,'E06':59.2,'E07':3.8,'E08':7.8,'E09':19.9},
+  'B社':{'S01':94.9,'S02':0.0,'S03':0.0,'S04':14.5,'S05':97.3,'S06':0.0,'S07':97.3,'E01':0.0,'E02':0.0,'E03':94.9,'E04':0.0,'E05':0.0,'E06':0.0,'E07':0.0,'E08':0.0,'E09':0.0},
+  'C社':{'S01':5.1,'S02':84.3,'S03':2.3,'S04':75.3,'S05':0.4,'S06':4.1,'S07':0.9,'E01':0.2,'E02':0.4,'E03':1.1,'E04':1.2,'E05':4.1,'E06':14.8,'E07':0.5,'E08':6.7,'E09':13.9},
+  'D社':{'S01':77.1,'S02':0.5,'S03':0.0,'S04':3.5,'S05':7.1,'S06':0.4,'S07':0.0,'E01':0.1,'E02':0.4,'E03':0.4,'E04':13.5,'E05':3.3,'E06':3.2,'E07':9.6,'E08':27.8,'E09':42.0},
+  'E社':{'S01':6.0,'S02':49.3,'S03':1.4,'S04':6.2,'S05':4.1,'S06':16.5,'S07':15.2,'E01':9.1,'E02':14.8,'E03':12.4,'E04':16.7,'E05':13.7,'E06':46.7,'E07':0.3,'E08':3.8,'E09':10.6},
+};
+
+// === 前月SOV（テスト用・CEP IDキー） ===
+const previousSOV = {
+  'A社':{'S01':82.1,'S02':4.5,'S03':12.3,'S04':48.7,'S05':33.1,'S06':44.2,'S07':18.9,'E01':14.2,'E02':8.3,'E03':42.8,'E04':13.7,'E05':31.5,'E06':52.4,'E07':5.1,'E08':10.2,'E09':24.6},
+  'B社':{'S01':89.3,'S02':0.0,'S03':0.0,'S04':18.2,'S05':91.8,'S06':0.0,'S07':92.1,'E01':0.0,'E02':0.0,'E03':89.4,'E04':0.0,'E05':0.0,'E06':0.0,'E07':0.0,'E08':0.0,'E09':0.0},
+  'C社':{'S01':6.8,'S02':78.9,'S03':3.8,'S04':69.1,'S05':0.6,'S06':5.9,'S07':1.4,'E01':0.3,'E02':0.6,'E03':1.5,'E04':1.8,'E05':5.6,'E06':11.3,'E07':0.7,'E08':8.9,'E09':11.2},
+  'D社':{'S01':71.8,'S02':0.7,'S03':0.0,'S04':4.8,'S05':8.9,'S06':0.6,'S07':0.0,'E01':0.2,'E02':0.5,'E03':0.5,'E04':11.2,'E05':4.7,'E06':4.1,'E07':7.8,'E08':23.4,'E09':38.5},
+  'E社':{'S01':7.8,'S02':43.1,'S03':1.9,'S04':7.8,'S05':5.2,'S06':13.8,'S07':12.7,'E01':7.3,'E02':11.9,'E03':10.1,'E04':14.2,'E05':11.4,'E06':40.5,'E07':0.4,'E08':4.9,'E09':8.3},
+};
+
+// === 絶対観測量（月次更新） ===
+const observedVolume = {
+  current: {'A社':47213,'B社':35924,'C社':170391,'D社':758370,'E社':1191600},
+  previous: {'A社':43800,'B社':33150,'C社':158200,'D社':721500,'E社':1105000},
+};
+
+// === 配信構造データ（月次更新） ===
+const dimData = {
+  'A社':{total_obs:47213,'フォーマット':{'カルーセル':16.4,'動画':77.1,'静止画':6.5},'広告タイプ':{'コンバージョン':100.0},'LPタイプ':{'記事LP':0.2,'非記事LP':99.8},'アフィリエイトタイプ':{'EC系':100.0},'媒体':{'Facebook':4.0,'Google':0.0,'Instagram':19.8,'TikTok':23.6,'X':26.7,'Yahoo':2.3,'YouTube':23.6}},
+  'B社':{total_obs:35924,'フォーマット':{'カルーセル':13.5,'動画':85.3,'静止画':1.2},'広告タイプ':{'コンバージョン':100.0},'LPタイプ':{'非記事LP':100.0},'アフィリエイトタイプ':{'非アフィリエイト':100.0},'媒体':{'Facebook':0.0,'Google':0.4,'Instagram':1.1,'TikTok':3.0,'X':95.2,'Yahoo':0.1,'YouTube':0.2}},
+  'C社':{total_obs:170391,'フォーマット':{'カルーセル':29.9,'動画':5.2,'静止画':64.9},'広告タイプ':{'コンバージョン':99.1,'ブランディング':0.9},'LPタイプ':{'記事LP':1.2,'非記事LP':98.8},'アフィリエイトタイプ':{'EC系':99.5,'非アフィリエイト':0.5},'媒体':{'Facebook':0.0,'Google':0.0,'Instagram':0.8,'LINE':23.8,'SmartNews':0.0,'TikTok':2.7,'X':70.1,'Yahoo':0.1,'YouTube':2.5}},
+  'D社':{total_obs:758370,'フォーマット':{'カルーセル':0.1,'動画':2.3,'静止画':97.6},'広告タイプ':{'コンバージョン':100.0},'LPタイプ':{'記事LP':0.0,'非記事LP':100.0},'アフィリエイトタイプ':{'非アフィリエイト':100.0},'媒体':{'Facebook':0.0,'Google':90.2,'Instagram':3.9,'LINE':1.8,'X':2.7,'YouTube':1.4}},
+  'E社':{total_obs:1191600,'フォーマット':{'カルーセル':14.3,'動画':19.0,'静止画':66.7},'広告タイプ':{'コンバージョン':100.0,'ブランディング':0.0},'LPタイプ':{'記事LP':33.2,'非記事LP':66.8},'アフィリエイトタイプ':{'EC系':96.6,'非アフィリエイト':3.4},'媒体':{'Facebook':6.1,'Google':0.9,'Instagram':11.0,'LINE':52.9,'SmartNews':15.7,'TikTok':0.3,'X':1.1,'Yahoo':4.1,'YouTube':8.0}},
+};
+
+// === 前月配信構造（テスト用） ===
+const previousDimData = {
+  'A社':{'フォーマット':{'カルーセル':18.2,'動画':73.5,'静止画':8.3},'媒体':{'Facebook':5.1,'Google':0.0,'Instagram':22.3,'TikTok':20.1,'X':29.4,'Yahoo':2.8,'YouTube':20.3}},
+  'B社':{'フォーマット':{'カルーセル':15.1,'動画':82.7,'静止画':2.2},'媒体':{'Facebook':0.0,'Google':0.5,'Instagram':1.4,'TikTok':2.1,'X':95.8,'Yahoo':0.1,'YouTube':0.1}},
+  'C社':{'フォーマット':{'カルーセル':32.4,'動画':6.8,'静止画':60.8},'媒体':{'Facebook':0.0,'Google':0.0,'Instagram':1.2,'LINE':20.5,'SmartNews':0.0,'TikTok':3.4,'X':72.8,'Yahoo':0.2,'YouTube':1.9}},
+  'D社':{'フォーマット':{'カルーセル':0.2,'動画':3.1,'静止画':96.7},'媒体':{'Facebook':0.0,'Google':88.7,'Instagram':4.5,'LINE':2.3,'X':3.1,'YouTube':1.4}},
+  'E社':{'フォーマット':{'カルーセル':16.1,'動画':17.3,'静止画':66.6},'媒体':{'Facebook':7.2,'Google':1.1,'Instagram':12.4,'LINE':49.8,'SmartNews':17.2,'TikTok':0.4,'X':1.3,'Yahoo':3.5,'YouTube':7.1}},
+};
+
+// === CEP×ディメンション クロスデータ（月次更新・CEP IDキー） ===
+const crossData = {
+  'A社':{
+    'S01':{obs:41823,fmt:{'動画':74.4,'カルーセル':18.5,'静止画':7.1},media:{'X':30.1,'TikTok':26.6,'Instagram':21.9,'YouTube':16.8,'Facebook':4.6},lp:{'非記事LP':100.0}},
+    'S02':{obs:1352,fmt:{'カルーセル':99.3,'動画':0.7},media:{'Instagram':99.3,'TikTok':0.7},lp:{'非記事LP':100.0}},
+    'S03':{obs:13954,fmt:{'カルーセル':50.4,'動画':45.6,'静止画':4.1},media:{'Instagram':51.3,'YouTube':44.5,'X':4.1},lp:{'非記事LP':100.0}},
+    'S04':{obs:25904,fmt:{'動画':75.0,'カルーセル':25.0},media:{'TikTok':42.9,'Instagram':28.6,'YouTube':26.0},lp:{'非記事LP':100.0}},
+    'S05':{obs:13454,fmt:{'カルーセル':52.8,'動画':47.2},media:{'Instagram':53.8,'YouTube':46.2},lp:{'非記事LP':100.0}},
+    'S06':{obs:22559,fmt:{'動画':77.3,'カルーセル':20.2,'静止画':2.5},media:{'TikTok':49.2,'Instagram':24.4,'YouTube':21.0},lp:{'非記事LP':100.0}},
+    'S07':{obs:6387,fmt:{'カルーセル':86.5,'動画':13.5},media:{'Instagram':88.5,'YouTube':11.5},lp:{'非記事LP':100.0}},
+    'E01':{obs:9395,fmt:{'動画':54.1,'カルーセル':45.9},media:{'YouTube':52.7,'Instagram':47.3},lp:{'非記事LP':100.0}},
+    'E02':{obs:2925,fmt:{'カルーセル':100.0},media:{'Instagram':100.0},lp:{'非記事LP':100.0}},
+    'E03':{obs:26090,fmt:{'動画':74.5,'カルーセル':25.5},media:{'TikTok':42.6,'Instagram':29.1,'YouTube':25.8},lp:{'非記事LP':100.0}},
+    'E04':{obs:17566,fmt:{'動画':64.8,'カルーセル':35.1},media:{'TikTok':55.3,'Instagram':39.7,'Facebook':3.7},lp:{'非記事LP':100.0}},
+    'E05':{obs:19706,fmt:{'動画':64.9,'カルーセル':32.3,'静止画':2.9},media:{'TikTok':56.3,'Instagram':36.4,'Facebook':3.3},lp:{'非記事LP':100.0}},
+    'E06':{obs:26908,fmt:{'動画':60.7,'カルーセル':28.3,'静止画':11.0},media:{'X':46.8,'Instagram':28.8,'YouTube':18.4},lp:{'非記事LP':100.0}},
+    'E07':{obs:5295,fmt:{'カルーセル':49.0,'動画':30.8,'静止画':20.2},media:{'Instagram':60.8,'Yahoo':20.2,'Facebook':19.0},lp:{'非記事LP':100.0}},
+    'E08':{obs:4043,fmt:{'カルーセル':100.0},media:{'Instagram':100.0},lp:{'非記事LP':100.0}},
+    'E09':{obs:7324,fmt:{'カルーセル':80.1,'静止画':17.9,'動画':2.0},media:{'Instagram':81.9,'X':17.9},lp:{'非記事LP':100.0}},
+  },
+  'B社':{
+    'S01':{obs:34091,fmt:{'動画':85.3,'カルーセル':14.2,'静止画':0.5},media:{'X':98.5,'Instagram':1.0},lp:{'非記事LP':100.0}},
+    'S04':{obs:5209,fmt:{'カルーセル':93.0,'動画':6.3},media:{'X':93.0,'Instagram':6.8},lp:{'非記事LP':100.0}},
+    'S05':{obs:34966,fmt:{'動画':85.6,'カルーセル':13.9,'静止画':0.5},media:{'X':96.0,'TikTok':2.4,'Instagram':1.0},lp:{'非記事LP':100.0}},
+    'E03':{obs:5209,fmt:{'カルーセル':93.0,'動画':6.3},media:{'X':93.0,'Instagram':6.8},lp:{'非記事LP':100.0}},
+  },
+  'C社':{
+    'S01':{obs:2811,fmt:{'静止画':84.0,'カルーセル':8.7,'動画':7.3},media:{'X':75.3,'Instagram':19.1,'YouTube':5.3},lp:{'非記事LP':94.6,'記事LP':5.4}},
+    'S02':{obs:46154,fmt:{'静止画':89.3,'動画':10.7},media:{'LINE':84.5,'TikTok':7.0,'X':4.0},lp:{'非記事LP':100.0}},
+    'S03':{obs:1247,fmt:{'動画':57.3,'カルーセル':34.4,'静止画':8.3},media:{'TikTok':43.7,'Instagram':42.7,'YouTube':13.6},lp:{'非記事LP':99.9}},
+    'S04':{obs:41244,fmt:{'静止画':95.5,'動画':3.9},media:{'LINE':95.0,'TikTok':2.6,'YouTube':1.3},lp:{'非記事LP':96.1,'記事LP':3.9}},
+    'S05':{obs:212,fmt:{'静止画':71.7,'動画':28.3},media:{'Instagram':67.5,'TikTok':28.3},lp:{'非記事LP':100.0}},
+    'S06':{obs:2045,fmt:{'静止画':92.8,'動画':7.2},media:{'X':84.7,'Instagram':8.0,'YouTube':7.2},lp:{'非記事LP':93.9,'記事LP':6.1}},
+    'S07':{obs:510,fmt:{'動画':93.7,'静止画':6.3},media:{'TikTok':90.4,'Instagram':6.5},lp:{'非記事LP':99.8}},
+    'E01':{obs:470,fmt:{'カルーセル':52.1,'静止画':47.9},media:{'Instagram':100.0},lp:{'非記事LP':99.8}},
+    'E02':{obs:161,fmt:{'静止画':63.4,'動画':36.0},media:{'Instagram':62.7,'TikTok':36.0},lp:{'非記事LP':99.4}},
+    'E03':{obs:38735,fmt:{'静止画':97.5,'動画':1.8},media:{'LINE':97.0,'YouTube':1.3,'Instagram':1.1},lp:{'非記事LP':100.0}},
+    'E04':{obs:718,fmt:{'動画':74.8,'静止画':25.2},media:{'YouTube':74.7,'Instagram':14.1,'X':10.0},lp:{'非記事LP':99.9}},
+    'E05':{obs:2847,fmt:{'静止画':67.7,'動画':23.7,'カルーセル':8.6},media:{'X':65.5,'YouTube':19.8,'Instagram':12.4},lp:{'非記事LP':95.8,'記事LP':4.1}},
+    'E06':{obs:8096,fmt:{'静止画':49.2,'動画':42.5,'カルーセル':8.3},media:{'YouTube':34.4,'X':25.8,'LINE':19.8},lp:{'非記事LP':75.5,'記事LP':24.5}},
+    'E07':{obs:297,fmt:{'カルーセル':82.2,'静止画':17.8},media:{'Instagram':99.0},lp:{'非記事LP':100.0}},
+    'E08':{obs:2387,fmt:{'静止画':92.5,'動画':7.5},media:{'X':77.8,'Instagram':14.3,'YouTube':7.5},lp:{'非記事LP':100.0}},
+    'E09':{obs:4892,fmt:{'静止画':48.4,'動画':46.6,'カルーセル':5.0},media:{'TikTok':40.0,'X':37.9,'Instagram':15.3},lp:{'非記事LP':100.0}},
+  },
+  'D社':{
+    'S01':{obs:503552,fmt:{'静止画':96.5,'動画':3.3,'カルーセル':0.2},media:{'Google':88.3,'X':4.1,'Instagram':2.8},lp:{'非記事LP':99.9}},
+    'S02':{obs:3466,fmt:{'動画':84.8,'静止画':13.2},media:{'Instagram':100.0},lp:{'非記事LP':100.0}},
+    'S04':{obs:24773,fmt:{'静止画':96.4,'カルーセル':2.0,'動画':1.6},media:{'Google':94.5,'Instagram':3.9,'X':1.3},lp:{'非記事LP':100.0}},
+    'S05':{obs:49945,fmt:{'静止画':92.0,'動画':6.9},media:{'Google':58.4,'Instagram':30.8,'X':10.8},lp:{'非記事LP':100.0}},
+    'S06':{obs:2983,fmt:{'静止画':68.2,'カルーセル':17.4,'動画':14.4},media:{'Google':65.5,'Instagram':31.9},lp:{'非記事LP':100.0}},
+    'E01':{obs:151,fmt:{'静止画':51.7,'カルーセル':40.4},media:{'LINE':51.7,'Instagram':48.3},lp:{'非記事LP':100.0}},
+    'E02':{obs:2805,fmt:{'静止画':70.4,'カルーセル':16.0,'動画':13.5},media:{'Google':65.4,'Instagram':29.6,'X':5.1},lp:{'非記事LP':100.0}},
+    'E03':{obs:26608,fmt:{'静止画':96.7,'カルーセル':1.8,'動画':1.5},media:{'Google':94.9,'Instagram':3.6,'X':1.3},lp:{'非記事LP':100.0}},
+    'E04':{obs:95537,fmt:{'静止画':98.9,'動画':1.0},media:{'Google':88.0,'Instagram':11.9},lp:{'非記事LP':100.0}},
+    'E05':{obs:22728,fmt:{'静止画':96.3,'動画':2.0},media:{'LINE':59.8,'X':23.7,'Instagram':8.6},lp:{'非記事LP':100.0}},
+    'E06':{obs:21881,fmt:{'静止画':97.5,'動画':1.6},media:{'LINE':61.7,'Google':22.8,'X':10.9},lp:{'非記事LP':100.0}},
+    'E07':{obs:71823,fmt:{'静止画':98.2,'動画':1.2},media:{'Google':61.0,'LINE':18.9,'Instagram':16.8},lp:{'非記事LP':100.0}},
+    'E08':{obs:156390,fmt:{'静止画':99.1,'カルーセル':0.7},media:{'Google':89.5,'X':9.8},lp:{'非記事LP':100.0}},
+    'E09':{obs:309312,fmt:{'静止画':95.9,'動画':3.7},media:{'Google':87.6,'X':4.9,'Instagram':4.1},lp:{'非記事LP':100.0}},
+  },
+  'E社':{
+    'S01':{obs:225956,fmt:{'静止画':85.2,'動画':13.2,'カルーセル':1.6},media:{'LINE':80.1,'Instagram':7.3,'Facebook':6.7},lp:{'非記事LP':99.0,'記事LP':1.0}},
+    'S02':{obs:570444,fmt:{'静止画':69.8,'動画':27.1,'カルーセル':3.1},media:{'LINE':47.1,'YouTube':16.3,'Instagram':16.1},lp:{'非記事LP':79.6,'記事LP':20.4}},
+    'S03':{obs:16684,fmt:{'静止画':68.5,'動画':21.5,'カルーセル':10.0},media:{'Instagram':46.2,'Facebook':36.0,'LINE':9.0},lp:{'非記事LP':51.1,'記事LP':48.9}},
+    'S04':{obs:71276,fmt:{'静止画':92.9,'動画':6.4},media:{'LINE':71.0,'Instagram':13.9,'Facebook':12.3},lp:{'非記事LP':98.6,'記事LP':1.4}},
+    'S05':{obs:47986,fmt:{'動画':51.2,'静止画':45.5,'カルーセル':3.3},media:{'Instagram':59.3,'Facebook':37.0,'LINE':3.2},lp:{'非記事LP':80.0,'記事LP':20.0}},
+    'S06':{obs:250,fmt:{'静止画':100.0},media:{'Facebook':100.0},lp:{'記事LP':100.0}},
+    'S07':{obs:132552,fmt:{'静止画':77.6,'動画':20.6,'カルーセル':1.8},media:{'LINE':71.8,'Instagram':14.7,'Facebook':11.0},lp:{'非記事LP':98.4,'記事LP':1.6}},
+    'E01':{obs:49725,fmt:{'静止画':91.7,'動画':7.9},media:{'LINE':50.7,'Yahoo':24.3,'Instagram':18.7},lp:{'非記事LP':97.7,'記事LP':2.3}},
+    'E02':{obs:171205,fmt:{'カルーセル':63.6,'静止画':28.3,'動画':8.1},media:{'LINE':95.3,'Facebook':1.4,'Instagram':1.4},lp:{'記事LP':63.5,'非記事LP':36.5}},
+    'E03':{obs:60936,fmt:{'静止画':97.4,'動画':1.9},media:{'LINE':80.6,'Instagram':10.3,'Facebook':7.7},lp:{'非記事LP':98.3,'記事LP':1.7}},
+    'E04':{obs:103132,fmt:{'静止画':76.4,'動画':20.6,'カルーセル':3.0},media:{'LINE':36.3,'Instagram':31.9,'Facebook':17.8},lp:{'非記事LP':86.9,'記事LP':13.1}},
+    'E05':{obs:165430,fmt:{'静止画':70.8,'動画':27.3},media:{'LINE':59.4,'Instagram':23.0,'Facebook':15.9},lp:{'非記事LP':94.8,'記事LP':5.2}},
+    'E06':{obs:541072,fmt:{'静止画':59.6,'カルーセル':26.9,'動画':13.5},media:{'LINE':36.5,'SmartNews':34.4,'Instagram':14.6},lp:{'記事LP':68.7,'非記事LP':31.3}},
+    'E07':{obs:4081,fmt:{'動画':65.6,'静止画':22.1,'カルーセル':12.3},media:{'Instagram':64.1,'Facebook':21.8,'LINE':7.4},lp:{'非記事LP':91.7,'記事LP':8.3}},
+    'E08':{obs:83623,fmt:{'静止画':84.5,'動画':14.3},media:{'LINE':48.6,'SmartNews':19.7,'Facebook':16.2},lp:{'記事LP':84.2,'非記事LP':15.8}},
+    'E09':{obs:163877,fmt:{'静止画':80.0,'動画':17.6,'カルーセル':2.4},media:{'LINE':47.9,'Instagram':21.1,'SmartNews':12.9},lp:{'非記事LP':70.6,'記事LP':29.4}},
+  },
+};
+
+// === 月次サマリー ===
+const monthlySummary = {
+  top3Changes: [
+    {title:'A社「年齢による肌悩み」SOVが+6.7pt急増（言及数5,508件・市場規模大）',description:'前月82.1%→今月88.8%。D社(+5.3pt)と同時に増加しており、エイジング軸の競争が一層激化。CEP劣位(-7.8pt)のままSOVを積み増すリスク。大規模市場だが劣位軸への過剰投資。',severity:'high',relatedCepIds:['S01']},
+    {title:'E社「ニキビ・毛穴」SOVが+6.2pt増加（言及数5,362件・市場規模大）',description:'前月43.1%→今月49.3%。C社(+5.4pt)も同軸で増加。A社(2.9%)はCEP優位(+6.2pt)がありながら完全に置き去り。大規模市場での機会損失。',severity:'high',relatedCepIds:['S02']},
+    {title:'A社「優しい使い心地」SOVが+4.8pt増加',description:'前月14.2%→今月19.0%。CEP最大優位(+8.5pt)の軸で投資拡大の兆し。E社も+1.8ptで追随開始。先行投資の継続が重要。',severity:'medium',relatedCepIds:['E01']},
+  ],
+  maintainCEPs: [
+    {cepId:'E06',reason:'SOV59.2%でカテゴリ内最大。前月比+6.8ptと好調。E社(46.7%)との差を維持。'},
+    {cepId:'E03',reason:'SOV49.3%(+6.5pt)で安定的な投資。CEP優位+5.1ptを確実に活かせている。'},
+  ],
+  strengthenCEPs: [
+    {cepId:'E01',reason:'CEP最大優位(+8.5pt)。SOV19.0%は増加傾向だが、競合がほぼゼロのため独占余地大。'},
+    {cepId:'S02',reason:'CEP優位(+6.2pt)だがSOV2.9%と極端に低い。C社・E社に市場を独占されている。'},
+  ],
+  reduceCEPs: [
+    {cepId:'S01',reason:'CEP劣位(-7.8pt)にもかかわらずSOV88.8%と過剰投資。D社(77.1%)との正面衝突は非効率。'},
+  ],
+  actionCandidates: {
+    actions: [
+      {id:'ACT-2025-12-01',targetCepIds:['S02','E01'],type:'media_expansion',channel:'LINE',description:'LINE配信の開始（E社52.9%・C社23.8%が成功実績）',priority:'high'},
+      {id:'ACT-2025-12-02',targetCepIds:['E06'],type:'media_expansion',channel:'SmartNews',description:'SmartNews記事広告のテスト（E社15.7%の成功モデル）',priority:'medium'},
+      {id:'ACT-2025-12-03',targetCepIds:['E01'],type:'creative_development',channel:'TikTok',description:'「独自×やさしい」軸のTikTok短尺動画テスト',priority:'high'},
+      {id:'ACT-2025-12-04',targetCepIds:['S02'],type:'creative_development',channel:null,description:'「独自×ニキビケア」の新規訴求クリエイティブ開発',priority:'medium'},
+    ],
+    testHypothesis: '「優しい使い心地」(E01)軸でTikTok短尺動画を配信し、若年層へのリーチ拡大を検証する',
+  },
+  previousActionResults: [],
+};
+
+// === 戦略提案（四半期更新） ===
+const quarterlyStrategy = {
+  lastUpdated: '2025Q4',
+  sovRebalance: {
+    current: {'S01':88.8,'S04':55.0,'E06':59.2,'S06':50.7,'S05':28.4,'E03':49.3,'E01':19.0,'S02':2.9,'E02':5.7},
+    recommended: {'S01':40,'S04':35,'E06':30,'S06':15,'S05':30,'E03':35,'E01':25,'S02':15,'E02':15},
+  },
+  strategies: [
+    {id:1,icon:'red',title:'エイジング軸の過剰投資を削減',targetCepIds:['S01'],body:'現状88.8%→推奨40〜50%へ。CEP劣位(-7.8pt)でD社(77.1%)と正面衝突は非効率。市場規模は大（言及数5,508件）だが、劣位軸での消耗戦は避けるべき。'},
+    {id:2,icon:'green',title:'「優しい使い心地」を主戦場に',targetCepIds:['E01'],body:'CEP優位+8.5ptで競合平均SOVは2.4%。推奨SOV 20〜30%。「独自の優しさ」で唯一無二のポジション。市場規模中（言及数1,986件）だが独占可能。'},
+    {id:3,icon:'yellow',title:'「ニキビ・毛穴」でC社・E社に対抗',targetCepIds:['S02'],body:'CEP優位+6.2pt。C社84.3%・E社49.3%が市場を二分。A社 2.9%→推奨10〜15%。市場規模大（言及数5,362件）で投資効率が高い。'},
+    {id:4,icon:'green',title:'「ベタつかない」使用感訴求',targetCepIds:['E02'],body:'CEP優位+7.4pt。E社14.8%参入だが他は0.4%以下。推奨SOV 10〜15%。市場規模大（言及数3,607件）。'},
+    {id:5,icon:'blue',title:'「成分シンプル」のB社差別化',targetCepIds:['S05'],body:'B社が97.3%で圧倒的だが内容は天然由来系。A社 28.4%を維持し独自の科学的訴求で差別化。ただし市場規模小（言及数602件）のため投資対効果に注意。'},
+    {id:6,icon:'blue',title:'「コスパ」訴求の質の向上',targetCepIds:['E06'],body:'A社 59.2%で充実。単純な割引訴求を減らし「この品質がこの価格」の価値訴求にシフト。市場規模中（言及数1,570件）。'},
+  ],
+};
+
+// === 定数 ===
+const allMedia = ['X','Instagram','TikTok','YouTube','Facebook','Google','LINE','Yahoo','SmartNews'];
+const mediaColors = {'X':'#1d9bf0','Instagram':'#e4405f','TikTok':'#00f2ea','YouTube':'#ff0000','Facebook':'#1877f2','Google':'#4285f4','LINE':'#06c755','Yahoo':'#ff0033','SmartNews':'#ff6600'};
+const formatColors = {'動画':'#3b82f6','静止画':'#f59e0b','カルーセル':'#10b981'};
+const allFormats = ['動画','静止画','カルーセル'];
+const keyCepAxes = allActiveCEPs();
+
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
+const {brands, brandColors, brandShort} = reportMeta;
+const situationAxes = activeCEPs('situation');
+const experienceAxes = activeCEPs('experience');
+
+function delta(cur, prev) {
+  const d = cur - prev;
+  if (Math.abs(d) < 1) return '<span class="delta-flat">&rarr;</span>';
+  if (d > 0) return `<span class="delta-up">&uarr;+${d.toFixed(1)}pt</span>`;
+  return `<span class="delta-down">&darr;${d.toFixed(1)}pt</span>`;
+}
+function deltaNum(cur, prev) {
+  const d = ((cur - prev) / (prev || 1)) * 100;
+  if (Math.abs(d) < 1) return '<span class="delta-flat">&rarr;</span>';
+  if (d > 0) return `<span class="delta-up">&uarr;+${d.toFixed(0)}%</span>`;
+  return `<span class="delta-down">&darr;${d.toFixed(0)}%</span>`;
+}
+function fmtNum(n) { return n.toLocaleString(); }
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+function getStrategy(id) {
+  const adv = cepAdv(id);
+  const fSov = currentSOV['A社'][id] || 0;
+  const compAvg = (brands.slice(1).reduce((s,b) => s + (currentSOV[b][id]||0), 0)) / (brands.length - 1);
+  const mentionCount = cepMentionCount(id);
+
+  if (mentionCount < 600 && fSov > 20) return {label:'小規模過剰投資',cls:'badge-warning'};
+  if (adv > 3 && fSov < compAvg) return {label:'投資不足',cls:'badge-danger'};
+  if (adv > 3 && fSov >= compAvg) return {label:'維持・強化',cls:'badge-success'};
+  if (adv < -3 && fSov > compAvg) return {label:'過剰投資',cls:'badge-warning'};
+  if (adv < -3 && fSov <= compAvg) return {label:'撤退候補',cls:'badge-info'};
+  return {label:'要検討',cls:'badge-info'};
+}
+
+// ============================================================
+// DATA-DRIVEN INSIGHTS GENERATOR
+// ============================================================
+function generateInsights(containerId, insights) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '<div class="card"><h2 style="margin-bottom:10px">Key Insights</h2><div class="grid2">' +
+    insights.map(i => `<div class="insight-box"><strong>${i.title}</strong>：${i.text}</div>`).join('') +
+    '</div></div>';
+}
+
+function renderOverviewInsights() {
+  const allIds = [...situationAxes,...experienceAxes];
+  let maxUp = {id:null,d:0}, maxDown = {id:null,d:0};
+  allIds.forEach(id => {
+    const d = (currentSOV['A社'][id]||0) - (previousSOV['A社'][id]||0);
+    if (d > maxUp.d) maxUp = {id,d};
+    if (d < maxDown.d) maxDown = {id,d};
+  });
+  const volEntries = Object.entries(observedVolume.current).sort((a,b)=>b[1]-a[1]);
+  const topVol = volEntries[0];
+  const fanclVol = observedVolume.current['A社']||0;
+  const fanclVolPrev = observedVolume.previous['A社']||0;
+  const fanclVolDelta = ((fanclVol-fanclVolPrev)/fanclVolPrev*100).toFixed(1);
+
+  // Prioritize large-market CEPs with high advantage and low A社 SOV
+  const underinvested = allIds.filter(id => cepAdv(id) > 3)
+    .sort((a,b) => {
+      const scoreA = cepAdv(a) * Math.log2(1 + cepMentionCount(a)/1000) * (1/(1+(currentSOV['A社'][a]||0)/100));
+      const scoreB = cepAdv(b) * Math.log2(1 + cepMentionCount(b)/1000) * (1/(1+(currentSOV['A社'][b]||0)/100));
+      return scoreB - scoreA;
+    });
+
+  const insights = [
+    {title:'A社総観測量', text:`${fmtNum(fanclVol)}件（前月比${fanclVolDelta>0?'+':''}${fanclVolDelta}%）。カテゴリ最大は${topVol[0]}の${fmtNum(topVol[1])}件で約${(topVol[1]/fanclVol).toFixed(0)}倍の規模差`},
+    {title:'最大SOV増加', text:maxUp.id ? `${cepLabel(maxUp.id)}(${maxUp.id})が+${maxUp.d.toFixed(1)}ptで今月最大の投資拡大` : 'なし'},
+    {title:'最大SOV減少', text:maxDown.id ? `${cepLabel(maxDown.id)}(${maxDown.id})が${maxDown.d.toFixed(1)}ptで今月最大の投資縮小` : 'なし'},
+    {title:'投資不足の注目CEP', text:underinvested.length>0 ? `${cepLabel(underinvested[0])}(${underinvested[0]}) — CEP優位+${cepAdv(underinvested[0])}pt・言及数${fmtNum(cepMentionCount(underinvested[0]))}件だがSOV${currentSOV['A社'][underinvested[0]]}%と低い` : 'CEP優位の高い軸は概ね投資済み'},
+    {title:'市場規模注意', text:'S05(成分がシンプル)は言及数602件と小規模。SOV28.4%の投資対効果を要検証'},
+  ];
+  generateInsights('overview-insights', insights);
+}
+
+function renderScatterInsights() {
+  const allIds = [...situationAxes,...experienceAxes];
+  const q1=[], q2=[], q3=[], q4=[];
+  allIds.forEach(id => {
+    const adv = cepAdv(id);
+    const fSov = currentSOV['A社'][id]||0;
+    const compAvg = brands.slice(1).reduce((s,b)=>s+(currentSOV[b][id]||0),0)/(brands.length-1);
+    const diff = fSov - compAvg;
+    if (adv > 0 && diff > 0) q1.push(id);
+    else if (adv < 0 && diff > 0) q2.push(id);
+    else if (adv > 0 && diff < 0) q3.push(id);
+    else q4.push(id);
+  });
+  let biggestMove = {id:null,d:0};
+  allIds.forEach(id => {
+    const fSov = currentSOV['A社'][id]||0;
+    const pfSov = previousSOV['A社'][id]||0;
+    const compAvg = brands.slice(1).reduce((s,b)=>s+(currentSOV[b][id]||0),0)/(brands.length-1);
+    const prevCompAvg = brands.slice(1).reduce((s,b)=>s+(previousSOV[b][id]||0),0)/(brands.length-1);
+    const curDiff = fSov - compAvg;
+    const prevDiff = pfSov - prevCompAvg;
+    const move = Math.abs(curDiff - prevDiff);
+    if (move > Math.abs(biggestMove.d)) biggestMove = {id, d: curDiff - prevDiff};
+  });
+
+  const insights = [
+    {title:'強みを活かして投資中', text:q1.length > 0 ? `${q1.map(id=>cepLabel(id).slice(0,6)+'('+id+')').join('、')} — CEP優位かつ競合超過SOV。この投資姿勢を維持` : '該当なし'},
+    {title:'弱みに過剰投資', text:q2.length > 0 ? `${q2.map(id=>cepLabel(id).slice(0,6)+'('+id+')').join('、')} — CEP劣位なのに競合超過SOV。配分を他軸へシフト検討` : '該当なし'},
+    {title:'強みなのに投資不足', text:q3.length > 0 ? `${q3.map(id=>cepLabel(id).slice(0,6)+'('+id+')').join('、')} — CEP優位だが競合に負けているSOV。最優先の投資拡大候補` : '該当なし'},
+    {title:'最大ポジション変動', text:biggestMove.id ? `${cepLabel(biggestMove.id)}(${biggestMove.id}) — 対競合SOV差が${biggestMove.d>0?'+':''}${biggestMove.d.toFixed(1)}pt変動` : 'なし'},
+  ];
+  generateInsights('scatter-insights', insights);
+}
+
+function renderWhitespaceInsights() {
+  const allIds = [...situationAxes,...experienceAxes];
+  const scored = allIds.map(id => {
+    const adv = cepAdv(id);
+    const compAvg = brands.slice(1).reduce((s,b)=>s+(currentSOV[b][id]||0),0)/(brands.length-1);
+    const fSov = currentSOV['A社'][id]||0;
+    const os = opportunityScore(id);
+    return {id, ws: os, adv, compAvg, fSov};
+  }).sort((a,b) => b.ws - a.ws);
+  const top = scored[0];
+  const bottom = scored[scored.length-1];
+  const blueOcean = scored.filter(s => s.ws > 5 && s.fSov < 15);
+  const alreadyCapturing = scored.filter(s => s.ws > 3 && s.fSov > 30);
+
+  const insights = [
+    {title:'最大機会スコア', text:`${cepLabel(top.id)}(${top.id}) — スコア${top.ws.toFixed(1)}。CEP優位+${top.adv}pt × 市場規模${fmtNum(cepMentionCount(top.id))}件`},
+    {title:'ブルーオーシャン機会', text:blueOcean.length > 0 ? `${blueOcean.map(s=>cepLabel(s.id).slice(0,6)+'('+s.id+')').join('、')} — 高機会スコアかつA社 SOV低。即座に投資拡大の余地` : '高機会スコアの軸は概ねA社がカバー済み'},
+    {title:'成功事例', text:alreadyCapturing.length > 0 ? `${alreadyCapturing.map(s=>cepLabel(s.id).slice(0,6)+'('+s.id+')').join('、')} — 機会スコアが高くA社が既に高SOV。ベストプラクティスとして継続` : '---'},
+    {title:'最もレッドオーシャン', text:`${cepLabel(bottom.id)}(${bottom.id}) — スコア${bottom.ws.toFixed(1)}。CEP劣位${bottom.adv}ptで競合が密集する領域`},
+  ];
+  generateInsights('whitespace-insights', insights);
+}
+
+function renderExpansionInsights() {
+  const allIds = [...situationAxes,...experienceAxes];
+  const scored = allIds.map(id => {
+    const adv = cepAdv(id);
+    const compAvg = brands.slice(1).reduce((s,b)=>s+(currentSOV[b][id]||0),0)/(brands.length-1);
+    return {id, ws: adv * (1 - compAvg/100), adv, compAvg};
+  }).filter(s => s.ws > 0).sort((a,b) => b.ws - a.ws);
+
+  let maxUnserved = {id:null, count:0};
+  scored.forEach(s => {
+    const fanclMedia = crossData['A社'][s.id]?.media || {};
+    const unserved = allMedia.filter(m => !fanclMedia[m] || fanclMedia[m] === 0);
+    const competitorUsed = unserved.filter(m => {
+      return brands.slice(1).some(b => {
+        const d = crossData[b]?.[s.id];
+        return d && d.media && (d.media[m]||0) > 5;
+      });
+    });
+    if (competitorUsed.length > maxUnserved.count) maxUnserved = {id: s.id, count: competitorUsed.length};
+  });
+
+  const fanclMediaCount = allMedia.filter(m => (dimData['A社']['媒体'][m]||0) > 1).length;
+  const avgMediaCount = brands.slice(1).reduce((s,b) => {
+    return s + allMedia.filter(m => (dimData[b]['媒体'][m]||0) > 1).length;
+  }, 0) / (brands.length - 1);
+
+  let bestROI = {id:null, media:null, score:0};
+  scored.slice(0,5).forEach(s => {
+    const fanclMedia = crossData['A社'][s.id]?.media || {};
+    allMedia.forEach(m => {
+      if ((fanclMedia[m]||0) > 0) return;
+      let maxObs = 0;
+      brands.slice(1).forEach(b => {
+        const d = crossData[b]?.[s.id];
+        if (d && d.media && (d.media[m]||0) > 5) maxObs = Math.max(maxObs, d.obs * (d.media[m]/100));
+      });
+      const roiScore = s.ws * maxObs;
+      if (roiScore > bestROI.score) bestROI = {id: s.id, media: m, score: roiScore};
+    });
+  });
+
+  const redOceanMedia = allMedia.map(m => {
+    const competing = brands.slice(1).filter(b => (dimData[b]['媒体'][m]||0) > 10).length;
+    return {m, competing};
+  }).sort((a,b) => b.competing - a.competing);
+
+  const insights = [
+    {title:'未出稿媒体が最多のCEP', text: maxUnserved.id ? `${cepLabel(maxUnserved.id)}(${maxUnserved.id}) — 競合出稿中の${maxUnserved.count}媒体にA社未出稿` : '---'},
+    {title:'媒体多様性', text:`A社: ${fanclMediaCount}媒体（1%以上）。カテゴリ平均: ${avgMediaCount.toFixed(1)}媒体。${fanclMediaCount < avgMediaCount ? '媒体の拡張余地あり' : '媒体カバレッジは十分'}`},
+    {title:'最高ROI期待の拡張候補', text: bestROI.id ? `${cepLabel(bestROI.id)}(${bestROI.id}) × ${bestROI.media} — WSスコアと競合実績obsから最もROI期待が高い` : '---'},
+    {title:'レッドオーシャン注意', text: redOceanMedia[0] ? `${redOceanMedia[0].m}は${redOceanMedia[0].competing}社が集中投資。差別化が困難な可能性` : '---'},
+  ];
+  generateInsights('expansion-insights', insights);
+}
+
+function renderReferenceInsights() {
+  const fmtSpecialists = allFormats.map(f => {
+    let maxBrand = '', maxPct = 0;
+    brands.forEach(b => {
+      const pct = dimData[b]['フォーマット'][f] || 0;
+      if (pct > maxPct) { maxPct = pct; maxBrand = b; }
+    });
+    return {format: f, brand: maxBrand, pct: maxPct};
+  });
+
+  const hhiScores = brands.map(b => {
+    const mediaData = dimData[b]['媒体'] || {};
+    const hhi = Object.values(mediaData).reduce((s, v) => s + (v/100)**2, 0);
+    return {brand: b, hhi};
+  }).sort((a,b) => b.hhi - a.hhi);
+
+  const fanclFmt = dimData['A社']['フォーマット'];
+  const avgFmt = {};
+  allFormats.forEach(f => {
+    avgFmt[f] = brands.slice(1).reduce((s,b) => s + (dimData[b]['フォーマット'][f]||0), 0) / (brands.length - 1);
+  });
+  const biggestGap = allFormats.map(f => ({f, gap: (fanclFmt[f]||0) - avgFmt[f]})).sort((a,b) => Math.abs(b.gap) - Math.abs(a.gap))[0];
+
+  const insights = [
+    {title:'フォーマット特化', text: fmtSpecialists.map(s => `${s.format}: ${brandShort[s.brand]} ${s.pct.toFixed(1)}%`).join(' / ')},
+    {title:'媒体集中度(HHI)', text: `最も集中: ${brandShort[hhiScores[0].brand]}(HHI ${(hhiScores[0].hhi*100).toFixed(0)}) / 最も分散: ${brandShort[hhiScores[hhiScores.length-1].brand]}(HHI ${(hhiScores[hhiScores.length-1].hhi*100).toFixed(0)})`},
+    {title:'A社のフォーマット特異性', text: `${biggestGap.f}がカテゴリ平均比${biggestGap.gap > 0 ? '+' : ''}${biggestGap.gap.toFixed(1)}pt — A社${(fanclFmt[biggestGap.f]||0).toFixed(1)}% vs 平均${avgFmt[biggestGap.f].toFixed(1)}%`},
+    {title:'記事LP活用', text: `E社のみ33.2%活用。A社 0.2%、他社0〜1%。記事LP戦略は差別化要因`},
+  ];
+  generateInsights('reference-insights', insights);
+}
+
+// ============================================================
+// TAB NAVIGATION (v4: 7 tabs)
+// ============================================================
+const tabConfig = [
+  {id:'summary',     label:'サマリー',                   group:1},
+  {id:'overview',    label:'CEP×SOV全体像',              group:1},
+  {id:'marketsize',  label:'★ 市場規模マップ',           group:2},
+  {id:'whitespace',  label:'★ ホワイトスペース',         group:2},
+  {id:'expansion',   label:'★ 媒体拡張シミュレーション',   group:2},
+  {id:'reference',   label:'配信構造リファレンス',         group:3},
+  {id:'strategy',    label:'四半期戦略',                  group:4},
+];
+const groupLabels = {1:'月次レビュー', 2:'市場規模×ホワイトスペース×媒体拡張', 3:'参考資料', 4:'四半期'};
+
+function buildTabNav() {
+  const nav = document.getElementById('tab-nav');
+  let html = '', lastGroup = 0;
+  tabConfig.forEach(t => {
+    if (t.group !== lastGroup) {
+      if (lastGroup > 0) html += '<div class="tab-divider"></div>';
+      lastGroup = t.group;
+    }
+    const active = t.id === 'summary' ? ' active' : '';
+    const star = t.label.startsWith('★') ? ' star' : '';
+    html += `<div class="tab${active}${star}" data-tab="${t.id}" onclick="switchTab('${t.id}')">${t.label}</div>`;
+  });
+  nav.innerHTML = html;
+}
+
+function switchTab(name, pushHash) {
+  const el = document.getElementById('tab-' + name);
+  if (!el) return;
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const btn = document.querySelector(`.tab[data-tab="${name}"]`);
+  if (btn) btn.classList.add('active');
+  if (pushHash !== false) history.replaceState(null,'','#'+name);
+  if (name === 'overview') drawScatter();
+  if (name === 'marketsize') drawMarketBubble();
+}
+
+function initHashRouting() {
+  const h = location.hash.replace('#','');
+  if (h && document.getElementById('tab-'+h)) switchTab(h, false);
+}
+window.addEventListener('hashchange', () => {
+  const h = location.hash.replace('#','');
+  if (h && document.getElementById('tab-'+h)) switchTab(h, false);
+});
+
+// ============================================================
+// TAB 1: SUMMARY
+// ============================================================
+function renderSummary() {
+  document.getElementById('report-month').textContent = reportMeta.reportMonth;
+  const t3 = document.getElementById('top3-changes');
+  t3.innerHTML = monthlySummary.top3Changes.map(c => {
+    const cepTags = (c.relatedCepIds||[]).map(id =>
+      `<span style="background:rgba(59,130,246,0.15);padding:1px 6px;border-radius:3px;font-size:0.65rem;margin-right:3px">${id}</span>`
+    ).join('');
+    return `<div class="summary-change ${c.severity}"><h4>${c.title} ${cepTags}</h4><p>${c.description}</p></div>`;
+  }).join('');
+  const parEl = document.getElementById('previous-action-results');
+  const par = monthlySummary.previousActionResults || [];
+  if (par.length === 0) {
+    parEl.innerHTML = '<div class="card" style="font-size:0.78rem;color:var(--muted)">初月のため前月施策データはありません</div>';
+  } else {
+    const statusBadge = (s) => {
+      const m = {implemented:['実行済み','badge-success'],deferred:['延期','badge-warning'],cancelled:['キャンセル','badge-danger'],proposed:['提案中','badge-info']};
+      const [label,cls] = m[s]||['不明','badge-info'];
+      return `<span class="badge ${cls}">${label}</span>`;
+    };
+    parEl.innerHTML = par.map(a =>
+      `<div class="card" style="padding:10px 14px;margin-bottom:8px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:0.72rem;font-weight:700;color:var(--accent)">${a.actionId}</span>${statusBadge(a.status)}<span style="font-size:0.68rem;color:var(--muted)">${cepIdTag(a.cepId)}</span></div><div style="font-size:0.78rem;margin-bottom:2px">${a.result||''}</div><div style="font-size:0.72rem;color:var(--muted)">${a.note||''}</div></div>`
+    ).join('');
+  }
+  renderCompactKPI('kpi-compact');
+  document.getElementById('maintain-ceps').innerHTML = monthlySummary.maintainCEPs.map(c =>
+    `<div class="cep-action-card maintain"><h4>${cepIdTag(c.cepId)}</h4><p>${c.reason}</p></div>`
+  ).join('');
+  document.getElementById('strengthen-ceps').innerHTML = monthlySummary.strengthenCEPs.map(c =>
+    `<div class="cep-action-card strengthen"><h4>${cepIdTag(c.cepId)}</h4><p>${c.reason}</p></div>`
+  ).join('');
+  document.getElementById('reduce-ceps').innerHTML = monthlySummary.reduceCEPs.map(c =>
+    `<div class="cep-action-card reduce"><h4>${cepIdTag(c.cepId)}</h4><p>${c.reason}</p></div>`
+  ).join('');
+  const ac = monthlySummary.actionCandidates;
+  let acHtml = '';
+  ac.actions.forEach(a => {
+    const cepTags = a.targetCepIds.map(id =>
+      `<span style="background:rgba(59,130,246,0.15);padding:1px 6px;border-radius:3px;font-size:0.65rem;margin-right:3px">${id}</span>`
+    ).join('');
+    acHtml += `<div style="margin-bottom:8px;padding:8px;border-left:3px solid ${a.priority==='high'?'var(--danger)':'var(--warning)'};background:rgba(0,0,0,0.1);border-radius:0 6px 6px 0">
+      <div style="font-size:0.68rem;color:var(--muted);margin-bottom:2px">${a.id} | ${a.type}</div>
+      <div style="font-size:0.8rem;margin-bottom:4px">${a.description}</div>
+      <div>${cepTags}</div>
+    </div>`;
+  });
+  acHtml += `<h3 style="color:var(--accent);margin-top:12px;margin-bottom:8px">次月テスト仮説</h3><p style="font-size:0.78rem;background:rgba(139,92,246,0.1);padding:8px 12px;border-radius:6px">${ac.testHypothesis}</p>`;
+  document.getElementById('action-candidates').innerHTML = acHtml;
+}
+
+function renderCompactKPI(containerId) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = brands.map(b => {
+    const cur = observedVolume.current[b];
+    const prev = observedVolume.previous[b];
+    return `<div class="kpi-compact-item"><span class="brand-name" style="color:${brandColors[b]}">${brandShort[b]}</span><span class="kpi-val">${fmtNum(cur)}</span><span>${deltaNum(cur,prev)}</span></div>`;
+  }).join('');
+}
+
+// ============================================================
+// TAB 2: CEP×SOV OVERVIEW (with market size columns)
+// ============================================================
+function renderBrandLegend(containerId) {
+  document.getElementById(containerId).innerHTML = brands.map(b =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${brandColors[b]}"></div>${b}</div>`
+  ).join('');
+}
+
+function renderOverview() {
+  renderOverviewInsights();
+  renderScatterInsights();
+  renderBrandLegend('brand-legend-overview');
+
+  const tbody = document.getElementById('overview-table-body');
+  let html = '';
+  html += `<tr class="group-header-row"><td colspan="${brands.length + 6}">状況軸（Situation CEPs）</td></tr>`;
+  situationAxes.forEach(id => { html += renderOverviewRow(id); });
+  html += `<tr class="group-header-row"><td colspan="${brands.length + 6}">体験価値軸（Experience CEPs）</td></tr>`;
+  experienceAxes.forEach(id => { html += renderOverviewRow(id); });
+  tbody.innerHTML = html;
+}
+
+function renderOverviewRow(id) {
+  const adv = cepAdv(id);
+  const strategy = getStrategy(id);
+  const advColor = adv > 0 ? 'var(--success)' : adv < 0 ? 'var(--danger)' : 'var(--muted)';
+  const mc = cepMentionCount(id);
+  const ms = cepMentionShare(id);
+  let html = `<tr><td style="font-weight:600">${cepIdTag(id)}</td>
+    <td style="color:${advColor};font-weight:700">${adv > 0?'+':''}${adv}</td>
+    <td style="font-size:0.72rem">${fmtNum(mc)}</td>
+    <td style="font-size:0.72rem">${ms.toFixed(1)}%</td>
+    <td>${sizeBadgeHtml(id)}</td>`;
+  brands.forEach(b => {
+    const v = currentSOV[b][id] || 0;
+    const pv = previousSOV[b][id] || 0;
+    const c = b === 'A社' ? 'font-weight:700;color:var(--brand-a)' : `color:${brandColors[b]}`;
+    html += `<td><span style="${c}">${v}%</span> ${delta(v,pv)}</td>`;
+  });
+  html += `<td><span class="badge ${strategy.cls}">${strategy.label}</span></td></tr>`;
+  return html;
+}
+
+function drawScatter() {
+  const canvas = document.getElementById('scatter-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const ml=70,mr=40,mt=40,mb=60,pw=W-ml-mr,ph=H-mt-mb;
+  const allAxes = [...situationAxes,...experienceAxes];
+  const maxMentions = Math.max(...allAxes.map(id => cepMentionCount(id)));
+  const points = allAxes.map(id => {
+    const adv = cepAdv(id);
+    const fSov = currentSOV['A社'][id]||0;
+    const pfSov = previousSOV['A社'][id]||0;
+    const compAvg = brands.slice(1).reduce((s,b)=>s+(currentSOV[b][id]||0),0)/(brands.length-1);
+    const prevCompAvg = brands.slice(1).reduce((s,b)=>s+(previousSOV[b][id]||0),0)/(brands.length-1);
+    const mentions = cepMentionCount(id);
+    return {id, label: cepLabel(id), adv, sovDiff: fSov-compAvg, prevSovDiff: pfSov-prevCompAvg, mentions, type: situationAxes.includes(id)?'状況':'体験価値'};
+  });
+  const maxAdv=10,minAdv=-10,maxDiff=80,minDiff=-40;
+  const zeroX=ml+pw*(0-minAdv)/(maxAdv-minAdv);
+  const zeroY=mt+ph*(1-(0-minDiff)/(maxDiff-minDiff));
+  // Quadrant fills
+  ctx.fillStyle='rgba(16,185,129,0.05)';ctx.fillRect(zeroX,mt,W-mr-zeroX,zeroY-mt);
+  ctx.fillStyle='rgba(239,68,68,0.05)';ctx.fillRect(ml,zeroY,zeroX-ml,H-mb-zeroY);
+  ctx.fillStyle='rgba(245,158,11,0.05)';ctx.fillRect(zeroX,zeroY,W-mr-zeroX,H-mb-zeroY);
+  ctx.fillStyle='rgba(139,92,246,0.05)';ctx.fillRect(ml,mt,zeroX-ml,zeroY-mt);
+  // Grid
+  ctx.strokeStyle='#334155';ctx.lineWidth=0.5;
+  for(let i=0;i<=5;i++){const y=mt+ph*i/5;ctx.beginPath();ctx.moveTo(ml,y);ctx.lineTo(W-mr,y);ctx.stroke();const val=maxDiff-(maxDiff-minDiff)*i/5;ctx.fillStyle='#94a3b8';ctx.font='10px sans-serif';ctx.textAlign='right';ctx.fillText((val>0?'+':'')+val.toFixed(0)+'%',ml-5,y+4);}
+  for(let i=0;i<=4;i++){const x=ml+pw*i/4;ctx.beginPath();ctx.moveTo(x,mt);ctx.lineTo(x,H-mb);ctx.stroke();const val=minAdv+(maxAdv-minAdv)*i/4;ctx.fillStyle='#94a3b8';ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillText((val>0?'+':'')+val.toFixed(0)+'pt',x,H-mb+15);}
+  // Center lines
+  ctx.strokeStyle='#64748b';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(zeroX,mt);ctx.lineTo(zeroX,H-mb);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ml,zeroY);ctx.lineTo(W-mr,zeroY);ctx.stroke();ctx.setLineDash([]);
+  // Quadrant labels
+  ctx.fillStyle='rgba(148,163,184,0.5)';ctx.font='11px sans-serif';ctx.textAlign='center';
+  ctx.fillText('強みを活かして投資中',(zeroX+W-mr)/2,mt+20);
+  ctx.fillText('弱みに過剰投資',(ml+zeroX)/2,mt+20);
+  ctx.fillText('強みなのに投資不足',(zeroX+W-mr)/2,H-mb-10);
+  ctx.fillText('正しい非投資',(ml+zeroX)/2,H-mb-10);
+  // Axis labels
+  ctx.fillStyle='#e2e8f0';ctx.font='11px sans-serif';ctx.textAlign='center';
+  ctx.fillText('← CEP劣位 | A社 CEP優位スコア(pt) | CEP優位 →',W/2,H-5);
+  ctx.save();ctx.translate(15,H/2);ctx.rotate(-Math.PI/2);ctx.fillText('← 競合超過 | A社 SOV差分(vs競合平均) | A社超過 →',0,0);ctx.restore();
+  // Points
+  const sColors = {'状況':'#3b82f6','体験価値':'#f59e0b'};
+  points.forEach(p => {
+    const x=ml+pw*(p.adv-minAdv)/(maxAdv-minAdv);
+    const y=mt+ph*(1-(p.sovDiff-minDiff)/(maxDiff-minDiff));
+    const py=mt+ph*(1-(p.prevSovDiff-minDiff)/(maxDiff-minDiff));
+    const size = Math.max(5, Math.min(16, Math.sqrt(p.mentions/maxMentions)*30));
+    ctx.beginPath();ctx.arc(x,py,size*0.7,0,Math.PI*2);ctx.fillStyle=sColors[p.type];ctx.globalAlpha=0.15;ctx.fill();ctx.globalAlpha=1;
+    if(Math.abs(y-py)>3){ctx.beginPath();ctx.moveTo(x,py);ctx.lineTo(x,y);ctx.strokeStyle=sColors[p.type];ctx.lineWidth=1;ctx.globalAlpha=0.3;ctx.stroke();ctx.globalAlpha=1;}
+    ctx.beginPath();ctx.arc(x,y,size,0,Math.PI*2);ctx.fillStyle=sColors[p.type];ctx.globalAlpha=0.8;ctx.fill();ctx.globalAlpha=1;ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.fillStyle='#e2e8f0';ctx.font='9px sans-serif';ctx.textAlign='left';ctx.fillText(p.label.slice(0,8),x+size+3,y+3);
+  });
+  ctx.fillStyle='#3b82f6';ctx.beginPath();ctx.arc(ml+10,H-38,5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#e2e8f0';ctx.font='10px sans-serif';ctx.textAlign='left';ctx.fillText('状況軸',ml+20,H-35);
+  ctx.fillStyle='#f59e0b';ctx.beginPath();ctx.arc(ml+80,H-38,5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#e2e8f0';ctx.fillText('体験価値軸',ml+90,H-35);
+  ctx.fillStyle='#94a3b8';ctx.font='9px sans-serif';ctx.fillText('(バブルサイズ = CEP言及数（市場規模）、薄色=前月)',ml+170,H-35);
+}
+
+// ============================================================
+// TAB 3: MARKET SIZE MAP (NEW in v4)
+// ============================================================
+function renderMarketSize() {
+  renderMarketSizeInsights();
+  renderMarketSizeTable();
+}
+
+function renderMarketSizeInsights() {
+  const allIds = [...situationAxes,...experienceAxes];
+  // Largest market
+  const sorted = allIds.slice().sort((a,b)=>cepMentionCount(b)-cepMentionCount(a));
+  const largest = sorted[0];
+  // Highest A社 share
+  const fanclShareSorted = allIds.slice().sort((a,b) => {
+    const sa = (cepMentions[a]?.byBrand['A社']||0) / (cepMentions[a]?.total||1);
+    const sb = (cepMentions[b]?.byBrand['A社']||0) / (cepMentions[b]?.total||1);
+    return sb - sa;
+  });
+  const highestShare = fanclShareSorted[0];
+  const hsFancl = cepMentions[highestShare]?.byBrand['A社']||0;
+  const hsTotal = cepMentions[highestShare]?.total||1;
+  // Over-investment risk
+  const overInvest = allIds.filter(id => cepMentionCount(id) < 1000 && (currentSOV['A社'][id]||0) > 20);
+  // Best opportunity
+  const bestOpp = allIds.filter(id => cepMentionCount(id) > 3000 && cepAdv(id) > 0 && (currentSOV['A社'][id]||0) < 20);
+
+  const insights = [
+    {title:'市場規模最大のCEP', text:`${cepLabel(largest)}(${largest}) — 言及数${fmtNum(cepMentionCount(largest))}件`},
+    {title:'A社言及シェア最高のCEP', text:`${cepLabel(highestShare)}(${highestShare}) — A社 ${fmtNum(hsFancl)}件 / 全${fmtNum(hsTotal)}件（${(hsFancl/hsTotal*100).toFixed(1)}%）`},
+    {title:'過剰投資リスク', text:overInvest.length > 0 ? `小規模市場(言及数<1000)にSOV>20%のCEP: ${overInvest.map(id=>cepLabel(id).slice(0,6)+'('+id+')').join('、')}` : '該当なし'},
+    {title:'最大の投資機会', text:bestOpp.length > 0 ? `大規模市場(言及数>3000)でCEP優位かつA社 SOV低い: ${bestOpp.map(id=>cepLabel(id).slice(0,6)+'('+id+')').join('、')}` : '条件に合致するCEPなし（SOV投入済み）'},
+  ];
+  generateInsights('marketsize-insights', insights);
+}
+
+function drawMarketBubble() {
+  const canvas = document.getElementById('market-bubble-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const ml=80,mr=40,mt=40,mb=60,pw=W-ml-mr,ph=H-mt-mb;
+  const allAxes = [...situationAxes,...experienceAxes];
+
+  const maxAdv=10,minAdv=-10;
+  const mentionValues = allAxes.map(id=>cepMentionCount(id));
+  const minMent = Math.min(...mentionValues);
+  const maxMent = Math.max(...mentionValues);
+  // Log scale for Y
+  const logMin = Math.log2(Math.max(100, minMent));
+  const logMax = Math.log2(maxMent * 1.2);
+
+  const zeroX=ml+pw*(0-minAdv)/(maxAdv-minAdv);
+  const midY=mt+ph*0.5;
+
+  // Quadrant fills
+  const thresholdY = mt + ph * (1 - (Math.log2(3000) - logMin)/(logMax - logMin));
+  ctx.fillStyle='rgba(16,185,129,0.06)';ctx.fillRect(zeroX,mt,W-mr-zeroX,thresholdY-mt);
+  ctx.fillStyle='rgba(139,92,246,0.06)';ctx.fillRect(ml,mt,zeroX-ml,thresholdY-mt);
+  ctx.fillStyle='rgba(245,158,11,0.06)';ctx.fillRect(zeroX,thresholdY,W-mr-zeroX,H-mb-thresholdY);
+  ctx.fillStyle='rgba(239,68,68,0.06)';ctx.fillRect(ml,thresholdY,zeroX-ml,H-mb-thresholdY);
+
+  // Grid
+  ctx.strokeStyle='#334155';ctx.lineWidth=0.5;
+  for(let i=0;i<=4;i++){const x=ml+pw*i/4;ctx.beginPath();ctx.moveTo(x,mt);ctx.lineTo(x,H-mb);ctx.stroke();const val=minAdv+(maxAdv-minAdv)*i/4;ctx.fillStyle='#94a3b8';ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillText((val>0?'+':'')+val.toFixed(0)+'pt',x,H-mb+15);}
+  // Y grid (log scale markers)
+  [200,500,1000,2000,3000,5000].forEach(v => {
+    if (v < minMent*0.8 || v > maxMent*1.3) return;
+    const ly = mt + ph * (1 - (Math.log2(v) - logMin)/(logMax - logMin));
+    if (ly < mt || ly > H-mb) return;
+    ctx.beginPath();ctx.moveTo(ml,ly);ctx.lineTo(W-mr,ly);ctx.stroke();
+    ctx.fillStyle='#94a3b8';ctx.font='10px sans-serif';ctx.textAlign='right';ctx.fillText(fmtNum(v),ml-5,ly+4);
+  });
+
+  // Center line & threshold
+  ctx.strokeStyle='#64748b';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(zeroX,mt);ctx.lineTo(zeroX,H-mb);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ml,thresholdY);ctx.lineTo(W-mr,thresholdY);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Quadrant labels
+  ctx.fillStyle='rgba(148,163,184,0.5)';ctx.font='11px sans-serif';ctx.textAlign='center';
+  ctx.fillText('大市場×優位',(zeroX+W-mr)/2,mt+18);
+  ctx.fillText('大市場×劣位',(ml+zeroX)/2,mt+18);
+  ctx.fillText('小市場×優位',(zeroX+W-mr)/2,H-mb-10);
+  ctx.fillText('小市場×劣位',(ml+zeroX)/2,H-mb-10);
+
+  // Axis labels
+  ctx.fillStyle='#e2e8f0';ctx.font='11px sans-serif';ctx.textAlign='center';
+  ctx.fillText('← CEP劣位 | A社 CEP優位スコア(pt) | CEP優位 →',W/2,H-5);
+  ctx.save();ctx.translate(15,H/2);ctx.rotate(-Math.PI/2);ctx.fillText('← 小規模 | 市場規模（言及数・対数スケール） | 大規模 →',0,0);ctx.restore();
+
+  // Points
+  allAxes.forEach(id => {
+    const adv = cepAdv(id);
+    const mentions = cepMentionCount(id);
+    const fanclMention = cepMentions[id]?.byBrand['A社']||0;
+    const fanclShare = mentions > 0 ? fanclMention / mentions : 0;
+    const x = ml + pw * (adv - minAdv)/(maxAdv - minAdv);
+    const logV = Math.log2(Math.max(100, mentions));
+    const y = mt + ph * (1 - (logV - logMin)/(logMax - logMin));
+    const size = Math.max(6, Math.min(18, fanclShare * 60));
+    const color = adv > 0 ? '#10b981' : '#ef4444';
+
+    ctx.beginPath();ctx.arc(x,y,size,0,Math.PI*2);
+    ctx.fillStyle=color;ctx.globalAlpha=0.6;ctx.fill();
+    ctx.globalAlpha=1;ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.fillStyle='#e2e8f0';ctx.font='9px sans-serif';ctx.textAlign='left';
+    ctx.fillText(cepLabel(id).slice(0,8)+' ('+fmtNum(mentions)+')',x+size+3,y+3);
+  });
+
+  // Legend
+  ctx.fillStyle='#10b981';ctx.beginPath();ctx.arc(ml+10,H-38,5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#e2e8f0';ctx.font='10px sans-serif';ctx.textAlign='left';ctx.fillText('CEP優位',ml+20,H-35);
+  ctx.fillStyle='#ef4444';ctx.beginPath();ctx.arc(ml+90,H-38,5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#e2e8f0';ctx.fillText('CEP劣位',ml+100,H-35);
+  ctx.fillStyle='#94a3b8';ctx.font='9px sans-serif';ctx.fillText('バブルサイズ = A社言及シェア / 点線 = 3000件(大規模閾値)',ml+170,H-35);
+}
+
+function renderMarketSizeTable() {
+  const allIds = [...situationAxes,...experienceAxes];
+  const tbody = document.getElementById('marketsize-table-body');
+  const items = allIds.map(id => {
+    const m = cepMentions[id]||{total:0,byBrand:{}};
+    const fanclM = m.byBrand['A社']||0;
+    const fanclShare = m.total > 0 ? (fanclM/m.total*100) : 0;
+    const adv = cepAdv(id);
+    const fSov = currentSOV['A社'][id]||0;
+    const compAvg = brands.slice(1).reduce((s,b)=>s+(currentSOV[b][id]||0),0)/(brands.length-1);
+    // Investment efficiency judgment
+    let judgment = '', judgmentIcon = '';
+    if (m.total >= 3000 && adv > 0 && fSov < compAvg) { judgment = '最優先投資'; judgmentIcon = '🟢'; }
+    else if (m.total >= 3000 && adv > 0 && fSov >= compAvg) { judgment = '維持'; judgmentIcon = '🟡'; }
+    else if (m.total < 1000 && adv < 0 && fSov > compAvg) { judgment = '過剰投資'; judgmentIcon = '🔴'; }
+    else if (m.total < 1000 && fSov > 20) { judgment = '小規模過剰'; judgmentIcon = '🔴'; }
+    else if (m.total >= 3000 && adv < 0 && fSov > compAvg) { judgment = '大市場過剰'; judgmentIcon = '🟠'; }
+    else if (m.total >= 1000 && adv > 0 && fSov < 15) { judgment = '投資拡大候補'; judgmentIcon = '🟢'; }
+    else { judgment = '現状維持'; judgmentIcon = '⚪'; }
+    return {id, total: m.total, fanclM, fanclShare, adv, fSov, judgment, judgmentIcon, type: cepMaster[id]?.type === 'situation' ? '状況' : '体験価値'};
+  }).sort((a,b) => b.total - a.total);
+
+  let html = '';
+  items.forEach(item => {
+    const advColor = item.adv > 0 ? 'var(--success)' : item.adv < 0 ? 'var(--danger)' : 'var(--muted)';
+    html += `<tr>
+      <td style="font-weight:600">${cepIdTag(item.id)}</td>
+      <td>${item.type}</td>
+      <td style="font-weight:700">${fmtNum(item.total)}</td>
+      <td>${cepMentionShare(item.id).toFixed(1)}%</td>
+      <td>${fmtNum(item.fanclM)}</td>
+      <td style="font-weight:700;color:var(--brand-a)">${item.fanclShare.toFixed(1)}%</td>
+      <td style="color:${advColor};font-weight:700">${item.adv>0?'+':''}${item.adv}</td>
+      <td style="color:var(--brand-a)">${item.fSov}%</td>
+      <td>${sizeBadgeHtml(item.id)}</td>
+      <td>${item.judgmentIcon} ${item.judgment}</td>
+    </tr>`;
+  });
+  tbody.innerHTML = html;
+}
+
+// ============================================================
+// TAB 4: WHITESPACE (v4: enhanced with market size + opportunity score)
+// ============================================================
+function renderWhitespace() {
+  renderWhitespaceInsights();
+  const allAxes = [...situationAxes,...experienceAxes];
+  const tbody = document.getElementById('whitespace-table-body');
+  const items = allAxes.map(id => {
+    const adv = cepAdv(id);
+    const fSov = currentSOV['A社'][id]||0;
+    const compAvg = brands.slice(1).reduce((s,b)=>s+(currentSOV[b][id]||0),0)/(brands.length-1);
+    const os = opportunityScore(id);
+    const mc = cepMentionCount(id);
+    return {id, adv, fSov, compAvg, wsScore: os, mc, type: situationAxes.includes(id)?'状況':'体験価値'};
+  }).sort((a,b) => b.wsScore - a.wsScore);
+  let html = '';
+  items.forEach(item => {
+    const advColor = item.adv > 0 ? 'var(--success)' : 'var(--danger)';
+    let action = '';
+    if (item.wsScore > 5) action = '<span class="badge badge-success">即座に投資拡大</span>';
+    else if (item.wsScore > 2) action = '<span class="badge badge-warning">段階的に投資</span>';
+    else if (item.wsScore > 0) action = '<span class="badge badge-info">様子見</span>';
+    else action = '<span class="badge badge-danger">投資抑制</span>';
+    const smallWarn = item.mc < 1000 ? ' <span class="market-warning">⚠小</span>' : '';
+    html += `<tr><td style="font-weight:600">${cepIdTag(item.id)}</td><td>${item.type}</td>
+      <td style="color:${advColor};font-weight:700">${item.adv>0?'+':''}${item.adv}</td>
+      <td>${item.compAvg.toFixed(1)}%</td><td style="color:var(--brand-a);font-weight:700">${item.fSov}%</td>
+      <td style="font-size:0.72rem">${fmtNum(item.mc)}${smallWarn}</td>
+      <td>${sizeBadgeHtml(item.id)}</td>
+      <td style="font-weight:700;color:${item.wsScore>3?'var(--success)':item.wsScore>0?'var(--warning)':'var(--danger)'}">${item.wsScore.toFixed(1)}</td>
+      <td>${action}</td></tr>`;
+  });
+  tbody.innerHTML = html;
+}
+
+function renderGapChart() {
+  const allAxes = [...situationAxes,...experienceAxes];
+  const container = document.getElementById('gap-chart');
+  let html = '';
+  allAxes.forEach(id => {
+    const fSov = currentSOV['A社'][id]||0;
+    const compAvg = brands.slice(1).reduce((s,b)=>s+(currentSOV[b][id]||0),0)/(brands.length-1);
+    const diff = fSov - compAvg;
+    const barW = Math.min(Math.abs(diff)/80*100,100);
+    const color = diff > 0 ? 'var(--success)' : 'var(--danger)';
+    const mc = cepMentionCount(id);
+    const opacity = mc >= 3000 ? 1 : mc >= 1000 ? 0.6 : 0.3;
+    html += `<div style="display:flex;align-items:center;margin-bottom:4px">
+      <div style="width:90px;text-align:right;font-size:0.68rem;padding-right:8px">${cepLabel(id).slice(0,8)} ${sizeBadgeHtml(id)}</div>
+      <div style="flex:1;display:flex;align-items:center;position:relative;height:14px">
+        <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--border)"></div>
+        ${diff >= 0
+          ? `<div style="width:50%"></div><div style="width:${barW/2}%;height:14px;background:${color};border-radius:0 3px 3px 0;opacity:${opacity}"></div>`
+          : `<div style="width:${50-barW/2}%"></div><div style="width:${barW/2}%;height:14px;background:${color};border-radius:3px 0 0 3px;opacity:${opacity}"></div>`}
+      </div>
+      <div style="width:50px;font-size:0.68rem;padding-left:4px;color:${color}">${diff>0?'+':''}${diff.toFixed(1)}</div></div>`;
+  });
+  container.innerHTML = html;
+}
+
+function renderCompetitionHeatmap() {
+  const allAxes = [...situationAxes,...experienceAxes];
+  const container = document.getElementById('competition-heatmap');
+  let html = '<table><thead><tr><th>CEP軸</th>';
+  brands.forEach(b => html += `<th style="color:${brandColors[b]}">${brandShort[b]}</th>`);
+  html += '<th>MAX</th></tr></thead><tbody>';
+  allAxes.forEach(id => {
+    html += `<tr><td style="font-size:0.68rem">${cepLabel(id).slice(0,8) } <span style="font-size:0.58rem;color:var(--muted)">${id}</span></td>`;
+    let maxVal=0,maxBrand='';
+    brands.forEach(b => {const v=currentSOV[b][id]||0;if(v>maxVal){maxVal=v;maxBrand=b;}});
+    brands.forEach(b => {
+      const v=currentSOV[b][id]||0;
+      const rgb = hexToRgb(brandColors[b]);
+      const bg=`rgba(${rgb},${Math.min(v/100,1)*0.6})`;
+      html += `<td style="background:${bg};${v===maxVal&&v>0?'font-weight:800':''};font-size:0.72rem;text-align:center">${v}%</td>`;
+    });
+    html += `<td style="font-size:0.68rem;color:${brandColors[maxBrand]||'var(--muted)'}">${brandShort[maxBrand]||'-'}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function renderCoverageMatrix() {
+  const allAxes = [...situationAxes,...experienceAxes];
+  const wsCeps = allAxes.map(id => {
+    const adv = cepAdv(id);
+    const compAvg = brands.slice(1).reduce((s,b)=>s+(currentSOV[b][id]||0),0)/(brands.length-1);
+    return {id, ws: adv * (1 - compAvg/100)};
+  }).filter(s => s.ws > 0).sort((a,b) => b.ws - a.ws);
+
+  const container = document.getElementById('coverage-matrix');
+  let html = '<table class="coverage-matrix"><thead><tr><th style="text-align:left">CEP (WSスコア順)</th><th>WS</th>';
+  allMedia.forEach(m => html += `<th style="color:${mediaColors[m]};font-size:0.62rem">${m}</th>`);
+  html += '</tr></thead><tbody>';
+
+  wsCeps.forEach(({id, ws}) => {
+    html += `<tr><td class="cep-name">${cepLabel(id)} <span style="font-size:0.58rem;color:var(--muted)">${id}</span></td>`;
+    html += `<td style="font-weight:700;color:var(--warning)">${ws.toFixed(1)}</td>`;
+    allMedia.forEach(m => {
+      const fanclD = crossData['A社'][id];
+      const fanclPct = fanclD ? (fanclD.media[m]||0) : 0;
+      let compPresent = [];
+      brands.slice(1).forEach(b => {
+        const d = crossData[b]?.[id];
+        if (d && d.media && (d.media[m]||0) > 5) {
+          compPresent.push({brand: b, pct: d.media[m]});
+        }
+      });
+      const isFanclPresent = fanclPct > 0;
+      const isCompPresent = compPresent.length > 0;
+      let cellContent = '';
+      let cellClass = '';
+      if (isFanclPresent) {
+        cellContent = `<span style="color:var(--brand-a);font-weight:700">F</span>`;
+        compPresent.forEach(cp => {
+          cellContent += `<span style="color:${brandColors[cp.brand]};font-size:0.55rem;margin-left:1px">${brandShort[cp.brand].charAt(0)}</span>`;
+        });
+      } else if (isCompPresent) {
+        cellClass = ' gap-indicator';
+        compPresent.forEach(cp => {
+          cellContent += `<span style="color:${brandColors[cp.brand]};font-size:0.6rem;font-weight:700">${brandShort[cp.brand].charAt(0)}</span>`;
+        });
+      } else {
+        cellContent = '<span style="color:var(--muted)">-</span>';
+      }
+      html += `<td class="${cellClass}" title="${isFanclPresent ? 'A社:'+fanclPct.toFixed(0)+'%' : 'A社未出稿'}${compPresent.length > 0 ? ' / '+compPresent.map(c=>brandShort[c.brand]+':'+c.pct.toFixed(0)+'%').join(', ') : ''}">${cellContent}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  html += '<div style="margin-top:8px;font-size:0.68rem;color:var(--muted)"><span style="display:inline-block;width:12px;height:12px;background:rgba(239,68,68,0.25);border-radius:2px;vertical-align:middle;margin-right:4px"></span>赤背景 = A社未出稿×競合出稿中（拡張候補） / <span style="color:var(--brand-a);font-weight:700">F</span>=A社出稿中 / 競合はブランド名の頭文字（>5%のみ表示）</div>';
+  container.innerHTML = html;
+}
+
+// ============================================================
+// TAB 5: MEDIA EXPANSION SIMULATION
+// ============================================================
+function generateExpansionCards() {
+  renderExpansionInsights();
+  const allAxes = [...situationAxes,...experienceAxes];
+  const scored = allAxes.map(id => {
+    const adv = cepAdv(id);
+    const compAvg = brands.slice(1).reduce((s,b)=>s+(currentSOV[b][id]||0),0)/(brands.length-1);
+    const fSov = currentSOV['A社'][id]||0;
+    return {id, ws: adv * (1 - compAvg/100), adv, compAvg, fSov};
+  }).filter(s => s.ws > 0).sort((a,b) => b.ws - a.ws).slice(0, 5);
+
+  const container = document.getElementById('expansion-cards');
+  let html = '';
+
+  scored.forEach(s => {
+    const fanclData = crossData['A社'][s.id];
+    const fanclMedia = fanclData ? fanclData.media : {};
+    const fanclObs = fanclData ? fanclData.obs : 0;
+    const mc = cepMentionCount(s.id);
+    const candidates = [];
+    allMedia.forEach(m => {
+      if ((fanclMedia[m]||0) > 0) return;
+      let bestCompetitor = null;
+      brands.slice(1).forEach(b => {
+        const d = crossData[b]?.[s.id];
+        if (d && d.media && (d.media[m]||0) > 5) {
+          const obsForMedia = Math.round(d.obs * d.media[m] / 100);
+          if (!bestCompetitor || obsForMedia > bestCompetitor.obs) {
+            bestCompetitor = {brand: b, pct: d.media[m], obs: d.obs, obsForMedia, fmt: d.fmt};
+          }
+        }
+      });
+      if (bestCompetitor) {
+        const topFmt = Object.entries(bestCompetitor.fmt).sort((a,b)=>b[1]-a[1])[0];
+        candidates.push({media: m, competitor: bestCompetitor, topFmt});
+      }
+    });
+
+    const fSov = currentSOV['A社'][s.id]||0;
+    const sovDiff = fSov - s.compAvg;
+    const fanclMediaStr = Object.entries(fanclMedia).filter(([_,v])=>v>0).sort((a,b)=>b[1]-a[1]).map(([m,v])=>m+' '+v.toFixed(0)+'%').join(', ') || 'なし';
+
+    html += `<div class="expansion-card">
+      <div class="card-header">
+        <div>
+          <h4>${cepLabel(s.id)} <span style="font-size:0.65rem;color:var(--muted)">${s.id}</span> ${sizeBadgeHtml(s.id)}</h4>
+          <div style="font-size:0.75rem;color:var(--muted)">CEP優位: ${s.adv>0?'+':''}${s.adv}pt | A社 SOV: ${fSov}% | 言及数: ${fmtNum(mc)}件</div>
+        </div>
+        <div class="ws-score">WS: ${s.ws.toFixed(1)}</div>
+      </div>`;
+
+    if (candidates.length > 0) {
+      html += '<div style="margin-bottom:6px;font-size:0.78rem;font-weight:600">拡張候補媒体:</div>';
+      candidates.forEach(c => {
+        html += `<div class="media-candidate">
+          <div class="media-name-exp" style="color:${mediaColors[c.media]||'var(--text)'}">${c.media}</div>
+          <div class="competitor-ref">← ${c.competitor.brand} ${c.competitor.pct.toFixed(0)}% / ${fmtNum(c.competitor.obs)} obs</div>
+          <div style="font-size:0.72rem;color:var(--accent)">推奨フォーマット: ${c.topFmt ? c.topFmt[0]+' '+c.topFmt[1].toFixed(0)+'%' : '-'}</div>
+        </div>`;
+      });
+    } else {
+      html += '<div style="font-size:0.78rem;color:var(--muted);padding:8px">拡張候補なし（競合の出稿が少ない、またはA社が既にカバー）</div>';
+    }
+
+    html += `<div class="fancl-current">A社現状: ${fanclMediaStr} / ${fmtNum(fanclObs)} obs | 対競合SOV差: ${sovDiff>0?'+':''}${sovDiff.toFixed(1)}%</div>`;
+    html += '</div>';
+  });
+
+  container.innerHTML = html;
+  renderIntegratedHeatmap();
+}
+
+function renderIntegratedHeatmap() {
+  const container = document.getElementById('integrated-heatmap');
+  const allAxes = [...situationAxes,...experienceAxes];
+  let html = '<table class="cross-heatmap"><thead><tr><th style="text-align:left">CEP軸</th><th>obs</th>';
+  allMedia.forEach(m => html += `<th style="color:${mediaColors[m]};font-size:0.62rem">${m}</th>`);
+  html += '</tr></thead><tbody>';
+
+  const scored = allAxes.map(id => {
+    const adv = cepAdv(id);
+    const compAvg = brands.slice(1).reduce((s,b)=>s+(currentSOV[b][id]||0),0)/(brands.length-1);
+    return {id, ws: adv * (1 - compAvg/100)};
+  }).filter(s => s.ws > 0).sort((a,b) => b.ws - a.ws);
+
+  scored.forEach(({id}) => {
+    brands.forEach((b, bi) => {
+      if (bi === 0) html += `<tr><td class="axis-name" rowspan="${brands.length}" style="vertical-align:top">${cepLabel(id).slice(0,8)} <span style="font-size:0.58rem;color:var(--muted)">${id}</span></td>`;
+      else html += '<tr>';
+      const d = crossData[b]?.[id];
+      const obs = d ? d.obs : 0;
+      html += `<td style="font-size:0.6rem;color:${brandColors[b]};font-weight:600;white-space:nowrap">${brandShort[b]} ${obs > 0 ? (obs/1000).toFixed(0)+'K' : '-'}</td>`;
+      allMedia.forEach(m => {
+        const v = d ? (d.media[m]||0) : 0;
+        const rgb = mediaColors[m] ? hexToRgb(mediaColors[m]) : '100,100,100';
+        html += `<td style="background:rgba(${rgb},${Math.min(v/100,1)*0.6});${v>30?'font-weight:800':''}">${v>0?v.toFixed(0)+'%':'-'}</td>`;
+      });
+      html += '</tr>';
+    });
+  });
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+// ============================================================
+// TAB 6: REFERENCE
+// ============================================================
+function renderReference() {
+  renderReferenceInsights();
+
+  const mediaLegend = document.getElementById('ref-media-legend');
+  mediaLegend.innerHTML = allMedia.map(m =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${mediaColors[m]}"></div>${m}</div>`
+  ).join('');
+
+  const mediaContainer = document.getElementById('ref-media-stacked');
+  let mhtml = '';
+  brands.forEach(brand => {
+    const data = dimData[brand]['媒体']||{};
+    const obs = dimData[brand].total_obs;
+    mhtml += `<div class="h-bar-row"><div class="h-bar-label" style="color:${brandColors[brand]}">${brandShort[brand]}<br><span style="font-size:0.58rem;color:var(--muted)">${(obs/1000).toFixed(0)}K</span></div><div class="h-bar-track">`;
+    const sorted = allMedia.slice().sort((a,b)=>(data[b]||0)-(data[a]||0));
+    sorted.forEach(m => {
+      const pct = data[m]||0;
+      if (pct >= 0.5) mhtml += `<div class="h-bar-seg" style="width:${pct}%;background:${mediaColors[m]}" title="${m}: ${pct}%">${pct>=4?m+' '+pct+'%':(pct>=2?pct+'%':'')}</div>`;
+    });
+    mhtml += '</div></div>';
+  });
+  mediaContainer.innerHTML = mhtml;
+
+  renderDimStackedBar('ref-format-chart','フォーマット',formatColors,allFormats);
+
+  const summaryEl = document.getElementById('ref-summary-table');
+  let shtml = '';
+  brands.forEach(b => {
+    const d = dimData[b];
+    const topFmt = Object.entries(d['フォーマット']).sort((a,b)=>b[1]-a[1])[0];
+    const topMedia = Object.entries(d['媒体']).sort((a,b)=>b[1]-a[1])[0];
+    const lpPct = (d['LPタイプ']||{})['記事LP']||0;
+    const affPct = (d['アフィリエイトタイプ']||{})['EC系']||0;
+    const mediaCount = Object.entries(d['媒体']).filter(([_,v])=>v>1).length;
+    shtml += `<tr>
+      <td style="font-weight:700;color:${brandColors[b]}">${brandShort[b]}</td>
+      <td>${fmtNum(d.total_obs)}</td>
+      <td>${topFmt[0]} ${topFmt[1].toFixed(1)}%</td>
+      <td>${topMedia[0]} ${topMedia[1].toFixed(1)}%</td>
+      <td>${mediaCount}媒体</td>
+      <td style="${lpPct>10?'font-weight:800;color:var(--warning)':''}">${lpPct.toFixed(1)}%</td>
+      <td>${affPct > 0 ? affPct.toFixed(1)+'%' : '非アフィ'}</td>
+    </tr>`;
+  });
+  summaryEl.innerHTML = shtml;
+}
+
+function renderDimStackedBar(containerId, dimension, segColors, segOrder) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  let html = '';
+  brands.forEach(brand => {
+    const data = dimData[brand][dimension]||{};
+    const obs = dimData[brand].total_obs;
+    html += `<div class="h-bar-row"><div class="h-bar-label" style="color:${brandColors[brand]}">${brandShort[brand]}<br><span style="font-size:0.58rem;color:var(--muted)">${(obs/1000).toFixed(0)}K</span></div><div class="h-bar-track">`;
+    segOrder.forEach(seg => {
+      const pct = data[seg]||0;
+      if (pct >= 0.5) html += `<div class="h-bar-seg" style="width:${pct}%;background:${segColors[seg]}" title="${seg}: ${pct}%">${pct>=5?pct.toFixed(1)+'%':''}</div>`;
+    });
+    html += '</div></div>';
+  });
+  container.innerHTML = html;
+}
+
+// ============================================================
+// TAB 7: QUARTERLY STRATEGY
+// ============================================================
+function renderStrategy() {
+  document.getElementById('strategy-updated').textContent = quarterlyStrategy.lastUpdated;
+  const iconColors = {red:'var(--danger)',green:'var(--success)',yellow:'var(--warning)',blue:'var(--accent)'};
+  document.getElementById('strategy-cards').innerHTML = quarterlyStrategy.strategies.map(s => {
+    const cepTags = (s.targetCepIds||[]).map(id =>
+      `<span style="background:rgba(59,130,246,0.15);padding:1px 6px;border-radius:3px;font-size:0.65rem;margin-left:4px">${id}</span>`
+    ).join('');
+    return `<div class="strategy-card"><h4 style="color:${iconColors[s.icon]||'var(--accent)'}">戦略${s.id}：${s.title} ${cepTags}</h4><p>${s.body}</p></div>`;
+  }).join('');
+  const {current, recommended} = quarterlyStrategy.sovRebalance;
+  const colors2 = ['#ef4444','#3b82f6','#f59e0b','#8b5cf6','#10b981','#06b6d4','#ec4899','#84cc16','#f97316'];
+  ['current','recommended'].forEach(mode => {
+    const data = mode === 'current' ? current : recommended;
+    const container = document.getElementById(`${mode}-sov`);
+    let html = '';
+    Object.entries(data).forEach(([id,val],i) => {
+      const isChanged = mode==='recommended' && Math.abs(val-current[id])>5;
+      const arrow = mode==='recommended' ? (val>current[id]?' ↑':val<current[id]?' ↓':'') : '';
+      const arrowColor = val>current[id]?'var(--success)':'var(--danger)';
+      html += `<div style="display:flex;align-items:center;margin-bottom:5px"><div style="width:90px;font-size:0.72rem;text-align:right;padding-right:8px">${cepLabel(id)} <span style="font-size:0.58rem;color:var(--muted)">${id}</span></div><div style="flex:1;background:rgba(255,255,255,0.05);border-radius:3px;height:18px"><div style="height:100%;width:${val}%;background:${colors2[i]};border-radius:3px;opacity:0.7"></div></div><div style="width:55px;font-size:0.72rem;text-align:right;padding-left:4px;${isChanged?'font-weight:800':''}">${val}%<span style="color:${arrowColor};font-size:0.68rem">${arrow}</span></div></div>`;
+    });
+    container.innerHTML = html;
+  });
+}
+
+// ============================================================
+// INITIALIZATION
+// ============================================================
+function init() {
+  buildTabNav();
+  renderSummary();
+  renderOverview();
+  renderMarketSize();
+  renderWhitespace();
+  renderGapChart();
+  renderCompetitionHeatmap();
+  renderCoverageMatrix();
+  generateExpansionCards();
+  renderReference();
+  renderStrategy();
+  initHashRouting();
+}
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+<!-- ============================================================ -->
+<!-- HEADER & TAB NAVIGATION -->
+<!-- ============================================================ -->
+<h1>Kaname MMaaS — CEPs×広告SOV 月次訴求判断ダッシュボード v4</h1>
+<p class="subtitle">スキンケアカテゴリ | <span id="report-month"></span> | A社 vs B社 vs C社 vs D社 vs E社</p>
+
+<div class="tabs" id="tab-nav"></div>
+
+<!-- ===== TAB 1: SUMMARY ===== -->
+<div id="tab-summary" class="tab-content active">
+  <h2>今月のTop3変化</h2>
+  <div id="top3-changes"></div>
+
+  <h2 style="margin-top:20px">前月施策の追跡</h2>
+  <div id="previous-action-results"></div>
+
+  <h2 style="margin-top:20px">ブランド別 絶対観測量</h2>
+  <div class="kpi-compact" id="kpi-compact"></div>
+
+  <div class="grid2">
+    <div>
+      <h2>維持するCEP</h2>
+      <div id="maintain-ceps"></div>
+      <h2 style="margin-top:14px">強化するCEP</h2>
+      <div id="strengthen-ceps"></div>
+      <h2 style="margin-top:14px">抑制するCEP</h2>
+      <div id="reduce-ceps"></div>
+    </div>
+    <div>
+      <h2>次月アクション候補</h2>
+      <div class="action-candidates" id="action-candidates"></div>
+    </div>
+  </div>
+
+  <div class="disclaimer">本提案は会議での議論用叩き台です。実行指示書ではありません。</div>
+</div>
+
+<!-- ===== TAB 2: CEP×SOV OVERVIEW ===== -->
+<div id="tab-overview" class="tab-content">
+  <div id="overview-insights" style="margin-bottom:16px"></div>
+  <div class="card">
+    <h2>CEP×SOV 5社比較テーブル（状況軸・体験価値軸統合）</h2>
+    <div class="legend" id="brand-legend-overview"></div>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:12px">CEP優位スコア(pt) = A社の相対優位度。広告SOV(%) = 各ブランドの全広告のうち該当CEP軸キーワードを含む割合。言及数 = CEP分析データの市場全体の言及数。</p>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr>
+        <th>CEP軸</th><th>CEP優位(pt)</th><th>言及数</th><th>市場%</th><th>規模</th>
+        <th>A社 SOV</th><th>B社 SOV</th><th>C社 SOV</th><th>D社 SOV</th><th>E社 SOV</th>
+        <th>戦略判定</th>
+      </tr></thead>
+      <tbody id="overview-table-body"></tbody>
+    </table>
+    </div>
+  </div>
+
+  <div id="scatter-insights" style="margin-bottom:16px"></div>
+  <div class="card">
+    <h2>CEPポジショニングマップ</h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:8px">X軸: A社 CEP優位スコア(pt)。Y軸: A社広告SOV - 競合平均SOV。バブルサイズ = CEP言及数（市場規模）。薄色 = 前月位置。</p>
+    <canvas id="scatter-canvas" width="900" height="550"></canvas>
+  </div>
+</div>
+
+<!-- ===== TAB 3: MARKET SIZE MAP (NEW v4) ===== -->
+<div id="tab-marketsize" class="tab-content">
+  <div id="marketsize-insights" style="margin-bottom:16px"></div>
+  <div class="card">
+    <h2>CEP市場規模バブルチャート</h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:8px">X軸: CEP優位スコア(pt)。Y軸: 市場規模（言及数・対数スケール）。バブルサイズ = A社言及シェア。緑 = CEP優位、赤 = CEP劣位。点線 = 大規模市場の閾値(3,000件)。</p>
+    <canvas id="market-bubble-canvas" width="900" height="550"></canvas>
+  </div>
+  <div class="card">
+    <h2>市場規模ランキングテーブル</h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:12px">CEP言及数の降順。投資効率判定は市場規模×CEP優位×広告SOVの組み合わせから自動算出。</p>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr>
+        <th>CEP名</th><th>タイプ</th><th>言及数</th><th>市場%</th><th>A社言及数</th><th>A社シェア</th><th>CEP優位</th><th>広告SOV</th><th>規模</th><th>投資効率判定</th>
+      </tr></thead>
+      <tbody id="marketsize-table-body"></tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAB 4: WHITESPACE ===== -->
+<div id="tab-whitespace" class="tab-content">
+  <div id="whitespace-insights" style="margin-bottom:16px"></div>
+  <div class="card">
+    <h2>ホワイトスペース分析</h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:12px">機会スコア(v2) = CEP優位 × (1 - 競合平均SOV/100) × log2(1 + 言及数/1000)。市場規模を加味した投資判断指標。⚠ = 小規模市場（言及数1,000件未満）</p>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr>
+        <th>CEP軸</th><th>タイプ</th><th>CEP優位(pt)</th><th>競合平均SOV</th><th>A社 SOV</th>
+        <th>言及数</th><th>規模</th><th>機会スコア(v2)</th><th>推奨</th>
+      </tr></thead>
+      <tbody id="whitespace-table-body"></tbody>
+    </table>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <h2>CEP軸別：A社 vs 競合 SOV差</h2>
+      <p style="font-size:0.72rem;color:var(--muted);margin-bottom:8px">バーの濃淡 = 市場規模（濃い = 大規模、薄い = 小規模）</p>
+      <div id="gap-chart"></div>
+    </div>
+    <div class="card">
+      <h2>各CEP軸での競合SOV分布</h2>
+      <div id="competition-heatmap"></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>ホワイトスペース×媒体カバレッジ マトリクス</h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:12px">WSスコア > 0 のCEPについて、各ブランドの媒体出稿状況を表示。赤背景 = A社未出稿×競合出稿中 = 拡張候補</p>
+    <div id="coverage-matrix"></div>
+  </div>
+</div>
+
+<!-- ===== TAB 5: MEDIA EXPANSION SIMULATION ===== -->
+<div id="tab-expansion" class="tab-content">
+  <div id="expansion-insights" style="margin-bottom:16px"></div>
+  <div class="card">
+    <h2>媒体拡張シミュレーション — ホワイトスペースTOP5</h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:12px">WSスコアTOP5のCEPについて、A社未出稿×競合成功パターンに基づく拡張候補を自動生成</p>
+    <div id="expansion-cards"></div>
+  </div>
+  <div class="card">
+    <h2>CEP×媒体 統合ヒートマップ（WSスコア正のCEPのみ）</h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:12px">ホワイトスペースCEP × 全媒体の出稿分布。ブランド別の配信パターンを一覧比較</p>
+    <div id="integrated-heatmap" style="overflow-x:auto"></div>
+  </div>
+</div>
+
+<!-- ===== TAB 6: REFERENCE ===== -->
+<div id="tab-reference" class="tab-content">
+  <div id="reference-insights" style="margin-bottom:16px"></div>
+  <div class="card">
+    <h2>媒体構成比（スタックバー）</h2>
+    <div class="legend" id="ref-media-legend"></div>
+    <div id="ref-media-stacked"></div>
+  </div>
+  <div class="card">
+    <h2>フォーマット別構成比</h2>
+    <div class="legend"><div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>動画</div><div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>静止画</div><div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>カルーセル</div></div>
+    <div id="ref-format-chart"></div>
+  </div>
+  <div class="card">
+    <h2>配信構造サマリーテーブル</h2>
+    <table>
+      <thead><tr><th>ブランド</th><th>総観測数</th><th>主要フォーマット</th><th>主要媒体</th><th>媒体数</th><th>記事LP比率</th><th>EC系アフィ率</th></tr></thead>
+      <tbody id="ref-summary-table"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== TAB 7: QUARTERLY STRATEGY ===== -->
+<div id="tab-strategy" class="tab-content">
+  <div class="card">
+    <h2>A社 広告戦略リバランス提案 <span class="quarterly-badge">四半期更新</span></h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:6px">最終更新: <span id="strategy-updated"></span></p>
+    <div class="grid2" id="strategy-cards"></div>
+  </div>
+  <div class="card">
+    <h2>推奨SOVリバランス</h2>
+    <div class="grid2">
+      <div><h3 style="margin-bottom:8px">現状SOV配分</h3><div id="current-sov"></div></div>
+      <div><h3 style="margin-bottom:8px">推奨SOV配分</h3><div id="recommended-sov"></div></div>
+    </div>
+  </div>
+  <div class="disclaimer">このタブは四半期更新です。月次では変更しません。</div>
+</div>
+
+<div class="dashboard-footer">
+  Kaname MMaaS Phase 1 — CEPs×広告SOV 月次訴求判断ダッシュボード v4 | Powered by Kaname.ax
+</div>
+</body>
+</html>
