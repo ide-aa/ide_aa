@@ -84,14 +84,14 @@
   .summary-change h4 { font-size: 0.88rem; margin-bottom: 4px; }
   .summary-change p { font-size: 0.78rem; color: var(--muted); }
   /* CEP action cards */
-  .cep-action-card { border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; }
+  .cep-action-card { border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; font-size: 0.78rem; }
   .cep-action-card.maintain { background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.3); }
   .cep-action-card.strengthen { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); }
   .cep-action-card.reduce { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); }
-  .cep-action-card h4 { font-size: 0.85rem; margin-bottom: 3px; }
-  .cep-action-card p { font-size: 0.75rem; color: var(--muted); }
-  /* Next month actions */
-  .action-candidates { background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1)); border: 1px solid rgba(59,130,246,0.3); border-radius: 10px; padding: 16px; }
+  .cep-action-card h4 { font-size: 0.82rem; margin-bottom: 2px; }
+  .cep-action-card p { font-size: 0.72rem; color: var(--muted); }
+  /* Intelligence alerts */
+  .alert-card { transition: opacity 0.3s; }
   /* Strategy cards */
   .strategy-card { background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1)); border: 1px solid rgba(59,130,246,0.3); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
   .strategy-card h4 { color: var(--accent); margin-bottom: 6px; font-size: 0.88rem; }
@@ -186,7 +186,7 @@
 // === メタ情報 ===
 const reportMeta = {
   reportMonth: "2026年1月（半月次）",
-  previousMonth: "2025年12月",
+  previousPeriod: "2025/12/31",
   brands: ['FANCL','MUJI無印良品','オルビス','エリクシール','タカミ'],
   brandColors: { 'FANCL':'#3b82f6','MUJI無印良品':'#10b981','オルビス':'#f59e0b','エリクシール':'#ec4899','タカミ':'#8b5cf6' },
   brandShort: { 'FANCL':'FANCL','MUJI無印良品':'MUJI','オルビス':'ORBIS','エリクシール':'ELIXIR','タカミ':'TAKAMI' },
@@ -328,7 +328,101 @@ const quarterlyStrategy = {
   ],
 };
 
-// === 月次サマリー（v5: 動的生成） ===
+// === インテリジェンスアラート（データ駆動で自動生成。条件解消まで残り続ける） ===
+function generateAlerts() {
+  const cur = sovTimeSeries[currentPeriodId];
+  const prev = sovTimeSeries[previousPeriodId];
+  const alerts = [];
+  const allIds = Object.keys(cepMaster).filter(id => cepMaster[id].status === 'active');
+  const brands = reportMeta.brands;
+
+  allIds.forEach(id => {
+    const adv = cepAdv(id);
+    const fSov = cur['FANCL'][id] || 0;
+    const fPrev = prev['FANCL'][id] || 0;
+    const compSovs = brands.slice(1).map(b => ({brand:b, sov: cur[b][id]||0}));
+    const compMax = compSovs.reduce((a,b) => b.sov > a.sov ? b : a, {brand:'',sov:0});
+    const compAvg = compSovs.reduce((s,c) => s + c.sov, 0) / compSovs.length;
+    const ms = cepMaster[id].marketSize;
+
+    // ① 脅威: CEP優位(+3pt超)なのに競合が独占(FANCL SOV<5%, 競合>50%)
+    if (adv > 3 && fSov < 5 && compMax.sov > 50) {
+      alerts.push({
+        type: 'threat', priority: ms === 'large' ? 'high' : 'medium',
+        cepId: id,
+        title: `${cepLabel(id)}（${id}）: ${compMax.brand}が${compMax.sov.toFixed(0)}%独占`,
+        detail: `CEP優位+${adv}ptを活かせていない。FANCL SOV ${fSov.toFixed(1)}%。市場規模${sizeBadgeHtml(id)}`,
+        resolveCondition: `FANCL SOVが10%以上になれば解消`,
+      });
+    }
+
+    // ② 過剰投資: CEP劣位(-3pt未満)なのにSOVが高い(>30%)
+    if (adv < -3 && fSov > 30) {
+      alerts.push({
+        type: 'overinvest', priority: fSov > 50 ? 'high' : 'medium',
+        cepId: id,
+        title: `${cepLabel(id)}（${id}）: SOV ${fSov.toFixed(1)}%で過剰投資の可能性`,
+        detail: `CEP劣位${adv}ptに対してSOVが高い。他CEPへの再配分を検討。`,
+        resolveCondition: `SOVが20%以下、またはCEP優位が改善すれば解消`,
+      });
+    }
+
+    // ③ 機会: CEP優位(+3pt超)かつ大規模市場だがSOV低い(<15%)
+    if (adv > 3 && fSov < 15 && (ms === 'large' || ms === 'medium')) {
+      // ①の脅威と重複しないケース（競合も独占していないが未開拓）
+      const isThreat = fSov < 5 && compMax.sov > 50;
+      if (!isThreat) {
+        alerts.push({
+          type: 'opportunity', priority: ms === 'large' ? 'high' : 'medium',
+          cepId: id,
+          title: `${cepLabel(id)}（${id}）: CEP優位+${adv}ptだがSOV未投資`,
+          detail: `FANCL SOV ${fSov.toFixed(1)}%。市場規模${sizeBadgeHtml(id)}。投資拡大の余地あり。`,
+          resolveCondition: `FANCL SOVが15%以上になれば解消`,
+        });
+      }
+    }
+
+    // ④ 首位争い: FANCL SOV>20%かつ競合トップとの差が10pt以内
+    if (fSov > 20 && compMax.sov > 20 && Math.abs(fSov - compMax.sov) < 10) {
+      alerts.push({
+        type: 'contention', priority: 'medium',
+        cepId: id,
+        title: `${cepLabel(id)}（${id}）: ${compMax.brand}と首位争い`,
+        detail: `FANCL ${fSov.toFixed(1)}% vs ${compMax.brand} ${compMax.sov.toFixed(1)}%（差${(fSov-compMax.sov).toFixed(1)}pt）。`,
+        resolveCondition: `差が10pt以上開けば解消`,
+      });
+    }
+
+    // ⑤ 急落: 前期比で25pt以上のSOV下落（半月更新のため変動幅を考慮）
+    if ((fPrev - fSov) > 25) {
+      alerts.push({
+        type: 'decline', priority: 'high',
+        cepId: id,
+        title: `${cepLabel(id)}（${id}）: SOVが${(fPrev-fSov).toFixed(1)}pt急落`,
+        detail: `${fPrev.toFixed(1)}%→${fSov.toFixed(1)}%。意図した抑制か要確認。`,
+        resolveCondition: `SOVが回復、または意図的な抑制と判断されれば解消`,
+      });
+    }
+  });
+
+  // 同一CEPで複数アラートがある場合、タイプ優先度で最重要のみ残す
+  // ただしthreat/opportunityとdecline/overinvestは性質が違うので両方残す
+  const typeGroup = {threat:'strategic', opportunity:'strategic', overinvest:'investment', contention:'competitive', decline:'momentum'};
+  const seen = new Map();
+  const deduped = alerts.filter(a => {
+    const key = a.cepId + ':' + (typeGroup[a.type]||a.type);
+    if (seen.has(key)) return false;
+    seen.set(key, true);
+    return true;
+  });
+
+  // priority順にソート (high→medium→low)
+  const pOrder = {high:1, medium:2, low:3};
+  deduped.sort((a,b) => (pOrder[a.priority]||9) - (pOrder[b.priority]||9));
+  return deduped;
+}
+
+// === 半月次サマリー（v5: 動的生成） ===
 function generateMonthlySummary() {
   const cur = sovTimeSeries[currentPeriodId];
   const prev = sovTimeSeries[previousPeriodId];
@@ -358,25 +452,17 @@ function generateMonthlySummary() {
     const fSov = cur['FANCL'][id]||0;
     const compAvg = (reportMeta.brands.slice(1).reduce((s,b)=>s+(cur[b][id]||0),0))/(reportMeta.brands.length-1);
     const d = (cur['FANCL'][id]||0) - (prev['FANCL'][id]||0);
-    if (adv > 3 && fSov > compAvg && fSov > 15) maintain.push({cepId:id,reason:`SOV${fSov}%でCEP優位+${adv}ptを活用中。${d>0?'増加傾向':'安定'}。`});
-    else if (adv > 3 && fSov < 15) strengthen.push({cepId:id,reason:`CEP優位+${adv}ptだがSOV${fSov}%と低い。投資拡大の余地。`});
-    else if (adv < -3 && fSov > 30) reduce.push({cepId:id,reason:`CEP劣位${adv}ptにSOV${fSov}%は過剰投資。抑制検討。`});
+    if (adv > 3 && fSov > compAvg && fSov > 15) maintain.push({cepId:id,reason:`SOV${fSov.toFixed(0)}%でCEP優位+${adv}ptを活用中。${d>0?'増加傾向':'安定'}。`});
+    else if (adv > 3 && fSov < 15) strengthen.push({cepId:id,reason:`CEP優位+${adv}ptだがSOV${fSov.toFixed(0)}%と低い。投資拡大の余地。`});
+    else if (adv < -3 && fSov > 30) reduce.push({cepId:id,reason:`CEP劣位${adv}ptにSOV${fSov.toFixed(0)}%は過剰投資。抑制検討。`});
   });
 
   return {
     top3Changes: top3,
-    maintainCEPs: maintain.slice(0,3),
-    strengthenCEPs: strengthen.slice(0,3),
-    reduceCEPs: reduce.slice(0,3),
-    actionCandidates: {
-      actions: [
-        {id:'ACT-2026-01-01',targetCepIds:['S02'],type:'media_expansion',channel:'YouTube/TikTok',description:'タカミ独占（99.4%）のニキビ・毛穴軸に参入。YouTube/TikTok動画で「無添加×毛穴ケア」訴求',priority:'high'},
-        {id:'ACT-2026-01-02',targetCepIds:['E01'],type:'creative_optimization',channel:'全媒体',description:'「優しい使い心地」SOV急増（8.5→49.7%）のモメンタムを維持。タカミ50.3%との首位争い',priority:'high'},
-        {id:'ACT-2026-01-03',targetCepIds:['E02','E03'],type:'budget_rebalance',channel:null,description:'ベタつかない(86.2%)・しっとり潤い(69.5%)の過剰SOVを適正化し、S02/E01へ再配分',priority:'medium'},
-      ],
-      testHypothesis: '「ニキビ・毛穴」(S02)軸でTikTok/YouTube短尺動画を配信し、タカミ独占市場への参入を検証する',
-    },
-    previousActionResults: [],
+    alerts: generateAlerts(),
+    maintainCEPs: maintain.slice(0,4),
+    strengthenCEPs: strengthen.slice(0,4),
+    reduceCEPs: reduce.slice(0,4),
   };
 }
 
@@ -471,7 +557,7 @@ function renderOverviewInsights() {
     });
 
   const insights = [
-    {title:'FANCL総観測量', text:`${fmtNum(fanclVol)}件（前月比${fanclVolDelta>0?'+':''}${fanclVolDelta}%）。カテゴリ最大は${topVol[0]}の${fmtNum(topVol[1])}件で約${(topVol[1]/fanclVol).toFixed(0)}倍の規模差`},
+    {title:'FANCL総観測量', text:`${fmtNum(fanclVol)}件（前期比${fanclVolDelta>0?'+':''}${fanclVolDelta}%）。カテゴリ最大は${topVol[0]}の${fmtNum(topVol[1])}件で約${(topVol[1]/fanclVol).toFixed(0)}倍の規模差`},
     {title:'最大SOV増加', text:maxUp.id ? `${cepLabel(maxUp.id)}(${maxUp.id})が+${maxUp.d.toFixed(1)}ptで今月最大の投資拡大` : 'なし'},
     {title:'最大SOV減少', text:maxDown.id ? `${cepLabel(maxDown.id)}(${maxDown.id})が${maxDown.d.toFixed(1)}ptで今月最大の投資縮小` : 'なし'},
     {title:'投資不足の注目CEP', text:underinvested.length>0 ? `${cepLabel(underinvested[0])}(${underinvested[0]}) — CEP優位+${cepAdv(underinvested[0])}pt・言及数${fmtNum(cepMentionCount(underinvested[0]))}件だがSOV${currentSOV['FANCL'][underinvested[0]]}%と低い` : 'CEP優位の高い軸は概ね投資済み'},
@@ -689,44 +775,50 @@ function renderSummary() {
     ).join('');
     return `<div class="summary-change ${c.severity}"><h4>${c.title} ${cepTags}</h4><p>${c.description}</p></div>`;
   }).join('');
-  const parEl = document.getElementById('previous-action-results');
-  const par = monthlySummary.previousActionResults || [];
-  if (par.length === 0) {
-    parEl.innerHTML = '<div class="card" style="font-size:0.78rem;color:var(--muted)">初月のため前月施策データはありません</div>';
+
+  // インテリジェンスアラート
+  const alertEl = document.getElementById('intelligence-alerts');
+  const alerts = monthlySummary.alerts || [];
+  const typeConfig = {
+    threat:     {icon:'⚠️', label:'脅威',     color:'var(--danger)'},
+    overinvest: {icon:'📊', label:'過剰投資',  color:'var(--warning)'},
+    opportunity:{icon:'🎯', label:'機会',     color:'var(--success)'},
+    contention: {icon:'⚔️', label:'首位争い',  color:'var(--accent)'},
+    decline:    {icon:'📉', label:'急落',     color:'var(--danger)'},
+  };
+  if (alerts.length === 0) {
+    alertEl.innerHTML = '<div class="card" style="font-size:0.78rem;color:var(--muted)">現在アクティブなアラートはありません</div>';
   } else {
-    const statusBadge = (s) => {
-      const m = {implemented:['実行済み','badge-success'],deferred:['延期','badge-warning'],cancelled:['キャンセル','badge-danger'],proposed:['提案中','badge-info']};
-      const [label,cls] = m[s]||['不明','badge-info'];
-      return `<span class="badge ${cls}">${label}</span>`;
-    };
-    parEl.innerHTML = par.map(a =>
-      `<div class="card" style="padding:10px 14px;margin-bottom:8px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-size:0.72rem;font-weight:700;color:var(--accent)">${a.actionId}</span>${statusBadge(a.status)}<span style="font-size:0.68rem;color:var(--muted)">${cepIdTag(a.cepId)}</span></div><div style="font-size:0.78rem;margin-bottom:2px">${a.result||''}</div><div style="font-size:0.72rem;color:var(--muted)">${a.note||''}</div></div>`
-    ).join('');
+    alertEl.innerHTML = alerts.map(a => {
+      const tc = typeConfig[a.type] || {icon:'ℹ️', label:a.type, color:'var(--muted)'};
+      const prBadge = a.priority === 'high'
+        ? '<span class="badge badge-danger">HIGH</span>'
+        : '<span class="badge badge-warning">MED</span>';
+      return `<div class="alert-card" style="border-left:3px solid ${tc.color};padding:10px 14px;margin-bottom:8px;border-radius:0 8px 8px 0;background:rgba(0,0,0,0.15)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+          <span style="font-size:0.72rem;font-weight:700">${tc.icon} ${tc.label}</span>
+          ${prBadge}
+          <span style="background:rgba(59,130,246,0.15);padding:1px 6px;border-radius:3px;font-size:0.65rem">${a.cepId}</span>
+        </div>
+        <div style="font-size:0.82rem;font-weight:600;margin-bottom:3px">${a.title}</div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-bottom:2px">${a.detail}</div>
+        <div style="font-size:0.68rem;color:var(--muted);font-style:italic">解消条件: ${a.resolveCondition}</div>
+      </div>`;
+    }).join('');
   }
+
   renderCompactKPI('kpi-compact');
-  document.getElementById('maintain-ceps').innerHTML = monthlySummary.maintainCEPs.map(c =>
+
+  // CEPアクション方針（維持/強化/抑制）
+  document.getElementById('maintain-ceps').innerHTML = (monthlySummary.maintainCEPs||[]).map(c =>
     `<div class="cep-action-card maintain"><h4>${cepIdTag(c.cepId)}</h4><p>${c.reason}</p></div>`
-  ).join('');
-  document.getElementById('strengthen-ceps').innerHTML = monthlySummary.strengthenCEPs.map(c =>
+  ).join('') || '<div style="font-size:0.72rem;color:var(--muted)">該当なし</div>';
+  document.getElementById('strengthen-ceps').innerHTML = (monthlySummary.strengthenCEPs||[]).map(c =>
     `<div class="cep-action-card strengthen"><h4>${cepIdTag(c.cepId)}</h4><p>${c.reason}</p></div>`
-  ).join('');
-  document.getElementById('reduce-ceps').innerHTML = monthlySummary.reduceCEPs.map(c =>
+  ).join('') || '<div style="font-size:0.72rem;color:var(--muted)">該当なし</div>';
+  document.getElementById('reduce-ceps').innerHTML = (monthlySummary.reduceCEPs||[]).map(c =>
     `<div class="cep-action-card reduce"><h4>${cepIdTag(c.cepId)}</h4><p>${c.reason}</p></div>`
-  ).join('');
-  const ac = monthlySummary.actionCandidates;
-  let acHtml = '';
-  ac.actions.forEach(a => {
-    const cepTags = a.targetCepIds.map(id =>
-      `<span style="background:rgba(59,130,246,0.15);padding:1px 6px;border-radius:3px;font-size:0.65rem;margin-right:3px">${id}</span>`
-    ).join('');
-    acHtml += `<div style="margin-bottom:8px;padding:8px;border-left:3px solid ${a.priority==='high'?'var(--danger)':'var(--warning)'};background:rgba(0,0,0,0.1);border-radius:0 6px 6px 0">
-      <div style="font-size:0.68rem;color:var(--muted);margin-bottom:2px">${a.id} | ${a.type}</div>
-      <div style="font-size:0.8rem;margin-bottom:4px">${a.description}</div>
-      <div>${cepTags}</div>
-    </div>`;
-  });
-  acHtml += `<h3 style="color:var(--accent);margin-top:12px;margin-bottom:8px">次月テスト仮説</h3><p style="font-size:0.78rem;background:rgba(139,92,246,0.1);padding:8px 12px;border-radius:6px">${ac.testHypothesis}</p>`;
-  document.getElementById('action-candidates').innerHTML = acHtml;
+  ).join('') || '<div style="font-size:0.72rem;color:var(--muted)">該当なし</div>';
 }
 
 function renderCompactKPI(containerId) {
@@ -846,7 +938,7 @@ function drawScatter() {
   ctx.fillStyle='#e2e8f0';ctx.font='10px sans-serif';ctx.textAlign='left';ctx.fillText('状況軸',ml+20,H-35);
   ctx.fillStyle='#f59e0b';ctx.beginPath();ctx.arc(ml+80,H-38,5,0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#e2e8f0';ctx.fillText('体験価値軸',ml+90,H-35);
-  ctx.fillStyle='#94a3b8';ctx.font='9px sans-serif';ctx.fillText('(バブルサイズ = CEP言及数（市場規模）、薄色=前月)',ml+170,H-35);
+  ctx.fillStyle='#94a3b8';ctx.font='9px sans-serif';ctx.fillText('(バブルサイズ = CEP言及数（市場規模）、薄色=前期)',ml+170,H-35);
 }
 
 // ============================================================
@@ -1299,6 +1391,33 @@ function renderReference() {
     </tr>`;
   });
   summaryEl.innerHTML = shtml;
+
+  // CEPマスター一覧
+  const cepTableEl = document.getElementById('ref-cep-master-table');
+  const cur = sovTimeSeries[currentPeriodId];
+  const compBrands = reportMeta.brands.slice(1);
+  let chtml = '';
+  allActiveCEPs().forEach(id => {
+    const m = cepMaster[id];
+    const fSov = (cur['FANCL'][id]||0);
+    const compMax = compBrands.reduce((best, b) => {
+      const s = cur[b][id]||0;
+      return s > best.sov ? {brand:b, sov:s} : best;
+    }, {brand:'-', sov:0});
+    const advColor = m.advantage > 3 ? 'var(--success)' : m.advantage < -3 ? 'var(--danger)' : 'var(--muted)';
+    const typeLabel = m.type === 'situation' ? '状況' : '体験価値';
+    chtml += `<tr>
+      <td style="font-weight:700;font-size:0.72rem">${id}</td>
+      <td>${m.label}</td>
+      <td style="font-size:0.7rem">${typeLabel}</td>
+      <td style="font-weight:700;color:${advColor}">${m.advantage>0?'+':''}${m.advantage}</td>
+      <td>${sizeBadgeHtml(id)}</td>
+      <td style="font-weight:600">${fSov.toFixed(1)}%</td>
+      <td style="font-size:0.7rem">${compMax.sov > 0 ? reportMeta.brandShort[compMax.brand]+' '+compMax.sov.toFixed(1)+'%' : '-'}</td>
+      <td style="font-size:0.65rem;color:var(--muted)">${(m.keywords||[]).join(', ')}</td>
+    </tr>`;
+  });
+  cepTableEl.innerHTML = chtml;
 }
 
 function renderDimStackedBar(containerId, dimension, segColors, segOrder) {
@@ -1735,31 +1854,37 @@ document.addEventListener('DOMContentLoaded', init);
 
 <!-- ===== TAB 1: SUMMARY ===== -->
 <div id="tab-summary" class="tab-content active">
-  <h2>今月のTop3変化</h2>
-  <div id="top3-changes"></div>
-
-  <h2 style="margin-top:20px">前月施策の追跡</h2>
-  <div id="previous-action-results"></div>
-
-  <h2 style="margin-top:20px">ブランド別 絶対観測量</h2>
+  <h2>ブランド別 絶対観測量</h2>
   <div class="kpi-compact" id="kpi-compact"></div>
 
-  <div class="grid2">
+  <h2 style="margin-top:20px">今期のTop3変化</h2>
+  <div id="top3-changes"></div>
+
+  <div class="grid2" style="margin-top:20px;align-items:start">
     <div>
-      <h2>維持するCEP</h2>
+      <h2 style="margin-top:0">CEPアクション方針</h2>
+      <h3 style="color:var(--accent);margin-bottom:6px;font-size:0.82rem">維持</h3>
       <div id="maintain-ceps"></div>
-      <h2 style="margin-top:14px">強化するCEP</h2>
+      <h3 style="color:var(--success);margin-top:12px;margin-bottom:6px;font-size:0.82rem">強化</h3>
       <div id="strengthen-ceps"></div>
-      <h2 style="margin-top:14px">抑制するCEP</h2>
+      <h3 style="color:var(--danger);margin-top:12px;margin-bottom:6px;font-size:0.82rem">抑制</h3>
       <div id="reduce-ceps"></div>
     </div>
     <div>
-      <h2>次月アクション候補</h2>
-      <div class="action-candidates" id="action-candidates"></div>
+      <h2 style="margin-top:0">インテリジェンスアラート</h2>
+      <div id="alert-legend" style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-bottom:8px;font-size:0.68rem">
+        <span><span style="color:var(--danger)">⚠️</span> 脅威</span>
+        <span><span style="color:var(--warning)">📊</span> 過剰投資</span>
+        <span><span style="color:var(--success)">🎯</span> 機会</span>
+        <span><span style="color:var(--accent)">⚔️</span> 首位争い</span>
+        <span><span style="color:var(--danger)">📉</span> 急落</span>
+      </div>
+      <p style="font-size:0.65rem;color:var(--muted);margin-bottom:8px">データから自動検出。解消条件を満たすまで毎期表示。</p>
+      <div id="intelligence-alerts"></div>
     </div>
   </div>
 
-  <div class="disclaimer">本提案は会議での議論用叩き台です。実行指示書ではありません。</div>
+  <div class="disclaimer">本レポートは会議での議論用叩き台です。実行指示書ではありません。</div>
 </div>
 
 <!-- ===== TAB 2: CEP×SOV OVERVIEW ===== -->
@@ -1784,7 +1909,7 @@ document.addEventListener('DOMContentLoaded', init);
   <div id="scatter-insights" style="margin-bottom:16px"></div>
   <div class="card">
     <h2>CEPポジショニングマップ</h2>
-    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:8px">X軸: FANCL CEP優位スコア(pt)。Y軸: FANCL広告SOV - 競合平均SOV。バブルサイズ = CEP言及数（市場規模）。薄色 = 前月位置。</p>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:8px">X軸: FANCL CEP優位スコア(pt)。Y軸: FANCL広告SOV - 競合平均SOV。バブルサイズ = CEP言及数（市場規模）。薄色 = 前期位置。</p>
     <canvas id="scatter-canvas" width="900" height="550"></canvas>
   </div>
 </div>
@@ -1918,6 +2043,14 @@ document.addEventListener('DOMContentLoaded', init);
     <table>
       <thead><tr><th>ブランド</th><th>総観測数</th><th>主要フォーマット</th><th>主要媒体</th><th>媒体数</th><th>記事LP比率</th><th>EC系アフィ率</th></tr></thead>
       <tbody id="ref-summary-table"></tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h2>CEPマスター一覧</h2>
+    <p style="font-size:0.72rem;color:var(--muted);margin-bottom:8px">四半期更新。CEP優位スコアは消費者調査ベースのFANCL相対優位度(pt)。市場規模は全ブランド合計の言及数ベース。</p>
+    <table>
+      <thead><tr><th>ID</th><th>ラベル</th><th>タイプ</th><th>CEP優位</th><th>市場規模</th><th>FANCL SOV</th><th>競合最大</th><th>キーワード</th></tr></thead>
+      <tbody id="ref-cep-master-table"></tbody>
     </table>
   </div>
 </div>
