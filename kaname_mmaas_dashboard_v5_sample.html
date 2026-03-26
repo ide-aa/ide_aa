@@ -722,8 +722,9 @@ const tabConfig = [
   {id:'expansion',   label:'★ 媒体拡張シミュレーション',     group:2},
   {id:'reference',   label:'配信構造リファレンス',           group:3},
   {id:'strategy',    label:'四半期戦略',                    group:4},
+  {id:'guide',       label:'使い方',                       group:5},
 ];
-const groupLabels = {1:'月次レビュー', 2:'市場規模×ホワイトスペース×媒体拡張', 3:'参考資料', 4:'四半期'};
+const groupLabels = {1:'月次レビュー', 2:'市場規模×ホワイトスペース×媒体拡張', 3:'参考資料', 4:'四半期', 5:'ヘルプ'};
 
 function buildTabNav() {
   const nav = document.getElementById('tab-nav');
@@ -1893,7 +1894,7 @@ document.addEventListener('DOMContentLoaded', init);
   <div class="card">
     <h2>CEP×SOV 5社比較テーブル（状況軸・体験価値軸統合）</h2>
     <div class="legend" id="brand-legend-overview"></div>
-    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:12px">CEP優位スコア(pt) = Brand Aの相対優位度。広告SOV(%) = 各ブランドの全広告のうち該当CEP軸キーワードを含む割合。言及数 = CEP分析データの市場全体の言及数。</p>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:12px">CEP優位スコア(pt) = CEPsリスニング®によるBrand Aのメンタルアドバンテージ。広告SOV(%) = 該当CEPキーワードを含む広告全体における各ブランドのシェア（5社合計=100%）。言及数 = CEP分析データの市場全体の言及数。</p>
     <div style="overflow-x:auto">
     <table>
       <thead><tr>
@@ -2070,6 +2071,160 @@ document.addEventListener('DOMContentLoaded', init);
     </div>
   </div>
   <div class="disclaimer">このタブは四半期更新です。月次では変更しません。</div>
+</div>
+
+<!-- ===== TAB: GUIDE ===== -->
+<div id="tab-guide" class="tab-content">
+
+  <div class="card">
+    <h2>1. ダッシュボードの読み方</h2>
+    <p style="font-size:0.8rem;margin-bottom:12px">このダッシュボードは、CEP（Category Entry Point＝カテゴリー想起手がかり）ごとの広告SOV（Share of Voice＝広告出稿シェア）を5ブランドで比較し、広告訴求の意思決定を支援するツールです。半月ごとに更新されます。</p>
+
+    <h3 style="margin-top:16px;margin-bottom:8px">各タブの目的と着眼点</h3>
+    <table style="font-size:0.78rem">
+      <thead><tr><th style="width:180px">タブ</th><th>目的</th><th>見るべきポイント</th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:700">サマリー</td><td>今期の全体状況を把握する</td><td>まず観測量で市場全体の動きを掴む→Top3変化で大きな動きを確認→アラートで要対応事項を把握→アクション方針で具体的な方向性を確認</td></tr>
+        <tr><td style="font-weight:700">CEP×SOV全体像</td><td>5社の競争環境を俯瞰する</td><td>テーブルで全CEPの各社SOVを比較。ポジショニングマップでCEP優位×SOV投下量の分布を視覚的に把握。前期からの移動方向（薄色→濃色）にも注目</td></tr>
+        <tr><td style="font-weight:700">★ 時系列推移</td><td>SOV変化のトレンドを追う</td><td>Brand A SOV推移チャートで変化量の大きいCEPの動向を確認。ウォーターフォールテーブルで全CEPの方向性を一覧。競合比較で特定CEPの5社推移を深掘り</td></tr>
+        <tr><td style="font-weight:700">★ 市場規模マップ</td><td>大規模市場での位置づけを確認する</td><td>バブルチャートで市場規模（Y軸）×CEP優位（X軸）×Brand Aシェア（バブル）の3軸を同時に把握。右上の大バブル＝投資効率の高い領域</td></tr>
+        <tr><td style="font-weight:700">★ ホワイトスペース</td><td>競合不在の空白領域を発見する</td><td>ギャップチャートでCEP優位と実際のSOV投下のギャップを可視化。競争ヒートマップで全CEP×全ブランドの力関係を一覧。カバレッジマトリクスで出稿有無を確認</td></tr>
+        <tr><td style="font-weight:700">★ 媒体拡張シミュレーション</td><td>新媒体参入の効果を試算する</td><td>各CEPについて、未出稿の媒体に参入した場合のSOV改善効果をシミュレーション。優先度の高い媒体×CEPの組み合わせを発見</td></tr>
+        <tr><td style="font-weight:700">配信構造リファレンス</td><td>媒体構成やCEP定義の詳細を確認する</td><td>5社の媒体構成比、フォーマット構成比、配信構造サマリー。CEPマスター一覧で全CEPの定義・優位スコア・キーワードを確認</td></tr>
+        <tr><td style="font-weight:700">四半期戦略</td><td>中期方針との整合性を確認する</td><td>四半期ごとに更新されるBrand Aの広告戦略リバランス提案。各CEPへの推奨SOV配分値（時系列推移タブの点線にも反映）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>2. 用語集</h2>
+    <table style="font-size:0.78rem">
+      <thead><tr><th style="width:180px">用語</th><th>定義</th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:700">CEP（Category Entry Point）</td><td>消費者がカテゴリーを想起するきっかけ。「ニキビが気になる」「優しい使い心地がほしい」など。状況軸（S系）と体験価値軸（E系）の2タイプがある</td></tr>
+        <tr><td style="font-weight:700">SOV（Share of Voice）</td><td>あるCEP軸キーワードを含む全ブランドの広告のうち、各ブランドが占めるシェア（%）。同一CEPの5社合計は100%になる</td></tr>
+        <tr><td style="font-weight:700">CEP優位スコア<br>（メンタルアドバンテージ）</td><td>kaname.axのCEPsリスニング®分析によるメンタルアドバンテージスコア。Brand Aの相対優位度（pt）を示す。正の値＝Brand A有利、負の値＝競合有利。四半期更新</td></tr>
+        <tr><td style="font-weight:700">市場規模（大/中/小）</td><td>全ブランド合計のCEP言及数ベース。大＝3,000件以上、中＝1,000〜2,999件、小＝999件以下</td></tr>
+        <tr><td style="font-weight:700">観測量</td><td>広告クリエイティブの観測数。広告出稿ボリュームの代理指標</td></tr>
+        <tr><td style="font-weight:700">ホワイトスペース</td><td>CEP優位があるにもかかわらず、自社・競合ともにSOVが低い（広告投下が少ない）領域。開拓の機会</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>3. 意思決定フロー</h2>
+    <p style="font-size:0.78rem;margin-bottom:12px">半月ごとの更新時に、以下の手順で確認・判断することを推奨します。</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+      <div style="flex:1;min-width:180px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:8px;padding:12px">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:4px">Step 1: 状況把握</div>
+        <div style="font-size:0.75rem">サマリータブで観測量の増減→Top3変化→インテリジェンスアラートの順に確認。HIGHアラートが新規発生していないかをチェック</div>
+      </div>
+      <div style="flex:1;min-width:180px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:12px">
+        <div style="font-weight:700;color:var(--success);margin-bottom:4px">Step 2: 方針確認</div>
+        <div style="font-size:0.75rem">CEPアクション方針で維持・強化・抑制の分類を確認。前期から分類が変わったCEPがあれば注目</div>
+      </div>
+      <div style="flex:1;min-width:180px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:12px">
+        <div style="font-weight:700;color:var(--warning);margin-bottom:4px">Step 3: 深掘り</div>
+        <div style="font-size:0.75rem">気になるCEPがあれば、全体像・時系列・市場規模マップで詳細を確認。ホワイトスペースや媒体拡張シミュレーションで機会を探索</div>
+      </div>
+      <div style="flex:1;min-width:180px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:8px;padding:12px">
+        <div style="font-weight:700;color:#8b5cf6;margin-bottom:4px">Step 4: 整合性チェック</div>
+        <div style="font-size:0.75rem">四半期戦略タブで中期方針との整合性を確認。戦略方向と異なる動きがあれば、意図的か偶発的かを判断</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>4. インテリジェンスアラート詳細</h2>
+    <p style="font-size:0.78rem;margin-bottom:12px">アラートはデータから自動検出されます。解消条件を満たすまで毎期表示され続けます。</p>
+    <table style="font-size:0.78rem">
+      <thead><tr><th style="width:100px">タイプ</th><th>発動条件</th><th>解消条件</th><th>推奨アクション</th></tr></thead>
+      <tbody>
+        <tr>
+          <td style="font-weight:700;color:var(--danger)">⚠️ 脅威</td>
+          <td>CEP優位+3pt超なのに自社SOV5%未満、競合50%超</td>
+          <td>自社SOVが10%以上</td>
+          <td>市場規模マップで規模を確認→大規模なら媒体拡張シミュレーションで参入チャネルを検討→テスト出稿を企画</td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:var(--warning)">📊 過剰投資</td>
+          <td>CEP劣位-3pt未満なのにSOV30%超</td>
+          <td>SOV20%以下、またはCEP優位改善</td>
+          <td>当該CEPへの出稿を段階的に減らし、強化対象CEPへ予算を再配分</td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:var(--success)">🎯 機会</td>
+          <td>CEP優位+3pt超、中〜大規模市場、SOV15%未満（脅威に該当しない）</td>
+          <td>SOV15%以上</td>
+          <td>ホワイトスペースタブでギャップ規模を確認→媒体拡張シミュレーションで最適チャネルを選定→投資拡大</td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:var(--accent)">⚔️ 首位争い</td>
+          <td>自社SOV20%超かつ競合トップとの差が10pt以内</td>
+          <td>差が10pt以上</td>
+          <td>時系列推移で直近のトレンドを確認→モメンタムがあれば維持、失速なら追加投資を検討</td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:var(--danger)">📉 急落</td>
+          <td>前期比25pt以上のSOV下落</td>
+          <td>SOV回復、または意図的な抑制と判断</td>
+          <td>意図した抑制か確認→意図的でなければ配信構造リファレンスで媒体構成変化を調査→原因を特定して対応</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>5. ダッシュボード更新手順（データ担当者向け）</h2>
+    <p style="font-size:0.78rem;margin-bottom:8px">半月ごと（月初・月中）に以下の手順でデータを更新します。</p>
+    <table style="font-size:0.78rem">
+      <thead><tr><th style="width:40px">#</th><th style="width:220px">作業</th><th>変更箇所</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>期間情報の更新</td><td><code>periods</code>配列に新しい期間を追加、<code>currentPeriodId</code>と<code>previousPeriodId</code>を更新、<code>reportMeta.reportMonth</code>を更新</td></tr>
+        <tr><td>2</td><td>SOVデータの追加</td><td><code>sovTimeSeries</code>に新期間のデータを追加</td></tr>
+        <tr><td>3</td><td>観測量データの追加</td><td><code>volumeTimeSeries</code>に新期間のデータを追加</td></tr>
+        <tr><td>4</td><td>配信構造データの追加</td><td><code>dimTimeSeries</code>に新期間のデータを追加</td></tr>
+        <tr><td>5</td><td>クロスデータの追加</td><td><code>crossTimeSeries</code>に新期間のデータを追加</td></tr>
+        <tr><td>6</td><td>CEPマスター更新（四半期のみ）</td><td><code>cepMaster</code>の優位スコア・ステータスを更新。<code>quarterlyStrategy</code>も合わせて更新</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:0.72rem;color:var(--muted);margin-top:8px">※ インテリジェンスアラート、サマリーのTop3変化、CEPアクション方針はデータから自動生成されるため、手動更新は不要です。</p>
+  </div>
+
+  <div class="card">
+    <h2>6. Q&A</h2>
+    <div style="font-size:0.78rem">
+      <div style="margin-bottom:12px">
+        <div style="font-weight:700;margin-bottom:2px">Q. SOVが高いのに良くないケースはありますか？</div>
+        <div style="color:var(--muted)">A. CEP劣位（消費者イメージでBrand Aが弱い領域）なのにSOVが高い場合は「過剰投資」の可能性があります。例えば「年齢による肌悩み」でCEP劣位-7.8ptなのにSOV50%だと、消費者の認知と広告訴求がミスマッチしています。この予算をCEP優位のある領域に再配分する方が効率的です。</div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-weight:700;margin-bottom:2px">Q. CEP優位スコア（メンタルアドバンテージ）はどうやって決まりますか？</div>
+        <div style="color:var(--muted)">A. kaname.axのCEPsリスニング®の分析結果から算出されるメンタルアドバンテージスコアです。各CEPについてBrand Aの相対的な想起優位度を示します。四半期ごとに更新されます。</div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-weight:700;margin-bottom:2px">Q. 市場規模の「大/中/小」の基準は？</div>
+        <div style="color:var(--muted)">A. 全ブランド合計のCEP言及数（広告クリエイティブ内でのキーワード言及数）に基づきます。大＝3,000件以上、中＝1,000〜2,999件、小＝999件以下です。配信構造リファレンスのCEPマスター一覧でも確認できます。</div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-weight:700;margin-bottom:2px">Q. データ更新頻度は？</div>
+        <div style="color:var(--muted)">A. SOV・観測量・配信構造データは半月ごと（月初と月中の2回）に更新されます。CEPマスター（優位スコア等）と四半期戦略は四半期ごとの更新です。</div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-weight:700;margin-bottom:2px">Q. ポジショニングマップのバブルサイズは何を表していますか？</div>
+        <div style="color:var(--muted)">A. CEPの市場全体の言及数（市場規模）を表しています。バブルが大きいほど、そのCEPに関する広告が市場全体で多いことを意味します。</div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-weight:700;margin-bottom:2px">Q. SOVの合計は100%になりますか？</div>
+        <div style="color:var(--muted)">A. はい。SOVはあるCEPキーワードを含む広告全体のうち、各ブランドが占めるシェアです。同一CEPの5社合計は100%になります。例えばE01（優しい使い心地）でBrand A 49.7%、Brand E 50.3%なら、この2社でほぼ100%を占めていることを意味します。</div>
+      </div>
+      <div>
+        <div style="font-weight:700;margin-bottom:2px">Q. アラートが多すぎる場合はどうすれば？</div>
+        <div style="color:var(--muted)">A. まずHIGHのアラートを優先的に対応してください。MEDは状況把握の参考情報です。アラートは施策の効果でデータが変われば自然に解消されるため、全てに同時対応する必要はありません。</div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <div class="dashboard-footer">
