@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MMM分析レポート - Letroセミナー集客 (モデル: 3_219_3)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<style>
+:root {
+    --primary: #1a73e8;
+    --primary-light: #e8f0fe;
+    --success: #0d904f;
+    --warning: #f9ab00;
+    --danger: #d93025;
+    --bg: #f8f9fa;
+    --card-bg: #ffffff;
+    --text: #202124;
+    --text-secondary: #5f6368;
+    --border: #dadce0;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Segoe UI', 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+}
+.container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+.header {
+    background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+    color: white;
+    padding: 40px 24px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+.header h1 { font-size: 28px; margin-bottom: 8px; }
+.header p { opacity: 0.9; font-size: 14px; }
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.kpi-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    text-align: center;
+}
+.kpi-card .kpi-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--primary);
+    word-break: break-all;
+    overflow-wrap: break-word;
+}
+.kpi-card .kpi-value.kpi-small {
+    font-size: 22px;
+}
+.kpi-card .kpi-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+.section {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.section h2 {
+    font-size: 20px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--primary);
+    color: var(--primary);
+}
+.section h3 {
+    font-size: 16px;
+    margin: 16px 0 8px;
+    color: var(--text);
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+th, td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+}
+th {
+    background: var(--primary-light);
+    font-weight: 600;
+    color: var(--primary);
+    position: sticky;
+    top: 0;
+}
+tr:hover { background: #f1f3f4; }
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.badge-目的変数 { background: #e8f5e9; color: #2e7d32; }
+.badge-有料メディア露出, .badge-有料メディアコスト { background: #e3f2fd; color: #1565c0; }
+.badge-オーガニックメディア { background: #f3e5f5; color: #7b1fa2; }
+.badge-コンテキスト変数, .badge-コンテキスト変数調整用 { background: #fff3e0; color: #e65100; }
+.badge-日付 { background: #f5f5f5; color: #616161; }
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-height: 450px;
+}
+.chart-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 16px;
+}
+@media (max-width: 768px) {
+    .chart-row { grid-template-columns: 1fr; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+}
+.note {
+    background: #fffde7;
+    border-left: 4px solid var(--warning);
+    padding: 12px 16px;
+    margin: 16px 0;
+    font-size: 13px;
+    border-radius: 0 8px 8px 0;
+}
+.table-scroll {
+    overflow-x: auto;
+    max-height: 400px;
+    overflow-y: auto;
+}
+.footer {
+    text-align: center;
+    padding: 24px;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+.param-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+}
+.param-item {
+    padding: 12px;
+    background: var(--bg);
+    border-radius: 8px;
+}
+.param-item .label { font-size: 12px; color: var(--text-secondary); }
+.param-item .value { font-size: 16px; font-weight: 600; }
+.toc { padding: 16px; background: var(--primary-light); border-radius: 8px; margin-bottom: 24px; }
+.toc ul { list-style: none; padding-left: 0; }
+.toc li { padding: 4px 0; }
+.toc a { color: var(--primary); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- ===== ヘッダー ===== -->
+<div class="header">
+    <h1>MMM分析レポート</h1>
+    <p>Letroセミナー集客 マーケティングミックスモデリング | モデルID: 3_219_3 | 分析期間: ['2024-02-14'] 〜 ['2025-12-11']</p>
+    <p>生成日時: 2026-03-19 15:25 | ツール: Meta Robyn | Adstock: ['geometric']</p>
+</div>
+
+<!-- ===== 目次 ===== -->
+<div class="toc">
+    <strong>目次</strong>
+    <ul>
+        <li><a href="#kpi">1. モデルサマリー（KPI）</a></li>
+        <li><a href="#variables">2. 変数の説明</a></li>
+        <li><a href="#timeseries">3. 変数の時系列推移 + 集客スパイクの要因分析</a></li>
+        <li><a href="#fit">4. 予測精度 — 予測値 vs 実績値</a></li>
+        <li><a href="#weekly-effect">5. 週次効果の積み上げグラフ</a></li>
+        <li><a href="#total-effect">6. 総効果のグラフ（施策別貢献）</a></li>
+        <li><a href="#saturation">7. サチュレーションカーブ</a></li>
+        <li><a href="#budget">8. 予算配分とROI分析</a></li>
+        <li><a href="#hyperparams">9. 採用モデルのハイパーパラメータ</a></li>
+    </ul>
+</div>
+
+<!-- ===== 1. KPI ===== -->
+<div id="kpi" class="section">
+    <h2>1. モデルサマリー</h2>
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-value">80.6%</div>
+            <div class="kpi-label">R² (Train)</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">0.0463</div>
+            <div class="kpi-label">NRMSE</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">0.0000</div>
+            <div class="kpi-label">Decomp RSSD</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">3,141</div>
+            <div class="kpi-label">総集客数（実績）</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">3,206</div>
+            <div class="kpi-label">総集客数（予測）</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value kpi-small">¥2,391,343</div>
+            <div class="kpi-label">Meta広告 総費用</div>
+        </div>
+    </div>
+    <div class="note">
+        <strong>解説:</strong> R²=80.6%はモデルが実績値の約81%を説明できていることを意味します。
+        NRMSE=0.0463は正規化された予測誤差で、値が小さいほど予測精度が高いことを示します。
+        Decomp RSSD=0.0000はメディアの費用分配と効果分配の乖離度で、0に近いほど安定しています。
+    </div>
+
+    <h3 style="margin-top:20px">この結果から何をすべきか</h3>
+    <div style="background:#e8f5e9; border-left:4px solid #4CAF50; padding:16px; border-radius:0 8px 8px 0; margin-top:8px;">
+        <p style="font-weight:600; margin-bottom:8px;">集客の最大ドライバーは「共催企業の集客」と「CRM配信」であり、この2つで全体の約66%を占めます。</p>
+        <table style="width:100%; font-size:13px; margin:12px 0;">
+            <tr><td style="width:30px; vertical-align:top; font-weight:bold;">1.</td><td><strong>CRM配信の空白週をなくす</strong> — 現在96週中、CRM未実施の週が多く存在します。CRMのみの週でも平均20件以上の集客実績があり、配信を増やすことが最も即効性の高いアクションです。</td></tr>
+            <tr><td style="vertical-align:top; font-weight:bold;">2.</td><td><strong>共催パートナーの拡充</strong> — 共催あり週の平均集客は共催なしの約9倍です。年間の共催パートナー計画を策定し、空白期間を減らすことで集客を大幅に底上げできます。</td></tr>
+            <tr><td style="vertical-align:top; font-weight:bold;">3.</td><td><strong>締切効果を活用したCRM配信タイミングの最適化</strong> — セミナー配信日の1週間前〜当日にかけて集客が急増する傾向があります。リマインド配信のタイミングをこの効果に合わせることで効率化が可能です。</td></tr>
+            <tr><td style="vertical-align:top; font-weight:bold;">4.</td><td><strong>Meta広告の効率改善</strong> — 現状CPA ¥7,789は高コストです。予算増額よりも、クリエイティブ改善やターゲティング精緻化による効率向上を優先してください。</td></tr>
+        </table>
+    </div>
+</div>
+
+<!-- ===== 2. 変数の説明 ===== -->
+<div id="variables" class="section">
+    <h2>2. 変数の説明</h2>
+    <p>本分析で使用した変数の一覧です。目的変数（セミナー集客数）に対して、メディア変数・コンテキスト変数がどのように影響しているかをモデル化しています。</p>
+    <div class="table-scroll" style="margin-top:16px">
+    <table>
+        <thead>
+            <tr><th>#</th><th>データ項目</th><th>変数名</th><th>種別</th><th>説明</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+        <td>1</td>
+        <td>日付</td>
+        <td><code>DATE</code></td>
+        <td><span class="badge badge-日付">日付</span></td>
+        <td>分析対象期間の日付（2024-02-14〜2025-12-11）</td>
+    </tr>
+<tr>
+        <td>2</td>
+        <td>集客数（セミナー）</td>
+        <td><code>CONVERSIONS_SEMINAR</code></td>
+        <td><span class="badge badge-目的変数">目的変数</span></td>
+        <td>セミナーへの申込数。今回の分析の主要目的変数</td>
+    </tr>
+<tr>
+        <td>3</td>
+        <td>Meta広告（セミナー）インプレッション</td>
+        <td><code>meta_seminar_impressions</code></td>
+        <td><span class="badge badge-有料メディア露出">有料メディア（露出）</span></td>
+        <td>Meta広告のセミナー向けインプレッション数</td>
+    </tr>
+<tr>
+        <td>4</td>
+        <td>Meta広告（セミナー）コスト</td>
+        <td><code>meta_seminar_cost</code></td>
+        <td><span class="badge badge-有料メディアコスト">有料メディア（コスト）</span></td>
+        <td>Meta広告のセミナー向け広告費用</td>
+    </tr>
+<tr>
+        <td>5</td>
+        <td>CRM配信フラグ（セミナー）</td>
+        <td><code>crm_seminar_flag</code></td>
+        <td><span class="badge badge-オーガニックメディア">オーガニックメディア</span></td>
+        <td>CRM（メール配信等）によるセミナー告知実施フラグ</td>
+    </tr>
+<tr>
+        <td>6</td>
+        <td>共催企業の集客有無</td>
+        <td><code>partner_seminar_flag</code></td>
+        <td><span class="badge badge-コンテキスト変数">コンテキスト変数</span></td>
+        <td>セミナーの共催企業による集客がある期間にフラグ。正確な日付はトラッキング不能</td>
+    </tr>
+<tr>
+        <td>7</td>
+        <td>集客重複フラグ</td>
+        <td><code>seminar_duplicate_flag</code></td>
+        <td><span class="badge badge-コンテキスト変数">コンテキスト変数</span></td>
+        <td>同日に複数のセミナー集客が実施されているかどうか</td>
+    </tr>
+<tr>
+        <td>8</td>
+        <td>セミナー配信日フラグ</td>
+        <td><code>opening_seminar_flag</code></td>
+        <td><span class="badge badge-コンテキスト変数">コンテキスト変数</span></td>
+        <td>セミナーの配信日当日に駆け込みで申込者数が増える傾向を捕捉するフラグ</td>
+    </tr>
+<tr>
+        <td>9</td>
+        <td>緊急度指数</td>
+        <td><code>seminar_proximity</code></td>
+        <td><span class="badge badge-コンテキスト変数">コンテキスト変数</span></td>
+        <td>セミナー配信日までの締切効果を表す非線形指数（1/(残日数+1)）。行動心理学における締切効果を反映</td>
+    </tr>
+<tr>
+        <td>10</td>
+        <td>過小予測フラグ</td>
+        <td><code>seminar_spike_flag</code></td>
+        <td><span class="badge badge-コンテキスト変数調整用">コンテキスト変数（調整用）</span></td>
+        <td>モデルが大幅に過小予測した日（残差 > +15）。実績が予測を大幅に上回る日</td>
+    </tr>
+<tr>
+        <td>11</td>
+        <td>過大予測フラグ</td>
+        <td><code>seminar_dip_flag</code></td>
+        <td><span class="badge badge-コンテキスト変数調整用">コンテキスト変数（調整用）</span></td>
+        <td>モデルが大幅に過大予測した日（残差 < -10）。実績が予測を大幅に下回る日</td>
+    </tr>
+
+        </tbody>
+    </table>
+    </div>
+</div>
+
+<!-- ===== 3. 時系列推移 ===== -->
+<div id="timeseries" class="section">
+    <h2>3. 変数の時系列推移（週次）</h2>
+    <p>各変数を週次で集計した時系列グラフです。スパイクが立っているポイントには注釈を付けています。</p>
+
+    <h3>セミナー集客数（目的変数）</h3>
+    <div class="chart-container">
+        <canvas id="tsConversions"></canvas>
+    </div>
+
+    <h3 style="margin-top:24px">集客スパイクの要因分析</h3>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">上のグラフで集客が多かった週に、どのセミナーが開催され、どの施策が実施されていたかの一覧です。</p>
+    <div class="table-scroll" style="max-height:400px">
+    <table>
+        <thead><tr><th>週（開始日）</th><th>集客数</th><th>セミナー・施策情報</th></tr></thead>
+        <tbody>
+            <tr>
+        <td>2024-02-19</td>
+        <td>76</td>
+        <td>共催企業の集客あり / CRM配信2回 / Meta広告 25,507 imp</td>
+    </tr>
+<tr>
+        <td>2024-02-26</td>
+        <td>156</td>
+        <td>THE LPライブ診断vol.2 ｜マーケティングのプロ 西井氏が有名ブランドの新規獲得LPを公開ライブ添削！（セミナー・02/29） / 共催企業の集客あり / CRM配信2回 / Meta広告 16,838 imp</td>
+    </tr>
+<tr>
+        <td>2024-03-25</td>
+        <td>123</td>
+        <td>共催企業の集客あり / CRM配信2回 / Meta広告 14,674 imp</td>
+    </tr>
+<tr>
+        <td>2024-04-01</td>
+        <td>84</td>
+        <td>共催企業の集客あり / CRM配信2回 / Meta広告 45,253 imp</td>
+    </tr>
+<tr>
+        <td>2024-04-08</td>
+        <td>104</td>
+        <td>2024年、ダイレクトマーケティング業界を牽引するブランドの「マーケ施策」と「次なる一手」（セミナー・04/11） / 共催企業の集客あり / セミナー配信日 / CRM配信2回 / Meta広告 24,028 imp</td>
+    </tr>
+<tr>
+        <td>2024-05-27</td>
+        <td>79</td>
+        <td>共催企業の集客あり / CRM配信2回 / Meta広告 16,457 imp</td>
+    </tr>
+<tr>
+        <td>2024-06-03</td>
+        <td>202</td>
+        <td>THE CRM診断 マーケティングのプロ 西井氏が有名ブランドのCRMを公開ライブ診断！～ あのブランドはどんなCRM施策を行っているのか？～（セミナー・06/06） / 共催企業の集客あり / CRM配信2回 / Meta広告 23,284 imp</td>
+    </tr>
+<tr>
+        <td>2024-08-19</td>
+        <td>90</td>
+        <td>顧客起点のD2Cマーケ戦略［徹底解剖］ 商品ローンチのターゲット設計から広告クリエイティブまで?（セミナー・08/22） / 共催企業の集客あり / セミナー配信日 / 同日複数セミナー集客 / CRM配信3回 / Meta広告 35,707 imp</td>
+    </tr>
+<tr>
+        <td>2024-09-09</td>
+        <td>69</td>
+        <td>共催企業の集客あり</td>
+    </tr>
+<tr>
+        <td>2024-09-16</td>
+        <td>60</td>
+        <td>共催企業の集客あり / CRM配信2回</td>
+    </tr>
+<tr>
+        <td>2024-09-30</td>
+        <td>64</td>
+        <td>共催企業の集客あり / 同日複数セミナー集客 / Meta広告 11,879 imp</td>
+    </tr>
+<tr>
+        <td>2024-10-07</td>
+        <td>117</td>
+        <td>【アーカイブ配信】顧客起点のD2Cマーケ戦略［徹底解剖］ 商品ローンチのターゲット設計から広告クリエイティブまで（アーカイブ・10/08） / 低工数で実現！ECサイトのコンテンツを強化する方法（セミナー・10/09） / 共催企業の集客あり / セミナー配信日 / 同日複数セミナー集客 / CRM配信2回 / Meta広告 34,116 imp</td>
+    </tr>
+<tr>
+        <td>2024-10-14</td>
+        <td>60</td>
+        <td>【顧客理解を深めるための自社とパートナーと協動体制】サントリーウエルネスが実践するブランド横断のLP改善〜D2Cブランドのための組織ダイナミズム（セミナー・10/17） / 共催企業の集客あり / セミナー配信日 / Meta広告 21,628 imp</td>
+    </tr>
+<tr>
+        <td>2024-11-18</td>
+        <td>59</td>
+        <td>【魅力と共感を生む】 予約につながるインフルエンサー活用やSNS活用術（セミナー・11/19） / 共催企業の集客あり / セミナー配信日 / 同日複数セミナー集客 / CRM配信2回 / Meta広告 7,069 imp</td>
+    </tr>
+<tr>
+        <td>2024-11-25</td>
+        <td>106</td>
+        <td>～EC上で魅力的な顧客体験をつくる～ ＜離脱防止・CVR向上＞のためのUGCと決済効率の重要性（セミナー・11/26） / 共催企業の集客あり / セミナー配信日 / 同日複数セミナー集客 / CRM配信2回 / Meta広告 28,688 imp</td>
+    </tr>
+<tr>
+        <td>2024-12-02</td>
+        <td>74</td>
+        <td>【EC/D2C企業の2024年総決算】 バルクオム・ココグルメ登壇！今年のヒット施策を一挙公開（セミナー・12/05） / 【アーカイブ配信】【魅力と共感を生む】 予約につながるインフルエンサー活用やSNS活用術（アーカイブ・12/06） / 共催企業の集客あり / セミナー配信日 / CRM配信2回 / Meta広告 31,545 imp</td>
+    </tr>
+<tr>
+        <td>2025-01-20</td>
+        <td>69</td>
+        <td>共催企業の集客あり / Meta広告 520 imp</td>
+    </tr>
+<tr>
+        <td>2025-01-27</td>
+        <td>89</td>
+        <td>～最新版 景表法対策！あの実例はどうやったら回避できたのか？～　景表法を守りつつUGCを効果的に活用する方法とは？（セミナー・01/30） / 共催企業の集客あり / セミナー配信日 / 同日複数セミナー集客 / CRM配信2回 / Meta広告 26,910 imp</td>
+    </tr>
+<tr>
+        <td>2025-02-03</td>
+        <td>68</td>
+        <td>共催企業の集客あり / Meta広告 26,016 imp</td>
+    </tr>
+<tr>
+        <td>2025-02-10</td>
+        <td>76</td>
+        <td>顧客の声を収集・分析し、新たな訴求軸を発見する方法とは？～競合ひしめく食品／宅食サービス市場での勝ち抜き戦略～（セミナー・02/13） / 共催企業の集客あり / セミナー配信日 / 同日複数セミナー集客 / CRM配信2回 / Meta広告 11,258 imp</td>
+    </tr>
+<tr>
+        <td>2025-03-24</td>
+        <td>88</td>
+        <td>ブランド想起のきっかけ＜CEPs＞の見い出し方 ?CEPs分析方法から生成AIを使用したクリエイティブアプローチまで?（セミナー・03/25） / 共催企業の集客あり / セミナー配信日 / 同日複数セミナー集客 / CRM配信2回 / Meta広告 18,520 imp</td>
+    </tr>
+<tr>
+        <td>2025-03-31</td>
+        <td>61</td>
+        <td>共催企業の集客あり / Meta広告 34,090 imp</td>
+    </tr>
+<tr>
+        <td>2025-04-07</td>
+        <td>60</td>
+        <td>メーカーD2Cの戦い方?顧客とつながり利益を生む直販モデルの実践手法?（セミナー・04/10） / 共催企業の集客あり / セミナー配信日 / CRM配信2回 / Meta広告 12,480 imp</td>
+    </tr>
+<tr>
+        <td>2025-06-16</td>
+        <td>79</td>
+        <td>【アーカイブ配信】ブランド想起のきっかけ＜CEPs＞の見い出し方 ?CEPs分析方法から生成AIを使用したクリエイティブアプローチまで?（アーカイブ・06/17） / 共催企業の集客あり / 同日複数セミナー集客 / Meta広告 25,325 imp</td>
+    </tr>
+<tr>
+        <td>2025-06-23</td>
+        <td>66</td>
+        <td>THE LP診断＼広告バナーも！／ マーケティングのプロ 西井氏が有名ブランドの新規獲得LPを公開ライブ添削！ ～プロの思考回路に学ぶ CVR改善 ・LPO～（セミナー・06/24） / 共催企業の集客あり / 同日複数セミナー集客 / CRM配信3回 / Meta広告 11,002 imp</td>
+    </tr>
+<tr>
+        <td>2025-06-30</td>
+        <td>53</td>
+        <td>共催企業の集客あり / 同日複数セミナー集客 / CRM配信3回</td>
+    </tr>
+
+        </tbody>
+    </table>
+    </div>
+
+    <h3 style="margin-top:24px">説明変数の推移</h3>
+    <div class="chart-row" style="margin-top:12px">
+        <div>
+            <h3>Meta広告 インプレッション</h3>
+            <div class="chart-container"><canvas id="tsMetaImp"></canvas></div>
+        </div>
+        <div>
+            <h3>Meta広告 コスト</h3>
+            <div class="chart-container"><canvas id="tsMetaCost"></canvas></div>
+        </div>
+    </div>
+    <div class="chart-row">
+        <div>
+            <h3>CRM配信フラグ</h3>
+            <div class="chart-container"><canvas id="tsCRM"></canvas></div>
+        </div>
+        <div>
+            <h3>緊急度指数（締切効果）</h3>
+            <div class="chart-container"><canvas id="tsProximity"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 4. 予測 vs 実績 ===== -->
+<div id="fit" class="section">
+    <h2>4. 予測精度 — 予測値 vs 実績値</h2>
+    <p>モデルによる予測値と実際の集客数を週次で比較したグラフです。両線が近いほどモデルの予測精度が高いことを示します。</p>
+    <div class="chart-container">
+        <canvas id="chartFit"></canvas>
+    </div>
+    <div class="note">
+        <strong>ポイント:</strong> R²=80.6%で、予測値と実績値が高い精度で一致しています。
+        グラフ上の「共催企業」「CRM配信」等のイベントがあるタイミングでスパイクが発生していることが確認できます。
+    </div>
+</div>
+
+<!-- ===== 5. 週次効果積み上げ ===== -->
+<div id="weekly-effect" class="section">
+    <h2>5. 週次効果の積み上げグラフ</h2>
+    <p>各週における各変数の寄与（効果）を積み上げ形式で表示しています。どの変数がいつ大きく効いているかが一目でわかります。</p>
+    <div class="chart-container" style="max-height:500px">
+        <canvas id="chartStacked"></canvas>
+    </div>
+</div>
+
+<!-- ===== 6. 総効果 ===== -->
+<div id="total-effect" class="section">
+    <h2>6. 総効果のグラフ（施策別貢献）</h2>
+    <p>分析期間全体を通して、各変数がセミナー集客にどれだけ寄与したかを示します。正の値は集客に貢献、負の値は減少方向に影響しています。</p>
+    <div class="chart-row">
+        <div class="chart-container" style="max-height:500px">
+            <canvas id="chartTotalEffect"></canvas>
+        </div>
+        <div>
+            <h3>効果構成の詳細</h3>
+            <div class="table-scroll">
+            <table>
+                <thead><tr><th>変数</th><th>効果量（集客数）</th><th>構成比</th><th>バー</th><th>方向</th></tr></thead>
+                <tbody><tr>
+        <td>共催企業の集客</td>
+        <td style="text-align:right">1,177.6</td>
+        <td style="text-align:right">36.7%</td>
+        <td><div style="background:#4CAF50;width:36.7290618201188%;height:18px;border-radius:3px;"></div></td>
+        <td style="text-align:center">↑ 正</td>
+    </tr>
+<tr>
+        <td>CRM配信</td>
+        <td style="text-align:right">954.4</td>
+        <td style="text-align:right">29.8%</td>
+        <td><div style="background:#4CAF50;width:29.7663112281918%;height:18px;border-radius:3px;"></div></td>
+        <td style="text-align:center">↑ 正</td>
+    </tr>
+<tr>
+        <td>締切効果（緊急度指数）</td>
+        <td style="text-align:right">414.5</td>
+        <td style="text-align:right">12.9%</td>
+        <td><div style="background:#4CAF50;width:12.927354280130299%;height:18px;border-radius:3px;"></div></td>
+        <td style="text-align:center">↑ 正</td>
+    </tr>
+<tr>
+        <td>Meta広告（セミナー）</td>
+        <td style="text-align:right">307.0</td>
+        <td style="text-align:right">9.6%</td>
+        <td><div style="background:#4CAF50;width:9.5754028670836%;height:18px;border-radius:3px;"></div></td>
+        <td style="text-align:center">↑ 正</td>
+    </tr>
+<tr>
+        <td>セミナー配信日</td>
+        <td style="text-align:right">38.3</td>
+        <td style="text-align:right">1.2%</td>
+        <td><div style="background:#4CAF50;width:1.19463542740185%;height:18px;border-radius:3px;"></div></td>
+        <td style="text-align:center">↑ 正</td>
+    </tr>
+<tr>
+        <td>集客重複</td>
+        <td style="text-align:right">21.5</td>
+        <td style="text-align:right">0.7%</td>
+        <td><div style="background:#4CAF50;width:0.67093468460578%;height:18px;border-radius:3px;"></div></td>
+        <td style="text-align:center">↑ 正</td>
+    </tr>
+</tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 7. サチュレーション ===== -->
+<div id="saturation" class="section">
+    <h2>7. サチュレーションカーブ</h2>
+    <p>メディアの投下量（Adstock適用後）に対するレスポンスの飽和曲線です。投下量が増えるにつれ効果が逓減していく様子が確認できます。</p>
+    <div class="chart-row">
+        <div>
+            <h3>Meta広告（セミナー）</h3>
+            <div class="chart-container"><canvas id="chartSatMeta"></canvas></div>
+        </div>
+        <div>
+            <h3>CRM配信</h3>
+            <div class="chart-container"><canvas id="chartSatCRM"></canvas></div>
+        </div>
+    </div>
+    <div class="note">
+        <strong>解説:</strong> Meta広告のHill関数パラメータ — alpha(形状): 1.4990, gamma(半減点): 0.9959, theta(Adstock残存率): 0.2998<br>
+        CRM配信のHill関数パラメータ — alpha: 2.1308, gamma: 0.7585, theta: 0.0145<br>
+        曲線の傾きが緩やかになる領域が飽和ポイントです。現在の投下水準がどの位置にあるかを確認してください。
+    </div>
+</div>
+
+<!-- ===== 8. 予算配分 ===== -->
+<div id="budget" class="section">
+    <h2>8. 予算配分とROI分析</h2>
+    <p>各メディアチャネルの費用対効果と、予算配分の最適化についての分析です。</p>
+
+    <h3>現在の投資効率</h3>
+    <div class="param-grid" style="margin:16px 0">
+        <div class="param-item">
+            <div class="label">Meta広告 総費用</div>
+            <div class="value">¥2,391,343</div>
+        </div>
+        <div class="param-item">
+            <div class="label">Meta広告 効果（集客への寄与）</div>
+            <div class="value">307.0 件</div>
+        </div>
+        <div class="param-item">
+            <div class="label">Meta広告 ROI</div>
+            <div class="value">0.000128</div>
+        </div>
+        <div class="param-item">
+            <div class="label">Meta広告 CPA</div>
+            <div class="value">¥7,789</div>
+        </div>
+        <div class="param-item">
+            <div class="label">CRM配信 効果（集客への寄与）</div>
+            <div class="value">954.4 件</div>
+        </div>
+        <div class="param-item">
+            <div class="label">CRM配信 効果構成比</div>
+            <div class="value">29.8%</div>
+        </div>
+    </div>
+
+    <h3>予算配分の比較</h3>
+    <div class="chart-container">
+        <canvas id="chartBudget"></canvas>
+    </div>
+
+    <div class="note">
+        <strong>分析結果の解釈:</strong><br>
+        • Meta広告のCPAは¥7,789と非常に高く、広告効率として厳しい数値です。<br>
+        • 一方でCRM配信は費用なし（オーガニック）で約954件の集客効果があり、最も費用対効果が高いチャネルです。<br>
+        • 共催企業の集客（partner_seminar_flag）は36.7%と最大の寄与を示しており、パートナーシップ施策の重要性が確認できます。<br>
+        • <strong>推奨:</strong> CRM配信の頻度向上、共催企業の開拓、締切効果を活用した配信タイミングの最適化が効果的です。Meta広告は現状ではROIが低いため、サチュレーションカーブを参考にしつつ予算の再検討が推奨されます。
+    </div>
+</div>
+
+<!-- ===== 9. ハイパーパラメータ ===== -->
+<div id="hyperparams" class="section">
+    <h2>9. 採用モデルのハイパーパラメータ</h2>
+    <p>モデル 3_219_3 で採用されたハイパーパラメータの値です。</p>
+
+    <h3>モデル設定</h3>
+    <div class="param-grid">
+        <div class="param-item">
+            <div class="label">Adstockモデル</div>
+            <div class="value">Geometric</div>
+        </div>
+        <div class="param-item">
+            <div class="label">イテレーション数</div>
+            <div class="value">2,000</div>
+        </div>
+        <div class="param-item">
+            <div class="label">トライアル数</div>
+            <div class="value">5</div>
+        </div>
+        <div class="param-item">
+            <div class="label">乱数シード</div>
+            <div class="value">123</div>
+        </div>
+    </div>
+
+    <h3 style="margin-top:20px">メディア変数のハイパーパラメータ</h3>
+    <table>
+        <thead><tr><th>変数</th><th>Alpha (形状)</th><th>Gamma (半減点)</th><th>Theta (残存率)</th><th>Inflexion</th></tr></thead>
+        <tbody>
+            <tr>
+                <td>Meta広告（セミナー）</td>
+                <td>1.4990</td>
+                <td>0.9959</td>
+                <td>0.2998</td>
+                <td>91,185.9</td>
+            </tr>
+            <tr>
+                <td>CRM配信</td>
+                <td>2.1308</td>
+                <td>0.7585</td>
+                <td>0.0145</td>
+                <td>0.7697</td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="note">
+        <strong>パラメータの意味:</strong><br>
+        • <strong>Alpha (形状):</strong> Hill関数の形状パラメータ。1より大きいとS字カーブ、1未満だと凹型曲線。<br>
+        • <strong>Gamma (半減点):</strong> 最大効果の50%に到達する入力レベル。1に近いほど飽和しにくい。<br>
+        • <strong>Theta (残存率):</strong> Adstockの残存率。次の期間にキャリーオーバーする効果の割合。Meta広告は30.0%で残存効果が大きい。<br>
+        • <strong>Inflexion:</strong> サチュレーションカーブの変曲点。
+    </div>
+</div>
+
+
+<!-- ===== フッター ===== -->
+<div class="footer">
+    <p>本レポートはMeta社のRobynによるMMM（マーケティングミックスモデリング）分析の結果に基づいて自動生成されました。</p>
+    <p>モデル: 3_219_3 | クラスタ: 1 | Pareto最適: #1 | 生成日: 2026-03-19</p>
+</div>
+
+</div><!-- /container -->
+
+<script>
+const weeks = ["2024-02-12", "2024-02-19", "2024-02-26", "2024-03-04", "2024-03-11", "2024-03-18", "2024-03-25", "2024-04-01", "2024-04-08", "2024-04-15", "2024-04-22", "2024-04-29", "2024-05-06", "2024-05-13", "2024-05-20", "2024-05-27", "2024-06-03", "2024-06-10", "2024-06-17", "2024-06-24", "2024-07-01", "2024-07-08", "2024-07-15", "2024-07-22", "2024-07-29", "2024-08-05", "2024-08-12", "2024-08-19", "2024-08-26", "2024-09-02", "2024-09-09", "2024-09-16", "2024-09-23", "2024-09-30", "2024-10-07", "2024-10-14", "2024-10-21", "2024-10-28", "2024-11-04", "2024-11-11", "2024-11-18", "2024-11-25", "2024-12-02", "2024-12-09", "2024-12-16", "2024-12-23", "2024-12-30", "2025-01-06", "2025-01-13", "2025-01-20", "2025-01-27", "2025-02-03", "2025-02-10", "2025-02-17", "2025-02-24", "2025-03-03", "2025-03-10", "2025-03-17", "2025-03-24", "2025-03-31", "2025-04-07", "2025-04-14", "2025-04-21", "2025-04-28", "2025-05-05", "2025-05-12", "2025-05-19", "2025-05-26", "2025-06-02", "2025-06-09", "2025-06-16", "2025-06-23", "2025-06-30", "2025-07-07", "2025-07-14", "2025-07-21", "2025-07-28", "2025-08-04", "2025-08-11", "2025-08-18", "2025-08-25", "2025-09-01", "2025-09-08", "2025-09-15", "2025-09-22", "2025-09-29", "2025-10-06", "2025-10-13", "2025-10-20", "2025-10-27", "2025-11-03", "2025-11-10", "2025-11-17", "2025-11-24", "2025-12-01", "2025-12-08"];
+const actualVals = [28, 76, 156, 0, 0, 0, 123, 84, 104, 2, 0, 0, 1, 0, 50, 79, 202, 0, 0, 0, 0, 0, 0, 0, 0, 37, 45, 90, 18, 25, 69, 60, 48, 64, 117, 60, 0, 0, 20, 24, 59, 106, 74, 0, 0, 0, 0, 4, 24, 69, 89, 68, 76, 11, 9, 19, 33, 42, 88, 61, 60, 0, 0, 24, 16, 15, 0, 0, 18, 50, 79, 66, 53, 16, 35, 48, 51, 5, 0, 0, 0, 0, 0, 8, 34, 18, 0, 0, 0, 0, 6, 19, 43, 27, 23, 13];
+const predictedVals = [26.1, 67.6, 90.4, 0.9, 1.1, -0.2, 116.2, 78.4, 99.0, 26.1, 14.9, -2.3, 10.7, 19.3, 39.7, 50.9, 157.1, 0.4, 0.5, 0.5, 0.6, 0.7, -0.3, 1.1, 1.4, 48.2, 57.0, 74.0, 31.9, 35.5, 64.8, 42.4, 36.8, 71.6, 113.3, 48.9, 1.2, 1.1, 26.3, 29.1, 85.3, 108.6, 83.9, 0.6, 0.7, 0.9, 0.2, 11.7, 31.4, 77.2, 109.0, 58.0, 89.4, 19.3, 14.2, 37.7, 50.1, 46.6, 103.6, 60.9, 43.5, 1.1, 1.4, 9.3, 11.7, 20.6, 0.9, 1.2, 30.5, 49.7, 92.7, 59.0, 49.3, 26.9, 49.5, 48.1, 64.3, 8.8, 0.1, 0.7, 3.0, 3.7, 8.7, 6.9, 23.5, 13.4, 0.5, -0.3, 0.6, 0.7, 0.4, 1.1, 21.3, 29.3, 22.7, 29.1];
+
+const chartColors = [
+    '#1a73e8', '#ea4335', '#34a853', '#fbbc04', '#9c27b0',
+    '#ff6d00', '#00bcd4', '#795548', '#607d8b', '#e91e63',
+    '#3f51b5', '#009688'
+];
+
+// ===== 時系列: コンバージョン =====
+const tsConvData = [28, 76, 156, 0, 0, 0, 123, 84, 104, 2, 0, 0, 1, 0, 50, 79, 202, 0, 0, 0, 0, 0, 0, 0, 0, 37, 45, 90, 18, 25, 69, 60, 48, 64, 117, 60, 0, 0, 20, 24, 59, 106, 74, 0, 0, 0, 0, 4, 24, 69, 89, 68, 76, 11, 9, 19, 33, 42, 88, 61, 60, 0, 0, 24, 16, 15, 0, 0, 18, 50, 79, 66, 53, 16, 35, 48, 51, 5, 0, 0, 0, 0, 0, 8, 34, 18, 0, 0, 0, 0, 6, 19, 43, 27, 23, 13];
+new Chart(document.getElementById('tsConversions'), {
+    type: 'line',
+    data: {
+        labels: weeks,
+        datasets: [{
+            label: 'セミナー集客数（週次）',
+            data: tsConvData,
+            borderColor: '#1a73e8',
+            backgroundColor: 'rgba(26,115,232,0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { ticks: { maxTicksLimit: 20, font: { size: 10 } } },
+            y: { beginAtZero: true, title: { display: true, text: '集客数' } }
+        }
+    }
+});
+
+// ===== 時系列: Meta imp =====
+const tsMetaImpData = [0, 25507, 16838, 0, 0, 0, 14674, 45253, 24028, 12579, 594, 0, 19024, 47188, 6438, 16457, 23284, 0, 0, 0, 0, 0, 0, 0, 0, 8295, 24333, 35707, 0, 0, 0, 0, 0, 11879, 34116, 21628, 0, 0, 0, 0, 7069, 28688, 31545, 0, 0, 0, 0, 0, 0, 520, 26910, 26016, 11258, 0, 0, 0, 8509, 9355, 18520, 34090, 12480, 0, 0, 0, 0, 0, 0, 0, 15323, 6974, 25325, 11002, 0, 0, 10021, 11550, 78333, 0, 0, 0, 7160, 11382, 23650, 10365, 0, 0, 0, 0, 0, 0, 0, 0, 3803, 30954, 30892, 18846];
+new Chart(document.getElementById('tsMetaImp'), {
+    type: 'bar',
+    data: {
+        labels: weeks,
+        datasets: [{
+            label: 'Meta Impressions',
+            data: tsMetaImpData,
+            backgroundColor: 'rgba(26,115,232,0.6)',
+            borderRadius: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { ticks: { maxTicksLimit: 15, font: { size: 9 } } },
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// ===== 時系列: Meta cost =====
+const tsMetaCostData = [0, 90436, 69564, 0, 0, 0, 48152, 101848, 50000, 43969, 3454, 0, 43125, 99139, 15529, 86652, 73237, 0, 0, 0, 0, 0, 0, 0, 0, 26103, 70585, 78536, 0, 0, 0, 0, 0, 32882, 70268, 46848, 0, 0, 0, 0, 23991, 77661, 87064, 0, 0, 0, 0, 0, 0, 2074, 85179, 69744, 28581, 0, 0, 0, 25380, 31128, 57604, 79185, 27111, 0, 0, 0, 0, 0, 0, 0, 42477, 15950, 71297, 28473, 0, 0, 40291, 46900, 159482, 0, 0, 0, 21091, 56490, 88881, 24982, 0, 0, 0, 0, 0, 0, 0, 0, 18686, 55404, 52786, 23124];
+new Chart(document.getElementById('tsMetaCost'), {
+    type: 'bar',
+    data: {
+        labels: weeks,
+        datasets: [{
+            label: 'Meta Cost (¥)',
+            data: tsMetaCostData,
+            backgroundColor: 'rgba(234,67,53,0.6)',
+            borderRadius: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { ticks: { maxTicksLimit: 15, font: { size: 9 } } },
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// ===== 時系列: CRM =====
+const tsCRMData = [1, 2, 2, 0, 0, 0, 2, 2, 2, 2, 3, 0, 0, 0, 1, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 3, 2, 1, 1, 2, 1, 1, 2, 1, 0, 0, 1, 1, 2, 2, 2, 0, 0, 0, 0, 0, 1, 1, 2, 1, 2, 1, 1, 1, 2, 1, 2, 1, 2, 0, 0, 1, 1, 1, 0, 0, 1, 2, 1, 3, 3, 2, 2, 2, 3, 1, 0, 0, 0, 0, 0, 1, 2, 3, 0, 0, 0, 0, 0, 0, 2, 2, 2, 1];
+new Chart(document.getElementById('tsCRM'), {
+    type: 'bar',
+    data: {
+        labels: weeks,
+        datasets: [{
+            label: 'CRM配信回数',
+            data: tsCRMData,
+            backgroundColor: 'rgba(156,39,176,0.6)',
+            borderRadius: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { ticks: { maxTicksLimit: 15, font: { size: 9 } } },
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// ===== 時系列: Proximity =====
+const tsProxData = [0.0721704, 0.133792, 0.30807614285714285, 0.027864, 0.034648142857142857, 0.04583585714285714, 0.06789028571428572, 0.133792, 0.3307168571428571, 0.133792, 0.30807614285714285, 0.027864, 0.034648142857142857, 0.04583585714285714, 0.06789028571428572, 0.133792, 0.30325871428571427, 0.014096, 0.015640285714285714, 0.017565571428571427, 0.020032142857142856, 0.023306285714285717, 0.027864, 0.034648142857142857, 0.04583585714285714, 0.06789028571428572, 0.133792, 0.3334997142857143, 0.15651928571428572, 0.2898627142857143, 0.06789028571428572, 0.133792, 0.3334997142857143, 0.15651928571428572, 0.352551, 0.3110205714285715, 0.03724228571428572, 0.05050914285714286, 0.078823, 0.18985257142857145, 0.37040814285714285, 0.320805, 0.30541300000000005, 0.020032142857142856, 0.023306285714285717, 0.027864, 0.034648142857142857, 0.04583585714285714, 0.06789028571428572, 0.133792, 0.3307168571428571, 0.133792, 0.37040814285714285, 0.3214778571428571, 0.078823, 0.18985257142857145, 0.27465628571428574, 0.18985257142857145, 0.265836, 0.133792, 0.31023128571428576, 0.034648142857142857, 0.04583585714285714, 0.06789028571428572, 0.133792, 0.30861285714285713, 0.029514142857142857, 0.03724228571428572, 0.05050914285714286, 0.078823, 0.18985257142857145, 0.27465628571428574, 0.18985257142857145, 0.320805, 0.37040814285714285, 0.3307168571428571, 0.133792, 0.30555742857142854, 0.020442285714285715, 0.023863714285714287, 0.028665285714285716, 0.035898142857142865, 0.04805814285714286, 0.07294071428571429, 0.15651928571428572, 0.270129, 0.015640285714285714, 0.017565571428571427, 0.020032142857142856, 0.023306285714285717, 0.027864, 0.034648142857142857, 0.04583585714285714, 0.06789028571428572, 0.133792, 0.52083325];
+new Chart(document.getElementById('tsProximity'), {
+    type: 'line',
+    data: {
+        labels: weeks,
+        datasets: [{
+            label: '緊急度指数（平均）',
+            data: tsProxData,
+            borderColor: '#ff6d00',
+            backgroundColor: 'rgba(255,109,0,0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { ticks: { maxTicksLimit: 15, font: { size: 9 } } },
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// ===== 4. 予測 vs 実績 =====
+new Chart(document.getElementById('chartFit'), {
+    type: 'line',
+    data: {
+        labels: weeks,
+        datasets: [
+            {
+                label: '実績値',
+                data: actualVals,
+                borderColor: '#1a73e8',
+                backgroundColor: 'rgba(26,115,232,0.1)',
+                fill: false,
+                tension: 0.3,
+                pointRadius: 3,
+                borderWidth: 2
+            },
+            {
+                label: '予測値',
+                data: predictedVals,
+                borderColor: '#ea4335',
+                borderDash: [5, 3],
+                fill: false,
+                tension: 0.3,
+                pointRadius: 2,
+                borderWidth: 2
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { position: 'top' } },
+        scales: {
+            x: { ticks: { maxTicksLimit: 20, font: { size: 10 } } },
+            y: { beginAtZero: true, title: { display: true, text: '集客数（週次合計）' } }
+        }
+    }
+});
+
+// ===== 5. 週次効果積み上げ =====
+const stackedVarNames = ["partner_seminar_flag", "seminar_duplicate_flag", "opening_seminar_flag", "seminar_proximity", "meta_seminar_impressions", "crm_seminar_flag", "intercept"];
+const stackedData = {"partner_seminar_flag": [15.427263676113151, 35.99694857759735, 20.5696849014842, 0.0, 0.0, 0.0, 25.712106126855254, 35.99694857759735, 25.712106126855254, 0.0, 0.0, 0.0, 5.14242122537105, 0.0, 25.712106126855254, 35.99694857759735, 20.5696849014842, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 25.712106126855254, 35.99694857759735, 30.854527352226302, 20.5696849014842, 15.427263676113151, 20.5696849014842, 20.5696849014842, 15.427263676113151, 20.5696849014842, 35.99694857759735, 20.5696849014842, 0.0, 0.0, 15.427263676113151, 25.712106126855254, 30.854527352226302, 35.99694857759735, 20.5696849014842, 0.0, 0.0, 0.0, 0.0, 10.2848424507421, 20.5696849014842, 30.854527352226302, 35.99694857759735, 35.99694857759735, 20.5696849014842, 10.2848424507421, 15.427263676113151, 20.5696849014842, 30.854527352226302, 30.854527352226302, 35.99694857759735, 35.99694857759735, 20.5696849014842, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 15.427263676113151, 25.712106126855254, 35.99694857759735, 25.712106126855254, 25.712106126855254, 20.5696849014842, 15.427263676113151, 15.427263676113151, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.14242122537105, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "seminar_duplicate_flag": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.103161069349056, 0.551580534674528, 0.0, 0.0, 0.0, 0.0, 1.103161069349056, 1.103161069349056, 1.6547416040235838, 0.0, 0.0, 0.0, 0.0, 0.551580534674528, 0.551580534674528, 0.551580534674528, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.6547416040235838, 0.0, 0.551580534674528, 1.103161069349056, 0.551580534674528, 1.6547416040235838, 1.103161069349056, 0.0, 1.103161069349056, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.551580534674528, 2.206322138698112, 1.6547416040235838, 1.103161069349056, 0.0, 0.551580534674528, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.551580534674528, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "opening_seminar_flag": [0.0, 0.0, 1.4731783798924, 0.0, 0.0, 0.0, 0.0, 0.0, 1.4731783798924, 0.0, 1.4731783798924, 0.0, 0.0, 0.0, 0.0, 0.0, 1.4731783798924, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.4731783798924, 0.0, 1.4731783798924, 0.0, 0.0, 1.4731783798924, 0.0, 1.4731783798924, 1.4731783798924, 0.0, 0.0, 0.0, 0.0, 1.4731783798924, 1.4731783798924, 1.4731783798924, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.4731783798924, 0.0, 1.4731783798924, 1.4731783798924, 0.0, 0.0, 1.4731783798924, 0.0, 1.4731783798924, 0.0, 1.4731783798924, 0.0, 0.0, 0.0, 0.0, 1.4731783798924, 0.0, 0.0, 0.0, 0.0, 0.0, 1.4731783798924, 0.0, 1.4731783798924, 1.4731783798924, 1.4731783798924, 0.0, 1.4731783798924, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.4731783798924, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.4731783798924], "seminar_proximity": [1.609625272855, 4.177571113754983, 9.61948393952593, 0.870035887898146, 1.081866484881428, 1.431195832143925, 2.1198315034125548, 4.177571113754983, 10.326426013751442, 4.177571113754983, 9.61948393952593, 0.870035887898146, 1.081866484881428, 1.431195832143925, 2.1198315034125548, 4.177571113754983, 9.469062760063943, 0.4401387408775581, 0.4883580917459545, 0.548473928161623, 0.6254910708159924, 0.7277241237810979, 0.870035887898146, 1.081866484881428, 1.431195832143925, 2.1198315034125548, 4.177571113754983, 10.413318979053603, 4.887216326428807, 9.050781079246992, 2.1198315034125548, 4.177571113754983, 10.413318979053603, 4.887216326428807, 11.008183402037735, 9.711421871140038, 1.16286696521623, 1.577116241483226, 2.461198635938688, 5.928027223392315, 11.565761464808276, 10.016934503917774, 9.536328977556582, 0.6254910708159924, 0.7277241237810979, 0.870035887898146, 1.081866484881428, 1.431195832143925, 2.1198315034125548, 4.177571113754983, 10.326426013751442, 4.177571113754983, 11.565761464808276, 10.037944045322968, 2.461198635938688, 5.928027223392315, 8.575969904114109, 5.928027223392315, 8.30056202610148, 4.177571113754983, 9.68677692076558, 1.081866484881428, 1.431195832143925, 2.1198315034125548, 4.177571113754983, 9.63624250578056, 0.921560561522647, 1.16286696521623, 1.577116241483226, 2.461198635938688, 5.928027223392315, 8.575969904114109, 5.928027223392315, 10.016934503917774, 11.565761464808276, 10.326426013751442, 4.177571113754983, 9.54083866892827, 0.6382975237617061, 0.7451294805885426, 0.895055530730786, 1.120896949275366, 1.500585306899593, 2.27752796143757, 4.887216326428807, 8.43460825301602, 0.4883580917459545, 0.548473928161623, 0.6254910708159924, 0.7277241237810979, 0.870035887898146, 1.081866484881428, 1.431195832143925, 2.1198315034125548, 4.177571113754983, 9.2929662259675], "meta_seminar_impressions": [0.0, 8.670541511161758, 7.178518159551747, 0.00030837559519948616, 9.999769991260987e-10, 3.2426140682670265e-15, 4.069263886897815, 19.017968872847856, 9.75106944798773, 2.896188670054183, 0.4187467855338229, 1.3783287743498784e-06, 5.631078178526943, 17.87843399694409, 2.3522457782873403, 4.169505073489492, 8.911954283875984, 0.0014902436618691847, 4.832652078516525e-09, 1.5670786060745418e-14, 5.08154801400215e-20, 1.6477878083788316e-25, 5.343262828492774e-31, 1.7326537743013115e-36, 5.6184567332006115e-42, 1.831251134925422, 7.3330203623229595, 14.71844657038636, 0.0039883315275040035, 1.2934750183964963e-08, 4.194336766793936e-14, 1.3600928239807773e-19, 4.410357567110674e-25, 2.9093957099797745, 11.601511536093799, 8.483671935021835, 0.0012645442537964281, 4.100707534101004e-09, 1.329731779131901e-14, 4.311906151491319e-20, 1.5671386452211409, 8.96265956183732, 13.367453234605875, 0.001901484483665151, 6.166338730097809e-09, 1.999551663394176e-14, 6.483923489624889e-20, 2.1025345125589637e-25, 6.8178648060471e-31, 0.0378666619632887, 7.922631398025011, 8.27420602845161, 3.788797056301726, 0.00016672811544406663, 5.40650570626268e-10, 1.753161470546628e-15, 1.678698817690072, 1.9475746419978217, 4.972452252839723, 11.20922588804549, 5.3997178478212255, 6.344614109921822e-05, 2.057365455642743e-10, 6.671395617774841e-16, 2.163325886826237e-21, 7.014992305573198e-27, 2.2747435948934223e-32, 7.376285243246382e-38, 3.9572369647609262, 2.5162324151846245, 8.099429163088526, 5.0222353361618115, 4.097626655762225e-05, 1.328734680404563e-10, 1.9787759174395902, 2.513220184949958, 31.281950521944516, 0.9143333406202907, 3.063974317091434e-06, 9.93551583213409e-12, 2.0752620430139945, 2.5608853562767226, 7.2422105977347435, 3.1902880937249942, 0.00015090605683286125, 4.893439817123767e-10, 1.5867901768543283e-15, 5.145466500899116e-21, 1.6685145835954764e-26, 5.410473307297455e-32, 1.7544480399983921e-37, 5.6891287512731914e-43, 0.5617090194196543, 9.239331545178075, 12.079087339131283, 6.815663510382317], "crm_seminar_flag": [9.528011049590003, 19.15916719897504, 19.05604517697939, 5.720885155613959e-15, 2.249316442459702e-42, 8.843779101831283e-70, 19.159167198925488, 19.159167199045907, 19.15916720396633, 19.057585412979712, 28.688785106965977, 5.899602621770994e-15, 2.3195839140566865e-42, 9.120054144825434e-70, 9.528011049590003, 19.15916719892551, 19.056067914566157, 5.720885155729194e-15, 2.2493164425050072e-42, 8.843779102009426e-70, 3.4771643209985776e-97, 1.3671385926496458e-124, 5.375264896814808e-152, 2.1134267488514902e-179, 8.309493036162234e-207, 19.05758541290874, 9.528011054447106, 28.688764289872935, 19.057585417766866, 9.528011049659963, 9.528011049590017, 19.159167198926536, 9.528011049709468, 9.528011049591024, 19.056045172170354, 9.528011049591024, 5.720847673168046e-15, 2.2493017052504063e-42, 9.528011049590003, 9.528011049659938, 19.057585412956822, 19.056044846223443, 19.057585743782642, 5.7234255915290925e-15, 2.2503152816462065e-42, 8.84770630076024e-70, 3.4787084024619744e-97, 1.3677456888820677e-124, 9.528011049590003, 9.528011054399018, 19.057585412955824, 9.528011380368847, 19.056044841461453, 9.528011049591024, 9.528011049591024, 9.528011049542982, 19.057585743781623, 9.528011049542982, 19.159190243661108, 9.528011049591033, 19.056044841530365, 5.720885155612259e-15, 2.249316442459032e-42, 9.528011049542956, 9.528011049591024, 9.528011049706976, 5.72084767328162e-15, 2.2493017052950617e-42, 9.528011049542956, 19.056022373763064, 9.528011441280832, 28.687201656608913, 28.687224035624823, 19.057585748593137, 19.056022760620728, 19.05758574378164, 28.79175218176833, 9.528011049591033, 5.720847673168066e-15, 2.2493017052504162e-42, 8.843721158617499e-70, 3.477141539030293e-97, 1.3671296353197155e-124, 9.528011049542956, 19.057585417765814, 28.791775230844593, 7.177180287264965e-19, 2.821897170021096e-46, 1.1095030805207142e-73, 4.362303129832906e-101, 1.715154192056757e-128, 6.743579744405684e-156, 19.056022429841864, 19.05758574378164, 19.057585417766855, 9.528011054353], "intercept": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]};
+const varDisplayNames = {"weekday": "曜日効果", "holiday": "祝日効果", "partner_seminar_flag": "共催企業の集客", "seminar_duplicate_flag": "集客重複", "opening_seminar_flag": "セミナー配信日", "seminar_proximity": "締切効果（緊急度指数）", "seminar_spike_flag": "過小予測フラグ", "seminar_dip_flag": "過大予測フラグ", "meta_seminar_impressions": "Meta広告（セミナー）", "crm_seminar_flag": "CRM配信", "intercept": "ベースライン", "trend": "トレンド", "season": "季節性"};
+
+const stackedDatasets = stackedVarNames.map((v, i) => ({
+    label: varDisplayNames[v] || v,
+    data: stackedData[v],
+    backgroundColor: chartColors[i % chartColors.length],
+    borderWidth: 0,
+    stack: 'stack0'
+}));
+
+new Chart(document.getElementById('chartStacked'), {
+    type: 'bar',
+    data: {
+        labels: weeks,
+        datasets: stackedDatasets
+    },
+    options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+            legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12 } }
+        },
+        scales: {
+            x: { stacked: true, ticks: { maxTicksLimit: 20, font: { size: 9 } } },
+            y: { stacked: true, title: { display: true, text: '効果量（集客数への寄与）' } }
+        }
+    }
+});
+
+// ===== 6. 総効果 =====
+const effectLabels = ["集客重複", "セミナー配信日", "Meta広告（セミナー）", "締切効果（緊急度指数）", "CRM配信", "共催企業の集客"];
+const effectValues = [21.5116408523066, 38.3026378772023, 307.008464786519, 414.479395424438, 954.373370956478, 1177.61446060997];
+
+new Chart(document.getElementById('chartTotalEffect'), {
+    type: 'bar',
+    data: {
+        labels: effectLabels,
+        datasets: [{
+            label: '効果量',
+            data: effectValues,
+            backgroundColor: effectValues.map(v => v >= 0 ? 'rgba(52,168,83,0.7)' : 'rgba(234,67,53,0.7)'),
+            borderRadius: 4
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { title: { display: true, text: '効果量（分析期間合計の集客寄与）' } },
+            y: { ticks: { font: { size: 11 } } }
+        }
+    }
+});
+
+// ===== 7. サチュレーション: Meta =====
+const satMetaCurveX = [0.0, 552.11, 1104.22, 1656.32, 2208.43, 2760.54, 3312.65, 3864.75, 4416.86, 4968.97, 5521.08, 6073.18, 6625.29, 7177.4, 7729.51, 8281.61, 8833.72, 9385.83, 9937.94, 10490.05, 11042.15, 11594.26, 12146.37, 12698.48, 13250.58, 13802.69, 14354.8, 14906.91, 15459.01, 16011.12, 16563.23, 17115.34, 17667.45, 18219.55, 18771.66, 19323.77, 19875.88, 20427.98, 20980.09, 21532.2, 22084.31, 22636.41, 23188.52, 23740.63, 24292.74, 24844.84, 25396.95, 25949.06, 26501.17, 27053.28, 27605.38, 28157.49, 28709.6, 29261.71, 29813.81, 30365.92, 30918.03, 31470.14, 32022.24, 32574.35, 33126.46, 33678.57, 34230.68, 34782.78, 35334.89, 35887.0, 36439.11, 36991.21, 37543.32, 38095.43, 38647.54, 39199.64, 39751.75, 40303.86, 40855.97, 41408.07, 41960.18, 42512.29, 43064.4, 43616.51, 44168.61, 44720.72, 45272.83, 45824.94, 46377.04, 46929.15, 47481.26, 48033.37, 48585.47, 49137.58, 49689.69, 50241.8, 50793.9, 51346.01, 51898.12, 52450.23, 53002.34, 53554.44, 54106.55, 54658.66, 55210.77, 55762.87, 56314.98, 56867.09, 57419.2, 57971.3, 58523.41, 59075.52, 59627.63, 60179.74, 60731.84, 61283.95, 61836.06, 62388.17, 62940.27, 63492.38, 64044.49, 64596.6, 65148.7, 65700.81, 66252.92, 66805.03, 67357.13, 67909.24, 68461.35, 69013.46, 69565.57, 70117.67, 70669.78, 71221.89, 71774.0, 72326.1, 72878.21, 73430.32, 73982.43, 74534.53, 75086.64, 75638.75, 76190.86, 76742.97, 77295.07, 77847.18, 78399.29, 78951.4, 79503.5, 80055.61, 80607.72, 81159.83, 81711.93, 82264.04, 82816.15, 83368.26, 83920.36, 84472.47, 85024.58, 85576.69, 86128.8, 86680.9, 87233.01, 87785.12, 88337.23, 88889.33, 89441.44, 89993.55, 90545.66, 91097.76, 91649.87, 92201.98, 92754.09, 93306.19, 93858.3, 94410.41, 94962.52, 95514.63, 96066.73, 96618.84, 97170.95, 97723.06, 98275.16, 98827.27, 99379.38, 99931.49, 100483.59, 101035.7, 101587.81, 102139.92, 102692.03, 103244.13, 103796.24, 104348.35, 104900.46, 105452.56, 106004.67, 106556.78, 107108.89, 107660.99, 108213.1, 108765.21, 109317.32, 109869.42];
+const satMetaCurveY = [0.0, 0.000473, 0.001337, 0.002452, 0.003769, 0.005258, 0.006899, 0.008677, 0.01058, 0.012597, 0.014721, 0.016943, 0.019258, 0.02166, 0.024143, 0.026704, 0.029337, 0.032038, 0.034805, 0.037632, 0.040518, 0.043459, 0.046452, 0.049494, 0.052583, 0.055716, 0.058891, 0.062106, 0.065358, 0.068646, 0.071967, 0.07532, 0.078702, 0.082112, 0.085549, 0.08901, 0.092494, 0.095999, 0.099525, 0.103069, 0.106631, 0.110209, 0.113801, 0.117407, 0.121025, 0.124655, 0.128295, 0.131943, 0.1356, 0.139264, 0.142934, 0.146609, 0.150288, 0.153971, 0.157657, 0.161344, 0.165032, 0.16872, 0.172409, 0.176096, 0.179781, 0.183463, 0.187143, 0.190819, 0.194491, 0.198157, 0.201819, 0.205474, 0.209124, 0.212766, 0.216401, 0.220028, 0.223648, 0.227258, 0.230859, 0.234452, 0.238034, 0.241606, 0.245168, 0.248719, 0.252259, 0.255788, 0.259305, 0.26281, 0.266302, 0.269783, 0.273251, 0.276706, 0.280147, 0.283576, 0.286991, 0.290392, 0.293779, 0.297153, 0.300512, 0.303857, 0.307187, 0.310503, 0.313804, 0.317091, 0.320362, 0.323618, 0.326859, 0.330085, 0.333295, 0.33649, 0.33967, 0.342834, 0.345983, 0.349115, 0.352233, 0.355334, 0.35842, 0.361489, 0.364543, 0.367581, 0.370603, 0.37361, 0.3766, 0.379575, 0.382533, 0.385476, 0.388402, 0.391313, 0.394208, 0.397087, 0.39995, 0.402797, 0.405628, 0.408444, 0.411244, 0.414028, 0.416796, 0.419548, 0.422285, 0.425006, 0.427712, 0.430402, 0.433077, 0.435736, 0.43838, 0.441008, 0.443622, 0.446219, 0.448802, 0.45137, 0.453922, 0.45646, 0.458982, 0.46149, 0.463983, 0.466461, 0.468924, 0.471372, 0.473806, 0.476226, 0.478631, 0.481022, 0.483398, 0.48576, 0.488108, 0.490442, 0.492762, 0.495067, 0.497359, 0.499637, 0.501902, 0.504152, 0.506389, 0.508613, 0.510823, 0.51302, 0.515203, 0.517373, 0.51953, 0.521674, 0.523805, 0.525923, 0.528028, 0.530121, 0.5322, 0.534267, 0.536322, 0.538364, 0.540393, 0.54241, 0.544415, 0.546408, 0.548389, 0.550358, 0.552314, 0.554259, 0.556192, 0.558113, 0.560023, 0.561921, 0.563808, 0.565683, 0.567547, 0.569399];
+const satMetaActX = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1046.12, 25308.83, 26429.28, 30939.07, 25133.42, 22934.86, 20441.61, 6129.06, 1837.69, 551.0, 165.21, 49.53, 14.85, 4.45, 1.34, 0.4, 0.12, 0.04, 0.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5347.74, 15240.3, 24645.53, 30904.68, 31208.2, 32443.82, 32718.47, 33258.66, 15447.53, 4631.67, 43225.69, 34295.52, 11070.82, 3319.39, 995.26, 298.41, 89.47, 26.83, 8.04, 2382.14, 6533.14, 8001.34, 9123.0, 15254.25, 6154.88, 1845.43, 553.32, 165.9, 49.74, 14.91, 4.47, 1.34, 0.4, 0.12, 0.04, 0.01, 0.0, 0.0, 0.0, 0.0, 0.0, 8475.47, 15733.56, 19783.74, 19837.53, 18014.29, 21236.86, 25016.71, 27055.08, 27285.6, 28020.19, 28892.6, 15716.95, 4712.45, 1412.94, 423.65, 127.02, 38.09, 10094.67, 6444.58, 5209.08, 5953.97, 6459.48, 8902.93, 11509.53, 15690.31, 17295.21, 25887.2, 27017.95, 17531.94, 5256.64, 1576.11, 472.57, 141.69, 42.48, 12.74, 3.82, 1.15, 0.34, 0.1, 0.03, 0.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4227.09, 9423.45, 12522.73, 13899.19, 14564.78, 12605.55, 12012.78, 11568.86, 12803.98, 14294.96, 17340.01, 31086.0, 45154.98, 33811.89, 10137.9, 3039.67, 911.39, 273.26, 81.93, 24.57, 7.37, 2.21, 0.66, 0.2, 0.06, 0.02, 0.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1913.9, 8200.17, 11679.47, 16361.48, 15185.93, 16947.0, 18933.75, 17139.06, 18381.76, 18682.49, 22012.18, 21128.57, 23482.94, 24598.78, 15712.56, 4711.13, 1412.55, 423.53, 126.99, 38.07, 11.42, 3.42, 1.03, 0.31, 0.09, 0.03, 0.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7703.52, 13423.16, 13969.53, 13678.16, 12893.38, 12799.16, 12752.28, 16699.12, 22421.03, 31635.2, 29973.84, 38459.6, 20627.11, 6184.67, 1854.36, 556.0, 166.71, 49.98, 14.99, 4.49, 1.35, 0.4, 0.12, 0.04, 0.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1384.18, 9063.51, 10090.98, 10832.93, 12798.93, 20538.25, 15889.91, 16583.11, 15364.18, 14522.23, 14006.25, 14061.84, 13612.67, 14433.62, 14008.97, 14086.61, 15342.34, 13562.72, 4066.54, 1219.28, 365.58, 109.61, 32.87, 9.85, 2.95, 0.89, 0.27, 0.08, 0.02, 0.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4666.3, 5926.99, 7111.53, 6319.42, 5829.04, 6965.04, 6392.63, 6191.71, 4880.39, 5221.89, 1645.55, 4736.44, 7678.25, 3720.98, 6327.65, 19502.99, 8222.03, 9418.09, 12300.19, 15272.55, 15740.52, 15047.66, 14395.38, 16252.12, 20671.24, 26249.94, 24776.26, 23743.46, 7119.06, 2134.52, 640.0, 191.89, 57.54, 17.25, 5.17, 1.55, 0.46, 0.14, 0.04, 0.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2518.15, 14863.05, 9362.29, 9336.74, 15525.96, 16617.73, 11584.02, 3473.26, 1041.4, 312.24, 93.62, 28.07, 8.42, 2.52, 0.76, 13863.36, 16904.49, 23518.09, 29403.39, 29086.4, 17736.87, 5318.09, 1594.53, 478.09, 143.35, 42.98, 12.89, 3.86, 1.16, 0.35, 0.1, 0.03, 0.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4543.85, 5315.3, 6433.02, 5836.48, 6937.99, 6323.29, 7036.04, 5285.27, 5481.7, 6610.68, 6054.79, 6814.46, 6536.47, 6218.87, 4278.95, 18590.59, 52048.04, 77955.19, 91557.85, 34977.17, 10487.28, 3144.43, 942.8, 282.68, 84.76, 25.41, 7.62, 2.28, 0.68, 0.21, 0.06, 0.02, 0.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 17906.55, 6521.56, 1955.37, 586.28, 175.79, 52.71, 148.9, 8730.4, 9245.77, 7994.81, 5916.12, 7882.89, 16189.41, 13952.46, 16633.07, 16518.45, 8186.96, 10078.38, 8212.51, 8318.54, 16479.75, 12689.93, 3804.85, 1140.82, 342.05, 102.56, 30.75, 9.22, 2.76, 0.83, 0.25, 0.07, 0.02, 0.01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1932.53, 3472.91, 4448.51, 3223.75, 8220.24, 13029.74, 14288.12, 16382.34, 10653.66, 11376.97, 31584.65, 54048.81, 22170.88, 7001.58, 8687.48, 5857.62, 14661.16, 12983.15, 17276.76, 25804.47, 20793.6, 9335.7];
+const satMetaActY = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.001233, 0.127713, 0.135124, 0.165173, 0.126556, 0.112149, 0.096086, 0.017173, 0.002864, 0.000472, 7.8e-05, 1.3e-05, 2e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.014043, 0.064066, 0.123343, 0.164943, 0.166971, 0.175224, 0.177058, 0.180663, 0.06529, 0.011352, 0.246206, 0.187575, 0.040669, 0.00692, 0.001144, 0.000188, 3.1e-05, 5e-06, 1e-06, 0.00422, 0.018866, 0.025395, 0.030744, 0.064148, 0.01728, 0.002882, 0.000475, 7.8e-05, 1.3e-05, 2e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.02762, 0.066989, 0.091911, 0.092251, 0.080841, 0.101171, 0.125787, 0.139276, 0.140807, 0.145695, 0.151509, 0.06689, 0.011646, 0.001933, 0.000318, 5.2e-05, 9e-06, 0.035601, 0.018491, 0.013508, 0.016455, 0.018554, 0.029672, 0.043004, 0.066731, 0.076418, 0.131534, 0.139029, 0.077869, 0.013691, 0.002277, 0.000375, 6.2e-05, 1e-05, 2e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.009913, 0.032225, 0.04852, 0.056268, 0.060109, 0.048978, 0.045723, 0.043322, 0.050081, 0.058545, 0.076693, 0.166154, 0.258555, 0.184352, 0.035822, 0.00607, 0.001003, 0.000165, 2.7e-05, 4e-06, 1e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.003043, 0.026321, 0.043917, 0.07075, 0.063745, 0.074294, 0.086562, 0.075464, 0.083119, 0.084992, 0.106165, 0.100476, 0.115723, 0.123036, 0.066864, 0.011641, 0.001932, 0.000318, 5.2e-05, 9e-06, 1e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.024025, 0.053558, 0.056671, 0.055006, 0.050579, 0.050054, 0.049793, 0.072789, 0.108811, 0.169823, 0.158725, 0.215165, 0.097269, 0.017403, 0.002903, 0.000478, 7.9e-05, 1.3e-05, 2e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.001875, 0.030453, 0.035582, 0.039418, 0.050053, 0.096702, 0.067921, 0.072087, 0.064797, 0.059862, 0.056882, 0.057201, 0.054633, 0.059348, 0.056898, 0.057344, 0.064668, 0.054349, 0.009359, 0.001551, 0.000255, 4.2e-05, 7e-06, 1e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.011478, 0.016345, 0.021369, 0.017965, 0.015949, 0.020726, 0.018272, 0.017433, 0.012266, 0.013557, 0.002428, 0.011734, 0.02391, 0.008202, 0.017999, 0.090138, 0.026424, 0.032198, 0.047294, 0.064256, 0.06703, 0.062932, 0.059126, 0.070092, 0.09755, 0.133935, 0.124204, 0.117426, 0.021402, 0.003582, 0.000591, 9.7e-05, 1.6e-05, 3e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.004585, 0.061849, 0.031922, 0.031795, 0.065755, 0.072297, 0.043404, 0.007403, 0.001224, 0.000201, 3.3e-05, 5e-06, 1e-06, 0.0, 0.0, 0.056063, 0.074036, 0.115952, 0.154917, 0.152801, 0.079129, 0.013928, 0.002316, 0.000382, 6.3e-05, 1e-05, 2e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.011034, 0.013917, 0.018442, 0.015979, 0.020608, 0.017981, 0.021037, 0.013801, 0.014566, 0.019196, 0.016868, 0.020072, 0.01888, 0.017545, 0.010094, 0.084419, 0.301422, 0.441521, 0.501525, 0.192112, 0.037618, 0.006384, 0.001055, 0.000174, 2.9e-05, 5e-06, 1e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.080176, 0.018816, 0.003142, 0.000518, 8.5e-05, 1.4e-05, 6.6e-05, 0.028839, 0.031347, 0.025364, 0.016301, 0.024847, 0.069715, 0.056573, 0.072389, 0.071697, 0.02626, 0.035518, 0.026379, 0.026878, 0.071463, 0.049446, 0.008478, 0.001404, 0.000231, 3.8e-05, 6e-06, 1e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.003088, 0.007402, 0.010693, 0.006626, 0.026416, 0.051342, 0.058506, 0.070875, 0.038481, 0.042295, 0.169486, 0.31346, 0.107191, 0.020886, 0.028633, 0.016064, 0.06067, 0.051081, 0.076306, 0.130987, 0.098332, 0.03179];
+new Chart(document.getElementById('chartSatMeta'), {
+    type: 'scatter',
+    data: {
+        datasets: [
+            {
+                label: 'Hill関数カーブ',
+                data: satMetaCurveX.map((x, i) => ({ x, y: satMetaCurveY[i] })),
+                showLine: true,
+                borderColor: '#1a73e8',
+                backgroundColor: 'transparent',
+                pointRadius: 0,
+                borderWidth: 2,
+                tension: 0.4
+            },
+            {
+                label: '実際の出稿ポイント',
+                data: satMetaActX.map((x, i) => ({ x, y: satMetaActY[i] })),
+                backgroundColor: 'rgba(234,67,53,0.5)',
+                borderColor: '#ea4335',
+                pointRadius: 3
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+        scales: {
+            x: { title: { display: true, text: 'Adstock後の入力値（インプレッション）' } },
+            y: { title: { display: true, text: 'サチュレーション応答' }, beginAtZero: true, max: 1 }
+        }
+    }
+});
+
+// ===== 7. サチュレーション: CRM =====
+const satCRMcurveX = [0.0, 0.006119, 0.012238, 0.018357, 0.024476, 0.030596, 0.036715, 0.042834, 0.048953, 0.055072, 0.061191, 0.06731, 0.073429, 0.079548, 0.085668, 0.091787, 0.097906, 0.104025, 0.110144, 0.116263, 0.122382, 0.128501, 0.13462, 0.14074, 0.146859, 0.152978, 0.159097, 0.165216, 0.171335, 0.177454, 0.183573, 0.189693, 0.195812, 0.201931, 0.20805, 0.214169, 0.220288, 0.226407, 0.232526, 0.238645, 0.244765, 0.250884, 0.257003, 0.263122, 0.269241, 0.27536, 0.281479, 0.287598, 0.293717, 0.299837, 0.305956, 0.312075, 0.318194, 0.324313, 0.330432, 0.336551, 0.34267, 0.348789, 0.354909, 0.361028, 0.367147, 0.373266, 0.379385, 0.385504, 0.391623, 0.397742, 0.403861, 0.409981, 0.4161, 0.422219, 0.428338, 0.434457, 0.440576, 0.446695, 0.452814, 0.458934, 0.465053, 0.471172, 0.477291, 0.48341, 0.489529, 0.495648, 0.501767, 0.507886, 0.514006, 0.520125, 0.526244, 0.532363, 0.538482, 0.544601, 0.55072, 0.556839, 0.562958, 0.569078, 0.575197, 0.581316, 0.587435, 0.593554, 0.599673, 0.605792, 0.611911, 0.61803, 0.62415, 0.630269, 0.636388, 0.642507, 0.648626, 0.654745, 0.660864, 0.666983, 0.673102, 0.679222, 0.685341, 0.69146, 0.697579, 0.703698, 0.709817, 0.715936, 0.722055, 0.728175, 0.734294, 0.740413, 0.746532, 0.752651, 0.75877, 0.764889, 0.771008, 0.777127, 0.783247, 0.789366, 0.795485, 0.801604, 0.807723, 0.813842, 0.819961, 0.82608, 0.832199, 0.838319, 0.844438, 0.850557, 0.856676, 0.862795, 0.868914, 0.875033, 0.881152, 0.887271, 0.893391, 0.89951, 0.905629, 0.911748, 0.917867, 0.923986, 0.930105, 0.936224, 0.942343, 0.948463, 0.954582, 0.960701, 0.96682, 0.972939, 0.979058, 0.985177, 0.991296, 0.997415, 1.003535, 1.009654, 1.015773, 1.021892, 1.028011, 1.03413, 1.040249, 1.046368, 1.052488, 1.058607, 1.064726, 1.070845, 1.076964, 1.083083, 1.089202, 1.095321, 1.10144, 1.10756, 1.113679, 1.119798, 1.125917, 1.132036, 1.138155, 1.144274, 1.150393, 1.156512, 1.162632, 1.168751, 1.17487, 1.180989, 1.187108, 1.193227, 1.199346, 1.205465, 1.211584, 1.217704];
+const satCRMcurveY = [0.0, 3.4e-05, 0.000147, 0.000349, 0.000644, 0.001035, 0.001526, 0.002118, 0.002813, 0.003613, 0.004518, 0.005529, 0.006648, 0.007875, 0.00921, 0.010652, 0.012204, 0.013863, 0.015631, 0.017506, 0.019488, 0.021577, 0.023772, 0.026072, 0.028476, 0.030984, 0.033594, 0.036305, 0.039116, 0.042025, 0.045031, 0.048133, 0.051329, 0.054617, 0.057996, 0.061465, 0.06502, 0.06866, 0.072384, 0.07619, 0.080074, 0.084037, 0.088075, 0.092186, 0.096368, 0.100619, 0.104937, 0.10932, 0.113765, 0.11827, 0.122833, 0.127453, 0.132125, 0.136849, 0.141622, 0.146442, 0.151307, 0.156213, 0.161161, 0.166146, 0.171167, 0.176221, 0.181307, 0.186423, 0.191566, 0.196735, 0.201926, 0.207139, 0.212372, 0.217622, 0.222887, 0.228166, 0.233456, 0.238757, 0.244066, 0.249381, 0.254702, 0.260025, 0.26535, 0.270675, 0.275999, 0.281319, 0.286635, 0.291945, 0.297248, 0.302542, 0.307827, 0.3131, 0.318361, 0.323609, 0.328842, 0.334059, 0.339259, 0.344442, 0.349606, 0.35475, 0.359874, 0.364976, 0.370056, 0.375113, 0.380146, 0.385154, 0.390137, 0.395095, 0.400026, 0.404929, 0.409805, 0.414653, 0.419472, 0.424261, 0.429021, 0.433751, 0.438451, 0.443119, 0.447757, 0.452363, 0.456937, 0.461479, 0.465989, 0.470466, 0.47491, 0.479322, 0.4837, 0.488045, 0.492357, 0.496635, 0.500879, 0.50509, 0.509267, 0.513411, 0.51752, 0.521596, 0.525638, 0.529646, 0.53362, 0.53756, 0.541467, 0.54534, 0.54918, 0.552986, 0.556758, 0.560498, 0.564204, 0.567877, 0.571517, 0.575124, 0.578698, 0.58224, 0.58575, 0.589227, 0.592672, 0.596086, 0.599468, 0.602818, 0.606136, 0.609424, 0.612681, 0.615907, 0.619102, 0.622267, 0.625402, 0.628507, 0.631582, 0.634628, 0.637645, 0.640632, 0.643591, 0.646521, 0.649423, 0.652296, 0.655142, 0.65796, 0.66075, 0.663514, 0.66625, 0.66896, 0.671643, 0.6743, 0.676931, 0.679536, 0.682115, 0.684669, 0.687199, 0.689703, 0.692182, 0.694638, 0.697069, 0.699476, 0.701859, 0.704219, 0.706556, 0.70887, 0.71116, 0.713429, 0.715675, 0.717899, 0.720101, 0.722281, 0.72444, 0.726578];
+const satCRMactX = [1.0, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 0.0, 1.0, 1.014542, 0.014753, 0.000215, 3e-06, 1.0, 0.014542, 0.000211, 1.000003, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.014542, 0.014753, 0.000215, 3e-06, 0.0, 0.0, 1.0, 1.014542, 0.014753, 0.000215, 3e-06, 0.0, 1.0, 1.014542, 0.014753, 0.000215, 3e-06, 0.0, 0.0, 1.0, 0.014542, 1.000211, 0.014545, 0.000212, 1.000003, 0.014542, 1.000211, 1.014545, 0.014753, 0.000215, 3e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 0.0, 0.0, 1.0, 1.014542, 0.014753, 0.000215, 1.000003, 0.014542, 0.000211, 1.000003, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.014542, 1.000211, 0.014545, 0.000212, 3e-06, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 0.0, 1.0, 1.014542, 0.014753, 1.000215, 0.014545, 0.000212, 3e-06, 0.0, 1.0, 0.014542, 1.000211, 0.014545, 0.000212, 3e-06, 0.0, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 0.0, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 0.0, 1.0, 1.014542, 0.014753, 0.000215, 3e-06, 0.0, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 1.0, 0.014542, 0.000211, 1.000003, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 0.0, 1.0, 0.014542, 1.000211, 0.014545, 0.000212, 3e-06, 0.0, 1.0, 0.014542, 0.000211, 1.000003, 0.014542, 0.000211, 3e-06, 1.0, 0.014542, 1.000211, 0.014545, 0.000212, 3e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 0.0, 0.0, 1.0, 0.014542, 1.000211, 0.014545, 0.000212, 3e-06, 1.0, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 0.0, 1.0, 0.014542, 0.000211, 1.000003, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 0.0, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 1.0, 0.014542, 1.000211, 0.014545, 0.000212, 3e-06, 0.0, 0.0, 0.0, 0.0, 1.0, 0.014542, 0.000211, 1.000003, 1.014542, 0.014753, 0.000215, 3e-06, 0.0, 0.0, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 1.0, 0.014542, 0.000211, 1.000003, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 1.0, 0.014542, 0.000211, 3e-06, 1.0, 0.014542, 0.000211, 3e-06, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 1.0, 1.014542, 0.014753, 0.000215, 1.000003, 0.014542, 0.000211, 1.000003, 0.014542, 0.000211, 1.000003, 1.014542, 0.014753, 0.000215, 3e-06, 1.0, 0.014542, 1.000211, 0.014545, 0.000212, 3e-06, 1.0, 0.014542, 0.000211, 3e-06, 1.0, 0.014542, 0.000211, 3e-06, 1.0, 0.014542, 1.000211, 0.014545, 0.000212, 3e-06, 0.0, 1.0, 1.014542, 1.014753, 0.014756, 0.000215, 3e-06, 0.0, 0.0, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 0.0, 1.0, 0.014542, 1.000211, 0.014545, 0.000212, 1.000003, 1.014542, 1.014753, 0.014756, 0.000215, 3e-06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.014542, 0.000211, 3e-06, 1.0, 0.014542, 0.000211, 3e-06, 1.0, 0.014542, 1.000211, 0.014545, 0.000212, 3e-06, 0.0, 1.0, 0.014542, 1.000211, 0.014545, 0.000212, 3e-06, 0.0, 1.0, 0.014542, 0.000211];
+const satCRMactY = [0.635906, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.642998, 0.000219, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.635907, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.642998, 0.000219, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.642998, 0.000219, 0.0, 0.0, 0.0, 0.635906, 0.642998, 0.000219, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.63601, 0.000212, 0.0, 0.635907, 0.000212, 0.63601, 0.642999, 0.000219, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.642998, 0.000219, 0.0, 0.635907, 0.000212, 0.0, 0.635907, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.63601, 0.000212, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.0, 0.635906, 0.642998, 0.000219, 0.636012, 0.000212, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.63601, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.642998, 0.000219, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.635907, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.63601, 0.000212, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.635907, 0.000212, 0.0, 0.0, 0.635906, 0.000212, 0.63601, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.63601, 0.000212, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.635907, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.635906, 0.000212, 0.63601, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.635907, 0.642998, 0.000219, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.635907, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.635906, 0.642998, 0.000219, 0.0, 0.635907, 0.000212, 0.0, 0.635907, 0.000212, 0.0, 0.635907, 0.642998, 0.000219, 0.0, 0.0, 0.635906, 0.000212, 0.63601, 0.000212, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.635906, 0.000212, 0.63601, 0.000212, 0.0, 0.0, 0.0, 0.635906, 0.642998, 0.6431, 0.000219, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.63601, 0.000212, 0.0, 0.635907, 0.642998, 0.6431, 0.000219, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.635906, 0.000212, 0.0, 0.0, 0.635906, 0.000212, 0.63601, 0.000212, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.63601, 0.000212, 0.0, 0.0, 0.0, 0.635906, 0.000212, 0.0];
+new Chart(document.getElementById('chartSatCRM'), {
+    type: 'scatter',
+    data: {
+        datasets: [
+            {
+                label: 'Hill関数カーブ',
+                data: satCRMcurveX.map((x, i) => ({ x, y: satCRMcurveY[i] })),
+                showLine: true,
+                borderColor: '#9c27b0',
+                backgroundColor: 'transparent',
+                pointRadius: 0,
+                borderWidth: 2,
+                tension: 0.4
+            },
+            {
+                label: '実際の配信ポイント',
+                data: satCRMactX.map((x, i) => ({ x, y: satCRMactY[i] })),
+                backgroundColor: 'rgba(234,67,53,0.5)',
+                borderColor: '#ea4335',
+                pointRadius: 3
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+        scales: {
+            x: { title: { display: true, text: 'Adstock後の入力値' } },
+            y: { title: { display: true, text: 'サチュレーション応答' }, beginAtZero: true, max: 1 }
+        }
+    }
+});
+
+// ===== 8. 予算配分 =====
+const totalEffect = 1261.381835742997;
+new Chart(document.getElementById('chartBudget'), {
+    type: 'bar',
+    data: {
+        labels: ['Meta広告（セミナー）', 'CRM配信'],
+        datasets: [
+            {
+                label: '効果量（集客への寄与）',
+                data: [307.0, 954.4],
+                backgroundColor: ['rgba(26,115,232,0.7)', 'rgba(156,39,176,0.7)'],
+                borderRadius: 4,
+                yAxisID: 'y'
+            },
+            {
+                label: '費用（円）',
+                data: [2391343, 0],
+                backgroundColor: ['rgba(234,67,53,0.3)', 'rgba(156,39,176,0.1)'],
+                borderColor: ['#ea4335', '#9c27b0'],
+                borderWidth: 1,
+                borderRadius: 4,
+                yAxisID: 'y1'
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'top' } },
+        scales: {
+            y: {
+                type: 'linear',
+                position: 'left',
+                title: { display: true, text: '効果量（集客数）' },
+                beginAtZero: true
+            },
+            y1: {
+                type: 'linear',
+                position: 'right',
+                title: { display: true, text: '費用（円）' },
+                beginAtZero: true,
+                grid: { drawOnChartArea: false }
+            }
+        }
+    }
+});
+
+</script>
+</body>
+</html>
