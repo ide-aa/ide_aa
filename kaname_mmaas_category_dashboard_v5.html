@@ -1,0 +1,2369 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaname MMaaS — CEPs×広告SOV 月次訴求判断ダッシュボード v5 | シワ化粧品カテゴリー</title>
+<style>
+  :root {
+    --bg: #0f172a; --card: #1e293b; --border: #334155;
+    --text: #e2e8f0; --muted: #94a3b8; --accent: #3b82f6;
+    --danger: #ef4444; --warning: #f59e0b; --success: #10b981;
+    --purple: #8b5cf6; --pink: #ec4899; --cyan: #06b6d4;
+    --cherulla: #d4145a; --augio: #ff6b35; --elixir: #ec4899; --pola: #7b2cbf; --onekose: #1f77b4; --dew: #ffa500; --attenir: #2e8b57; --decencia: #8a4f9e; --domohornrinkle: #ff69b4;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; }
+  body { font-family: 'Hiragino Sans','Yu Gothic',sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding: 20px; }
+  h1 { font-size: 1.4rem; margin-bottom: 4px; }
+  h2 { font-size: 1.1rem; margin-bottom: 10px; color: var(--accent); }
+  h3 { font-size: 0.95rem; margin-bottom: 8px; }
+  .subtitle { color: var(--muted); font-size: 0.78rem; margin-bottom: 20px; }
+  /* Tab Navigation */
+  .tabs { display: flex; gap: 3px; margin-bottom: 20px; flex-wrap: wrap; align-items: stretch; }
+  .tab { padding: 7px 13px; border-radius: 8px 8px 0 0; cursor: pointer; background: var(--card); border: 1px solid var(--border); border-bottom: none; font-size: 0.78rem; color: var(--muted); transition: all .2s; white-space: nowrap; }
+  .tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .tab:hover:not(.active) { background: #2d3a4f; }
+  .tab.star { background: linear-gradient(135deg, var(--card), rgba(245,158,11,0.15)); }
+  .tab.star.active { background: linear-gradient(135deg, var(--accent), rgba(245,158,11,0.3)); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .tab-divider { width: 1px; background: var(--border); align-self: stretch; margin: 4px 6px; }
+  .tab-group-label { font-size: 0.6rem; color: var(--muted); display: block; margin-bottom: -2px; padding-left: 4px; }
+  /* Grid */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  /* Card */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .card-full { grid-column: 1 / -1; }
+  /* KPI compact */
+  .kpi-compact { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; font-size: 0.75rem; }
+  .kpi-compact-item { display: flex; align-items: center; gap: 6px; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; }
+  .kpi-compact-item .brand-name { font-weight: 700; min-width: 48px; }
+  .kpi-compact-item .kpi-val { font-weight: 800; font-size: 0.85rem; }
+  /* Table */
+  table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  th, td { padding: 7px 9px; border-bottom: 1px solid var(--border); text-align: left; }
+  th { color: var(--muted); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; background: rgba(0,0,0,0.2); }
+  tr:hover { background: rgba(59,130,246,0.05); }
+  /* Bars */
+  .bar-container { display: flex; align-items: center; gap: 6px; }
+  .bar { height: 16px; border-radius: 3px; min-width: 2px; transition: width 0.5s; }
+  .stacked-bar { display: flex; height: 24px; border-radius: 4px; overflow: hidden; width: 100%; }
+  .stacked-segment { height: 100%; transition: width 0.5s; position: relative; }
+  .h-bar-row { display: flex; align-items: center; margin-bottom: 8px; }
+  .h-bar-label { width: 100px; font-size: 0.78rem; font-weight: 600; text-align: right; padding-right: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .h-bar-track { flex: 1; display: flex; height: 28px; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,0.03); }
+  .h-bar-seg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.63rem; font-weight: 600; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.5); transition: width 0.6s; cursor: default; min-width: 0; }
+  .h-bar-seg:hover { filter: brightness(1.2); }
+  /* Badge */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.68rem; font-weight: 600; }
+  .badge-danger { background: rgba(239,68,68,0.2); color: var(--danger); }
+  .badge-warning { background: rgba(245,158,11,0.2); color: var(--warning); }
+  .badge-success { background: rgba(16,185,129,0.2); color: var(--success); }
+  .badge-info { background: rgba(59,130,246,0.2); color: var(--accent); }
+  /* Size badges */
+  .size-badge { display:inline-block; padding:1px 6px; border-radius:3px; font-size:0.62rem; font-weight:700; }
+  .size-large { background:rgba(16,185,129,0.2); color:var(--success); }
+  .size-medium { background:rgba(245,158,11,0.2); color:var(--warning); }
+  .size-small { background:rgba(239,68,68,0.2); color:var(--danger); }
+  .market-warning { color:var(--danger); font-size:0.68rem; }
+  /* Legend */
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin: 8px 0 14px; }
+  .legend-item { display: flex; align-items: center; gap: 4px; font-size: 0.72rem; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+  /* Delta indicators */
+  .delta-up { color: var(--success); font-weight: 600; font-size: 0.72rem; }
+  .delta-down { color: var(--danger); font-weight: 600; font-size: 0.72rem; }
+  .delta-flat { color: var(--muted); font-size: 0.72rem; }
+  /* Summary cards */
+  .summary-change { border-left: 3px solid; padding: 10px 14px; margin-bottom: 10px; border-radius: 0 8px 8px 0; background: rgba(0,0,0,0.15); }
+  .summary-change.high { border-color: var(--danger); }
+  .summary-change.medium { border-color: var(--warning); }
+  .summary-change.low { border-color: var(--success); }
+  .summary-change h4 { font-size: 0.88rem; margin-bottom: 4px; }
+  .summary-change p { font-size: 0.78rem; color: var(--muted); }
+  /* CEP action cards */
+  .cep-action-card { border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; font-size: 0.78rem; }
+  .cep-action-card.maintain { background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.3); }
+  .cep-action-card.strengthen { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); }
+  .cep-action-card.reduce { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); }
+  .cep-action-card h4 { font-size: 0.82rem; margin-bottom: 2px; }
+  .cep-action-card p { font-size: 0.72rem; color: var(--muted); }
+  /* Intelligence alerts */
+  .alert-card { transition: opacity 0.3s; }
+  /* Strategy cards */
+  .strategy-card { background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1)); border: 1px solid rgba(59,130,246,0.3); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+  .strategy-card h4 { color: var(--accent); margin-bottom: 6px; font-size: 0.88rem; }
+  .strategy-card p { font-size: 0.78rem; color: var(--muted); }
+  .strategy-card .highlight { color: var(--warning); font-weight: 700; }
+  /* Insight box */
+  .insight-box { background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(239,68,68,0.08)); border: 1px solid rgba(245,158,11,0.2); border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; font-size: 0.78rem; }
+  .insight-box strong { color: var(--warning); }
+  /* Cross heatmap */
+  .cross-heatmap { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+  .cross-heatmap th { padding: 6px 8px; font-size: 0.68rem; text-align: center; white-space: nowrap; }
+  .cross-heatmap td { padding: 5px 6px; text-align: center; font-size: 0.68rem; border-bottom: 1px solid var(--border); }
+  .cross-heatmap td.axis-name { text-align: left; font-weight: 600; font-size: 0.72rem; min-width: 80px; }
+  /* Expansion card */
+  .expansion-card { background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(59,130,246,0.08)); border: 1px solid rgba(16,185,129,0.3); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+  .expansion-card .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .expansion-card .card-header h4 { font-size: 0.92rem; color: var(--success); }
+  .expansion-card .ws-score { font-size: 1.1rem; font-weight: 800; color: var(--warning); }
+  .expansion-card .media-candidate { padding: 8px 12px; margin-bottom: 6px; background: rgba(0,0,0,0.2); border-radius: 6px; border-left: 3px solid var(--success); }
+  .expansion-card .media-candidate .media-name-exp { font-weight: 700; color: var(--text); font-size: 0.82rem; }
+  .expansion-card .media-candidate .competitor-ref { font-size: 0.72rem; color: var(--muted); }
+  .expansion-card .fancl-current { font-size: 0.75rem; color: var(--muted); padding: 6px 0; border-top: 1px solid var(--border); margin-top: 8px; }
+  /* Coverage matrix */
+  .coverage-matrix { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+  .coverage-matrix th { padding: 6px 8px; font-size: 0.68rem; text-align: center; }
+  .coverage-matrix td { padding: 5px 6px; text-align: center; font-size: 0.68rem; border-bottom: 1px solid var(--border); }
+  .coverage-matrix td.cep-name { text-align: left; font-weight: 600; min-width: 100px; }
+  .gap-indicator { background: rgba(239,68,68,0.25); font-weight: 800; }
+  /* Cross card */
+  .cross-card { background: rgba(0,0,0,0.15); border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+  .cep-row-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .cep-row-header .axis { font-weight: 700; font-size: 0.85rem; }
+  .brand-mini-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; padding-left: 8px; }
+  .brand-mini-row .bname { width: 50px; font-size: 0.68rem; font-weight: 600; text-align: right; }
+  .brand-mini-row .btrack { flex: 1; display: flex; height: 18px; border-radius: 3px; overflow: hidden; background: rgba(255,255,255,0.03); }
+  .brand-mini-row .bseg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.58rem; font-weight: 600; color: white; text-shadow: 0 1px 1px rgba(0,0,0,0.5); }
+  /* Group header row in tables */
+  .group-header-row td { background: rgba(59,130,246,0.1); font-weight: 700; color: var(--accent); font-size: 0.75rem; padding: 6px 9px; }
+  /* Footer */
+  .dashboard-footer { text-align: center; padding: 16px; color: var(--muted); font-size: 0.72rem; border-top: 1px solid var(--border); margin-top: 30px; }
+  .disclaimer { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); border-radius: 6px; padding: 10px; text-align: center; font-size: 0.75rem; color: var(--warning); margin-top: 16px; }
+  /* Quarterly label */
+  .quarterly-badge { background: rgba(139,92,246,0.2); color: var(--purple); padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 600; }
+  /* Print */
+  @media print {
+    body { background: white; color: #1a1a1a; padding: 10px; font-size: 12px; }
+    .tabs { display: none; }
+    .tab-content { display: block !important; page-break-inside: avoid; margin-bottom: 20px; }
+    .card { border: 1px solid #ddd; background: white; }
+    .kpi-compact-item { border: 1px solid #ddd; background: #f9f9f9; }
+    :root { --text: #1a1a1a; --muted: #666; --card: white; --border: #ddd; --bg: white; }
+  }
+  @media (max-width: 900px) {
+    .grid2, .grid3 { grid-template-columns: 1fr; }
+    .kpi-compact { flex-direction: column; }
+    .tabs { gap: 2px; }
+    .tab { padding: 5px 8px; font-size: 0.7rem; }
+  }
+
+  /* === v5: Time series trend tab === */
+  .trend-section { margin-bottom: 24px; }
+  .trend-chart-container { position: relative; width: 100%; }
+  .trend-legend { display: flex; gap: 12px; flex-wrap: wrap; margin: 8px 0; font-size: 0.72rem; }
+  .trend-legend-item { display: flex; align-items: center; gap: 4px; }
+  .trend-legend-line { width: 24px; height: 3px; border-radius: 1px; }
+  .period-selector { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 0.78rem; }
+  .period-badge { background: var(--accent); color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; }
+  .direction-match { color: var(--success); }
+  .direction-mismatch { color: var(--danger); }
+  .direction-neutral { color: var(--muted); }
+  .waterfall-bar { height: 18px; border-radius: 3px; display: inline-block; vertical-align: middle; }
+  .waterfall-positive { background: var(--success); }
+  .waterfall-negative { background: var(--danger); }
+  .trend-kpi-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .trend-kpi-item { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; flex: 1; min-width: 140px; }
+  .trend-kpi-item .brand { font-weight: 700; font-size: 0.78rem; margin-bottom: 2px; }
+  .trend-kpi-item .vals { font-size: 0.72rem; color: var(--muted); }
+  .trend-kpi-item .delta-val { font-weight: 800; font-size: 0.85rem; }
+  .media-trend-row { display: flex; gap: 4px; margin-bottom: 6px; }
+  .media-trend-label { width: 70px; font-size: 0.72rem; font-weight: 600; text-align: right; padding-right: 6px; }
+  .media-trend-bars { flex: 1; display: flex; gap: 2px; }
+  .media-trend-bar-wrap { flex: 1; }
+  .media-trend-bar-label { font-size: 0.58rem; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+<script>
+// ============================================================
+// DATA LAYER (v5: Time-series structure) — Almard / シワ化粧品カテゴリー
+// ============================================================
+
+const reportMeta = {
+  reportMonth: "2026年3月（半月次）",
+  previousPeriod: "2026/02/28",
+  brands: ["チェルラーブリリオ","オージオ","エリクシール","POLA リンクルショット","ONE BY KOSE","DEW","アテニア","ディセンシア","ドモホルンリンクル"],
+  brandColors: {"チェルラーブリリオ":"#d4145a","オージオ":"#ff6b35","エリクシール":"#ec4899","POLA リンクルショット":"#7b2cbf","ONE BY KOSE":"#1f77b4","DEW":"#ffa500","アテニア":"#2e8b57","ディセンシア":"#8a4f9e","ドモホルンリンクル":"#ff69b4"},
+  brandShort: {"チェルラーブリリオ":"チェルラー","オージオ":"オージオ","エリクシール":"ELIXIR","POLA リンクルショット":"POLA","ONE BY KOSE":"KOSE","DEW":"DEW","アテニア":"アテニア","ディセンシア":"ディセンシア","ドモホルンリンクル":"ドモホルン"},
+  selfBrand: 'チェルラーブリリオ',
+};
+
+const periods = [
+  { id: '260228', label: '2026/02/28', shortLabel: '2/28' },
+  { id: '260315', label: '2026/03/15', shortLabel: '3/15' },
+];
+const currentPeriodId = '260315';
+const previousPeriodId = '260228';
+
+// === CEPマスターテーブル（29 CEPs: S01-S19 + E01-E10）===
+const cepMaster = {
+  'E01':{label:'年齢に負けない若々しい美しさを保てる',short:'若々しい美しさ',type:'experience',advantage:-1.2,since:'2026Q1',status:'active',mergedInto:null,keywords:['若々しい','若返り','アンチエイジング','若見え','美しさ','ハリ','ツヤ','弾力'],marketSize:'medium'},
+  'E02':{label:'肌の悩みが改善されて自信を取り戻せる',short:'肌悩み改善',type:'experience',advantage:0.2,since:'2026Q1',status:'active',mergedInto:null,keywords:['改善','自信','悩み解消','コンプレックス','解決'],marketSize:'medium'},
+  'E03':{label:'将来への不安を解消して安心感を得られる',short:'将来の安心',type:'experience',advantage:1.4,since:'2026Q1',status:'active',mergedInto:null,keywords:['安心','安全','信頼','不安','解消'],marketSize:'small'},
+  'E04':{label:'効果的なケアで努力が報われる満足感を得られる',short:'努力の報い',type:'experience',advantage:-2.0,since:'2026Q1',status:'active',mergedInto:null,keywords:['効果','実感','満足','結果','変化','実証'],marketSize:'medium'},
+  'E05':{label:'忙しい日々でも手軽にケアして美しさを維持できる',short:'手軽な美',type:'experience',advantage:-2.9,since:'2026Q1',status:'active',mergedInto:null,keywords:['手軽','簡単','続けやすい','毎日','楽'],marketSize:'large'},
+  'E06':{label:'自分を大切にしている充実感を得られる',short:'自己投資',type:'experience',advantage:0.2,since:'2026Q1',status:'active',mergedInto:null,keywords:['自分','大切','投資','ご褒美','贅沢','リッチ'],marketSize:'small'},
+  'E07':{label:'周囲から褒められて自己肯定感が高まる',short:'褒められ実感',type:'experience',advantage:-1.7,since:'2026Q1',status:'active',mergedInto:null,keywords:['褒め','キレイ','きれい','綺麗','肌がキレイ','素肌'],marketSize:'small'},
+  'E08':{label:'コストパフォーマンスの良さで賢い選択ができる',short:'コスパ良し',type:'experience',advantage:0.7,since:'2026Q1',status:'active',mergedInto:null,keywords:['コスパ','コストパフォーマンス','お得','賢い','値段'],marketSize:'medium'},
+  'E09':{label:'即効性を実感して前向きな気持ちになれる',short:'即効実感',type:'experience',advantage:5.3,since:'2026Q1',status:'active',mergedInto:null,keywords:['即効','すぐ','翌朝','一晩','たった','速い'],marketSize:'large'},
+  'E10':{label:'継続的なケアで長期的な美肌効果を期待できる',short:'長期美肌',type:'experience',advantage:-0.7,since:'2026Q1',status:'active',mergedInto:null,keywords:['継続','長期','続ける','使い続け','定期','日々'],marketSize:'medium'},
+  'S01':{label:'鏡で目元のシワに気づいた時',short:'目元シワ',type:'situation',advantage:-3.7,since:'2026Q1',status:'active',mergedInto:null,keywords:['目元','目じり','目尻','目の周り','アイクリーム','目もと'],marketSize:'large'},
+  'S02':{label:'朝のスキンケア時にエイジングサインを発見した時',short:'エイジングサイン',type:'situation',advantage:-1.9,since:'2026Q1',status:'active',mergedInto:null,keywords:['エイジング','エイジングサイン','年齢肌','加齢','エイジングケア'],marketSize:'small'},
+  'S03':{label:'ほうれい線や首のシワが深くなったと感じた時',short:'ほうれい線・首シワ',type:'situation',advantage:98.5,since:'2026Q1',status:'active',mergedInto:null,keywords:['ほうれい線','首のシワ','深いシワ','ほうれいせん','マリオネットライン'],marketSize:'medium'},
+  'S04':{label:'乾燥によって小じわが目立つと感じた時',short:'乾燥小じわ',type:'situation',advantage:-1.6,since:'2026Q1',status:'active',mergedInto:null,keywords:['小じわ','乾燥','ちりめんジワ','乾燥小じわ','細かいシワ'],marketSize:'large'},
+  'S05':{label:'写真撮影や同年代との比較で老けて見えると感じた時',short:'老け見え',type:'situation',advantage:-1.0,since:'2026Q1',status:'active',mergedInto:null,keywords:['老け','見た目年齢','若見え','実年齢','年齢より','若々しい'],marketSize:'small'},
+  'S06':{label:'メイクでシワが隠しきれない時',short:'メイク崩れ',type:'situation',advantage:-1.4,since:'2026Q1',status:'active',mergedInto:null,keywords:['メイク','ファンデ','化粧','崩れ','ヨレ','カバー'],marketSize:'small'},
+  'S07':{label:'シワ改善の即効性を求める時',short:'シワ改善即効',type:'situation',advantage:5.2,since:'2026Q1',status:'active',mergedInto:null,keywords:['即効','すぐに','速攻','即座','スピーディー'],marketSize:'large'},
+  'S08':{label:'美容医療を検討するが費用面で迷う時',short:'美容医療代替',type:'situation',advantage:-1.8,since:'2026Q1',status:'active',mergedInto:null,keywords:['美容医療','ボトックス','ヒアルロン酸注射','美容整形','美容外科','注入'],marketSize:'medium'},
+  'S09':{label:'レチノールなど有効成分を試したい時',short:'有効成分',type:'situation',advantage:1.1,since:'2026Q1',status:'active',mergedInto:null,keywords:['レチノール','ナイアシンアミド','有効成分','ニールワン','リンクルナイアシン','ビタミンA','コラーゲン','ペプチド','幹細胞'],marketSize:'large'},
+  'S10':{label:'忙しい朝に時短でスキンケアをしたい時',short:'時短ケア',type:'situation',advantage:2.7,since:'2026Q1',status:'active',mergedInto:null,keywords:['時短','忙しい','朝','簡単','スピーディ'],marketSize:'medium'},
+  'S11':{label:'オールインワンで手軽にケアしたい時',short:'オールインワン',type:'situation',advantage:-1.6,since:'2026Q1',status:'active',mergedInto:null,keywords:['オールインワン','オールイン','1本','一本','ワンステップ','これ1つ','これひとつ'],marketSize:'medium'},
+  'S12':{label:'プチプラでもシワ改善効果を期待する時',short:'プチプラ',type:'situation',advantage:-2.3,since:'2026Q1',status:'active',mergedInto:null,keywords:['プチプラ','安い','コスパ','お手頃','手頃','リーズナブル'],marketSize:'medium'},
+  'S13':{label:'季節の変わり目で肌の乾燥が気になる時',short:'季節乾燥',type:'situation',advantage:-1.3,since:'2026Q1',status:'active',mergedInto:null,keywords:['季節','冬','乾燥肌','肌荒れ','花粉','ゆらぎ'],marketSize:'medium'},
+  'S14':{label:'紫外線ダメージ後のアフターケアをしたい時',short:'UV後ケア',type:'situation',advantage:-1.0,since:'2026Q1',status:'active',mergedInto:null,keywords:['紫外線','UV','日焼け','シミ','光老化','サンケア'],marketSize:'small'},
+  'S15':{label:'口コミや美容インフルエンサーの影響を受けた時',short:'口コミ影響',type:'situation',advantage:-2.2,since:'2026Q1',status:'active',mergedInto:null,keywords:['口コミ','レビュー','クチコミ','インフルエンサー','SNS','バズ','話題'],marketSize:'large'},
+  'S16':{label:'将来のシワ予防を始めたいと思った時',short:'シワ予防',type:'situation',advantage:-0.5,since:'2026Q1',status:'active',mergedInto:null,keywords:['予防','早めの','先手','将来','20代','30代','はじめる'],marketSize:'large'},
+  'S17':{label:'デパコスの高級感を求める時',short:'デパコス高級感',type:'situation',advantage:-2.3,since:'2026Q1',status:'active',mergedInto:null,keywords:['デパコス','高級','ラグジュアリー','プレミアム','百貨店','上質'],marketSize:'medium'},
+  'S18':{label:'美容皮膚科でのカウンセリング後にホームケアを見直したい時',short:'皮膚科後ケア',type:'situation',advantage:-1.1,since:'2026Q1',status:'active',mergedInto:null,keywords:['皮膚科','医師','ドクター','クリニック','医療','処方','推奨'],marketSize:'small'},
+  'S19':{label:'産後の肌変化に対処したい時',short:'産後ケア',type:'situation',advantage:0.7,since:'2026Q1',status:'active',mergedInto:null,keywords:['産後','出産','ママ','育児','ホルモン'],marketSize:'small'}
+};
+
+// === CEP言及数データ（カテゴリーレベル）===
+const cepMentions = {
+  'E01': {total:293, byBrand:null},
+  'E02': {total:475, byBrand:null},
+  'E03': {total:75, byBrand:null},
+  'E04': {total:290, byBrand:null},
+  'E05': {total:643, byBrand:null},
+  'E06': {total:104, byBrand:null},
+  'E07': {total:53, byBrand:null},
+  'E08': {total:346, byBrand:null},
+  'E09': {total:756, byBrand:null},
+  'E10': {total:344, byBrand:null},
+  'S01': {total:594, byBrand:null},
+  'S02': {total:52, byBrand:null},
+  'S03': {total:311, byBrand:null},
+  'S04': {total:1215, byBrand:null},
+  'S05': {total:167, byBrand:null},
+  'S06': {total:175, byBrand:null},
+  'S07': {total:1248, byBrand:null},
+  'S08': {total:209, byBrand:null},
+  'S09': {total:940, byBrand:null},
+  'S10': {total:467, byBrand:null},
+  'S11': {total:475, byBrand:null},
+  'S12': {total:268, byBrand:null},
+  'S13': {total:281, byBrand:null},
+  'S14': {total:133, byBrand:null},
+  'S15': {total:604, byBrand:null},
+  'S16': {total:502, byBrand:null},
+  'S17': {total:287, byBrand:null},
+  'S18': {total:25, byBrand:null},
+  'S19': {total:15, byBrand:null}
+};
+const totalMentions = { situation: 7968, experience: 3379 };
+
+// === 状況×体験価値クロス集計（UGCデータ）===
+const crossMentions = {
+  'S01': {'E01':38,'E02':78,'E03':9,'E04':28,'E05':21,'E06':13,'E07':5,'E08':21,'E09':67,'E10':30},
+  'S02': {'E01':4,'E02':8,'E03':1,'E04':3,'E05':9,'E06':2,'E07':0,'E08':1,'E09':4,'E10':5},
+  'S03': {'E01':20,'E02':45,'E03':4,'E04':27,'E05':8,'E06':3,'E07':2,'E08':10,'E09':32,'E10':24},
+  'S04': {'E01':55,'E02':105,'E03':19,'E04':51,'E05':109,'E06':23,'E07':3,'E08':40,'E09':80,'E10':90},
+  'S05': {'E01':17,'E02':21,'E03':3,'E04':2,'E05':2,'E06':3,'E07':7,'E08':6,'E09':8,'E10':3},
+  'S06': {'E01':11,'E02':13,'E03':2,'E04':5,'E05':7,'E06':3,'E07':0,'E08':10,'E09':8,'E10':4},
+  'S07': {'E01':50,'E02':88,'E03':13,'E04':62,'E05':103,'E06':9,'E07':6,'E08':35,'E09':488,'E10':35},
+  'S08': {'E01':8,'E02':12,'E03':4,'E04':4,'E05':1,'E06':2,'E07':1,'E08':25,'E09':16,'E10':5},
+  'S09': {'E01':24,'E02':44,'E03':11,'E04':33,'E05':50,'E06':11,'E07':2,'E08':36,'E09':116,'E10':45},
+  'S10': {'E01':10,'E02':16,'E03':3,'E04':9,'E05':274,'E06':8,'E07':0,'E08':16,'E09':65,'E10':17},
+  'S11': {'E01':18,'E02':25,'E03':5,'E04':14,'E05':168,'E06':11,'E07':2,'E08':23,'E09':24,'E10':27},
+  'S12': {'E01':10,'E02':10,'E03':2,'E04':10,'E05':24,'E06':7,'E07':2,'E08':85,'E09':13,'E10':10},
+  'S13': {'E01':16,'E02':16,'E03':9,'E04':8,'E05':35,'E06':7,'E07':1,'E08':16,'E09':15,'E10':24},
+  'S14': {'E01':5,'E02':6,'E03':6,'E04':3,'E05':11,'E06':0,'E07':1,'E08':2,'E09':10,'E10':10},
+  'S15': {'E01':15,'E02':35,'E03':2,'E04':19,'E05':27,'E06':6,'E07':6,'E08':28,'E09':47,'E10':17},
+  'S16': {'E01':51,'E02':36,'E03':35,'E04':17,'E05':22,'E06':28,'E07':2,'E08':20,'E09':21,'E10':81},
+  'S17': {'E01':10,'E02':12,'E03':5,'E04':11,'E05':10,'E06':8,'E07':1,'E08':11,'E09':17,'E10':9},
+  'S18': {'E01':1,'E02':3,'E03':1,'E04':0,'E05':0,'E06':0,'E07':1,'E08':1,'E09':0,'E10':2},
+  'S19': {'E01':2,'E02':3,'E03':0,'E04':0,'E05':3,'E06':3,'E07':0,'E08':0,'E09':1,'E10':1}
+};
+
+// === CEPヘルパー関数 ===
+function cepLabel(id) { const c=cepMaster[id]; if(!c) return id; if(c.status==='merged'&&c.mergedInto) return cepMaster[c.mergedInto]?.label||id; return c.label; }
+function cepShort(id) { return cepMaster[id]?.short || id; }
+function cepAdv(id) { return cepMaster[id]?.advantage||0; }
+function activeCEPs(type) { return Object.entries(cepMaster).filter(([_,c])=>c.type===type&&c.status==='active').map(([id])=>id); }
+function allActiveCEPs() { return Object.entries(cepMaster).filter(([_,c])=>c.status==='active').map(([id])=>id); }
+function cepIdTag(id) { return `<span title="${id}">${cepShort(id)}</span> <span style="font-size:0.6rem;color:var(--muted)">${id}</span>`; }
+
+// === CEP言及数ヘルパー ===
+function cepMentionCount(id) { return cepMentions[id]?.total || 0; }
+function cepMentionShare(id) {
+  const m = cepMentions[id];
+  if (!m) return 0;
+  const type = cepMaster[id]?.type;
+  const total = type === 'situation' ? totalMentions.situation : totalMentions.experience;
+  return (m.total / total * 100);
+}
+function marketSizeLabel(id) {
+  const count = cepMentionCount(id);
+  if (count >= 500) return {label:'大', cls:'size-large', color:'var(--success)'};
+  if (count >= 200) return {label:'中', cls:'size-medium', color:'var(--warning)'};
+  return {label:'小', cls:'size-small', color:'var(--danger)'};
+}
+function sizeBadgeHtml(id) {
+  const s = marketSizeLabel(id);
+  return `<span class="size-badge ${s.cls}">${s.label}</span>`;
+}
+
+// === 時系列データ ===
+const sovTimeSeries = {"260228":{"チェルラーブリリオ":{"S01":3.8,"S02":0.0,"S03":0.0,"S04":0.0,"S05":62.5,"S06":0.2,"S07":0.0,"S08":0.0,"S09":0.0,"S10":0.0,"S11":0.0,"S12":0.0,"S13":0.0,"S14":0.0,"S15":0.9,"S16":0.0,"S17":0.0,"S18":0.0,"S19":0.0,"E01":0.0,"E02":1.6,"E03":0.0,"E04":0.0,"E05":4.7,"E06":0.0,"E07":0.0,"E08":0.2,"E09":0.0,"E10":0.0},"オージオ":{"S01":0.0,"S02":20.6,"S03":0.0,"S04":0.0,"S05":0.0,"S06":6.1,"S07":0.0,"S08":0.0,"S09":0.5,"S10":100.0,"S11":0.3,"S12":0.0,"S13":0.0,"S14":33.5,"S15":4.0,"S16":0.0,"S17":0.0,"S18":0.1,"S19":0.0,"E01":2.4,"E02":27.8,"E03":0.0,"E04":25.3,"E05":11.0,"E06":0.3,"E07":0.0,"E08":54.4,"E09":98.0,"E10":24.0},"エリクシール":{"S01":0.8,"S02":72.1,"S03":100.0,"S04":95.0,"S05":37.5,"S06":87.0,"S07":100.0,"S08":100.0,"S09":91.1,"S10":0.0,"S11":99.7,"S12":0.3,"S13":95.2,"S14":61.3,"S15":93.2,"S16":96.6,"S17":0.0,"S18":99.9,"S19":100.0,"E01":91.0,"E02":56.8,"E03":0.0,"E04":1.7,"E05":1.4,"E06":0.4,"E07":93.3,"E08":0.0,"E09":0.0,"E10":9.7},"POLA リンクルショット":{"S01":0.0,"S02":0.0,"S03":0.0,"S04":0.0,"S05":0.0,"S06":0.0,"S07":0.0,"S08":0.0,"S09":1.7,"S10":0.0,"S11":0.0,"S12":0.0,"S13":0.3,"S14":0.0,"S15":0.0,"S16":0.0,"S17":0.0,"S18":0.0,"S19":0.0,"E01":0.1,"E02":1.2,"E03":0.0,"E04":0.0,"E05":0.0,"E06":1.4,"E07":0.0,"E08":0.0,"E09":0.0,"E10":0.0},"ONE BY KOSE":{"S01":1.8,"S02":0.0,"S03":0.0,"S04":4.0,"S05":0.0,"S06":0.3,"S07":0.0,"S08":0.0,"S09":3.6,"S10":0.0,"S11":0.0,"S12":0.0,"S13":0.2,"S14":3.9,"S15":0.0,"S16":1.5,"S17":0.0,"S18":0.0,"S19":0.0,"E01":1.7,"E02":2.4,"E03":0.0,"E04":70.0,"E05":3.0,"E06":11.7,"E07":0.0,"E08":0.0,"E09":0.0,"E10":38.0},"DEW":{"S01":0.0,"S02":0.0,"S03":0.0,"S04":0.0,"S05":0.0,"S06":0.0,"S07":0.0,"S08":0.0,"S09":0.0,"S10":0.0,"S11":0.0,"S12":0.0,"S13":0.0,"S14":0.0,"S15":0.0,"S16":0.0,"S17":0.0,"S18":0.0,"S19":0.0,"E01":0.2,"E02":0.0,"E03":0.0,"E04":0.0,"E05":0.0,"E06":0.0,"E07":0.0,"E08":0.0,"E09":0.0,"E10":0.0},"アテニア":{"S01":93.6,"S02":6.0,"S03":0.0,"S04":0.0,"S05":0.0,"S06":6.0,"S07":0.0,"S08":0.0,"S09":0.3,"S10":0.0,"S11":0.0,"S12":99.7,"S13":0.0,"S14":0.1,"S15":2.0,"S16":0.0,"S17":100.0,"S18":0.0,"S19":0.0,"E01":3.7,"E02":5.9,"E03":100.0,"E04":0.0,"E05":74.7,"E06":68.3,"E07":6.7,"E08":45.3,"E09":2.0,"E10":0.0},"ディセンシア":{"S01":0.0,"S02":0.0,"S03":0.0,"S04":0.0,"S05":0.0,"S06":0.0,"S07":0.0,"S08":0.0,"S09":0.0,"S10":0.0,"S11":0.0,"S12":0.0,"S13":0.0,"S14":0.0,"S15":0.0,"S16":0.0,"S17":0.0,"S18":0.0,"S19":0.0,"E01":0.0,"E02":2.4,"E03":0.0,"E04":0.0,"E05":0.0,"E06":0.0,"E07":0.0,"E08":0.0,"E09":0.0,"E10":0.0},"ドモホルンリンクル":{"S01":0.0,"S02":1.2,"S03":0.0,"S04":1.1,"S05":0.0,"S06":0.5,"S07":0.0,"S08":0.0,"S09":2.8,"S10":0.0,"S11":0.0,"S12":0.0,"S13":4.3,"S14":1.2,"S15":0.0,"S16":1.9,"S17":0.0,"S18":0.0,"S19":0.0,"E01":1.0,"E02":1.8,"E03":0.0,"E04":3.0,"E05":5.1,"E06":18.0,"E07":0.0,"E08":0.0,"E09":0.0,"E10":28.3}},"260315":{"チェルラーブリリオ":{"S01":0.7,"S02":0.0,"S03":99.6,"S04":0.0,"S05":62.5,"S06":0.2,"S07":0.0,"S08":0.0,"S09":0.0,"S10":0.0,"S11":0.0,"S12":0.0,"S13":0.0,"S14":0.0,"S15":0.4,"S16":0.0,"S17":0.0,"S18":0.0,"S19":0.0,"E01":0.0,"E02":3.2,"E03":0.0,"E04":0.0,"E05":0.5,"E06":0.0,"E07":0.0,"E08":3.2,"E09":0.0,"E10":0.0},"オージオ":{"S01":0.0,"S02":22.4,"S03":0.0,"S04":0.0,"S05":0.0,"S06":13.7,"S07":0.0,"S08":0.0,"S09":0.1,"S10":96.1,"S11":0.0,"S12":0.0,"S13":0.0,"S14":37.1,"S15":5.9,"S16":0.0,"S17":0.0,"S18":18.0,"S19":0.0,"E01":0.4,"E02":64.7,"E03":0.0,"E04":31.5,"E05":3.2,"E06":2.3,"E07":0.0,"E08":71.5,"E09":98.7,"E10":21.0},"エリクシール":{"S01":0.1,"S02":61.2,"S03":0.4,"S04":95.2,"S05":37.5,"S06":79.9,"S07":100.0,"S08":100.0,"S09":50.0,"S10":3.0,"S11":100.0,"S12":100.0,"S13":93.4,"S14":55.5,"S15":93.6,"S16":94.1,"S17":0.0,"S18":36.7,"S19":100.0,"E01":92.0,"E02":10.0,"E03":0.0,"E04":0.6,"E05":0.6,"E06":0.2,"E07":96.9,"E08":0.1,"E09":0.0,"E10":0.1},"POLA リンクルショット":{"S01":0.0,"S02":0.0,"S03":0.0,"S04":0.0,"S05":0.0,"S06":0.0,"S07":0.0,"S08":0.0,"S09":0.2,"S10":0.0,"S11":0.0,"S12":0.0,"S13":0.2,"S14":0.0,"S15":0.0,"S16":0.0,"S17":0.0,"S18":0.0,"S19":0.0,"E01":0.1,"E02":0.3,"E03":0.0,"E04":0.0,"E05":0.0,"E06":0.5,"E07":0.0,"E08":0.0,"E09":0.0,"E10":0.0},"ONE BY KOSE":{"S01":1.9,"S02":0.0,"S03":0.0,"S04":4.1,"S05":0.0,"S06":0.4,"S07":0.0,"S08":0.0,"S09":23.1,"S10":0.0,"S11":0.0,"S12":0.0,"S13":0.0,"S14":5.0,"S15":0.0,"S16":2.1,"S17":0.0,"S18":0.0,"S19":0.0,"E01":3.6,"E02":5.9,"E03":0.0,"E04":36.0,"E05":4.2,"E06":6.9,"E07":0.0,"E08":0.0,"E09":0.0,"E10":44.7},"DEW":{"S01":0.0,"S02":0.0,"S03":0.0,"S04":0.0,"S05":0.0,"S06":0.0,"S07":0.0,"S08":0.0,"S09":0.0,"S10":0.0,"S11":0.0,"S12":0.0,"S13":0.0,"S14":0.0,"S15":0.0,"S16":0.0,"S17":0.0,"S18":0.0,"S19":0.0,"E01":0.1,"E02":0.0,"E03":0.0,"E04":0.0,"E05":0.0,"E06":0.0,"E07":0.0,"E08":0.0,"E09":0.0,"E10":0.0},"アテニア":{"S01":97.3,"S02":13.5,"S03":0.0,"S04":0.0,"S05":0.0,"S06":4.9,"S07":0.0,"S08":0.0,"S09":0.0,"S10":0.9,"S11":0.0,"S12":0.0,"S13":0.0,"S14":0.1,"S15":0.0,"S16":0.0,"S17":100.0,"S18":45.3,"S19":0.0,"E01":1.5,"E02":2.9,"E03":100.0,"E04":1.4,"E05":79.9,"E06":73.2,"E07":3.1,"E08":25.2,"E09":1.3,"E10":0.0},"ディセンシア":{"S01":0.0,"S02":0.0,"S03":0.0,"S04":0.0,"S05":0.0,"S06":0.0,"S07":0.0,"S08":0.0,"S09":0.0,"S10":0.0,"S11":0.0,"S12":0.0,"S13":0.0,"S14":0.0,"S15":0.0,"S16":0.0,"S17":0.0,"S18":0.0,"S19":0.0,"E01":0.0,"E02":6.3,"E03":0.0,"E04":0.0,"E05":0.0,"E06":0.0,"E07":0.0,"E08":0.0,"E09":0.0,"E10":0.0},"ドモホルンリンクル":{"S01":0.0,"S02":2.8,"S03":0.0,"S04":0.7,"S05":0.0,"S06":0.9,"S07":0.0,"S08":0.0,"S09":26.4,"S10":0.0,"S11":0.0,"S12":0.0,"S13":6.3,"S14":2.2,"S15":0.0,"S16":3.8,"S17":0.0,"S18":0.0,"S19":0.0,"E01":2.4,"E02":6.7,"E03":0.0,"E04":30.5,"E05":11.6,"E06":16.8,"E07":0.0,"E08":0.0,"E09":0.0,"E10":34.2}}};
+const volumeTimeSeries = {"260228":{"チェルラーブリリオ":2638,"オージオ":160356,"エリクシール":693237,"POLA リンクルショット":494,"ONE BY KOSE":2402,"DEW":293,"アテニア":30037,"ディセンシア":2884,"ドモホルンリンクル":15040},"260315":{"チェルラーブリリオ":1936,"オージオ":108771,"エリクシール":243223,"POLA リンクルショット":74,"ONE BY KOSE":3486,"DEW":695,"アテニア":33575,"ディセンシア":4990,"ドモホルンリンクル":3344}};
+const dimTimeSeries = {"260228":{"チェルラーブリリオ":{"total_obs":2638,"媒体":{"Yahoo":25.5,"Facebook":2.2,"SmartNews":72.1,"TikTok":0.2},"フォーマット":{"静止画":97.6,"動画":2.4},"広告タイプ":{"コンバージョン":100.0},"LPタイプ":{"記事LP":91.8,"非記事LP":8.2},"アフィリエイトタイプ":{"EC系":100.0}},"オージオ":{"total_obs":160356,"媒体":{"SmartNews":13.0,"LINE":84.8,"Yahoo":0.2,"Facebook":0.2,"Instagram":1.8},"フォーマット":{"カルーセル":8.1,"静止画":90.8,"動画":1.2},"広告タイプ":{"コンバージョン":100.0},"LPタイプ":{"記事LP":10.6,"非記事LP":4.6},"アフィリエイトタイプ":{"EC系":15.0,"非アフィリエイト":85.0}},"エリクシール":{"total_obs":693237,"媒体":{"Instagram":0.6,"YouTube":0.1,"TikTok":0.1,"Facebook":0.0,"Google":90.0,"LINE":9.1,"Yahoo":0.2},"フォーマット":{"動画":0.3,"静止画":99.7,"カルーセル":0.0},"広告タイプ":{"コンバージョン":100.0,"ブランディング":0.0},"LPタイプ":{"非記事LP":100.0,"記事LP":0.0},"アフィリエイトタイプ":{"非アフィリエイト":100.0}},"POLA リンクルショット":{"total_obs":494,"媒体":{"Facebook":54.3,"Google":0.6,"Instagram":41.9,"Yahoo":3.2},"フォーマット":{"動画":32.4,"静止画":67.6},"広告タイプ":{"コンバージョン":100.0},"LPタイプ":{"非記事LP":100.0},"アフィリエイトタイプ":{"非アフィリエイト":100.0}},"ONE BY KOSE":{"total_obs":2402,"媒体":{"YouTube":2.8,"Instagram":95.3,"TikTok":0.5,"Facebook":1.4},"フォーマット":{"動画":28.6,"静止画":1.5,"カルーセル":69.9},"広告タイプ":{"コンバージョン":68.3,"ブランディング":31.7},"LPタイプ":{"非記事LP":100.0},"アフィリエイトタイプ":{"非アフィリエイト":100.0}},"DEW":{"total_obs":293,"媒体":{"Instagram":100.0},"フォーマット":{"動画":100.0},"広告タイプ":{"コンバージョン":100.0},"LPタイプ":{"非記事LP":100.0},"アフィリエイトタイプ":{"非アフィリエイト":100.0}},"アテニア":{"total_obs":30037,"媒体":{"Instagram":38.2,"YouTube":47.2,"TikTok":0.1,"Facebook":2.2,"Pangle":0.1,"Yahoo":12.2},"フォーマット":{"動画":49.6,"静止画":24.1,"カルーセル":26.3},"広告タイプ":{"コンバージョン":67.0,"ブランディング":33.0},"LPタイプ":{"非記事LP":67.0,"記事LP":0.0},"アフィリエイトタイプ":{"EC系":22.6,"非アフィリエイト":77.4}},"ディセンシア":{"total_obs":2884,"媒体":{"Facebook":0.2,"Google":0.3,"Yahoo":99.5},"フォーマット":{"静止画":98.9,"動画":1.1},"広告タイプ":{"コンバージョン":100.0},"LPタイプ":{"非記事LP":33.1,"記事LP":66.9},"アフィリエイトタイプ":{"EC系":100.0}},"ドモホルンリンクル":{"total_obs":15040,"媒体":{"SmartNews":0.1,"Facebook":7.5,"Instagram":9.0,"LINE":81.7,"X":0.1,"Yahoo":1.6,"YouTube":0.0},"フォーマット":{"静止画":91.6,"動画":4.0,"カルーセル":4.4},"広告タイプ":{"コンバージョン":100.0},"LPタイプ":{"非記事LP":100.0},"アフィリエイトタイプ":{"EC系":93.3,"非アフィリエイト":6.7}}},"260315":{"チェルラーブリリオ":{"total_obs":1936,"媒体":{"Yahoo":40.9,"Facebook":3.0,"SmartNews":55.3,"TikTok":0.3,"YouTube":0.6},"フォーマット":{"静止画":96.1,"動画":3.9},"広告タイプ":{"コンバージョン":100.0},"LPタイプ":{"記事LP":85.4,"非記事LP":14.6},"アフィリエイトタイプ":{"EC系":100.0}},"オージオ":{"total_obs":108771,"媒体":{"SmartNews":32.9,"LINE":65.4,"Yahoo":0.4,"Facebook":0.5,"Instagram":0.9},"フォーマット":{"カルーセル":19.2,"静止画":79.2,"動画":1.6},"広告タイプ":{"コンバージョン":100.0},"LPタイプ":{"記事LP":22.4,"非記事LP":12.2},"アフィリエイトタイプ":{"EC系":34.3,"非アフィリエイト":65.7}},"エリクシール":{"total_obs":243223,"媒体":{"Instagram":1.2,"YouTube":0.2,"TikTok":0.3,"Facebook":0.0,"Google":92.2,"LINE":6.1,"Yahoo":0.0},"フォーマット":{"動画":1.1,"静止画":98.9},"広告タイプ":{"コンバージョン":100.0,"ブランディング":0.0},"LPタイプ":{"非記事LP":99.9,"記事LP":0.1},"アフィリエイトタイプ":{"非アフィリエイト":100.0}},"POLA リンクルショット":{"total_obs":74,"媒体":{"Facebook":94.6,"Google":1.4,"Yahoo":4.1},"フォーマット":{"動画":79.7,"静止画":20.3},"広告タイプ":{"コンバージョン":100.0},"LPタイプ":{"非記事LP":100.0},"アフィリエイトタイプ":{"非アフィリエイト":100.0}},"ONE BY KOSE":{"total_obs":3486,"媒体":{"YouTube":4.2,"Instagram":89.1,"TikTok":6.6,"Facebook":0.0},"フォーマット":{"動画":36.2,"静止画":0.1,"カルーセル":63.6},"広告タイプ":{"コンバージョン":78.1,"ブランディング":21.9},"LPタイプ":{"非記事LP":100.0},"アフィリエイトタイプ":{"非アフィリエイト":100.0}},"DEW":{"total_obs":695,"媒体":{"YouTube":19.4,"Instagram":80.6},"フォーマット":{"動画":100.0},"広告タイプ":{"コンバージョン":100.0},"LPタイプ":{"非記事LP":100.0},"アフィリエイトタイプ":{"非アフィリエイト":100.0}},"アテニア":{"total_obs":33575,"媒体":{"Instagram":41.5,"YouTube":45.8,"TikTok":0.1,"Facebook":0.2,"Pangle":0.0,"SmartNews":0.0,"Yahoo":12.4},"フォーマット":{"動画":46.4,"静止画":31.4,"カルーセル":22.3},"広告タイプ":{"コンバージョン":58.9,"ブランディング":41.1},"LPタイプ":{"非記事LP":58.9,"記事LP":0.0},"アフィリエイトタイプ":{"EC系":14.2,"非アフィリエイト":85.8}},"ディセンシア":{"total_obs":4990,"媒体":{"Facebook":0.2,"Google":0.2,"Instagram":0.0,"LINE":0.1,"Yahoo":99.5},"フォーマット":{"静止画":93.6,"動画":6.4},"広告タイプ":{"コンバージョン":100.0},"LPタイプ":{"非記事LP":34.2,"記事LP":65.8},"アフィリエイトタイプ":{"EC系":99.6,"非アフィリエイト":0.4}},"ドモホルンリンクル":{"total_obs":3344,"媒体":{"Yahoo":12.4,"Facebook":12.0,"Instagram":56.4,"SmartNews":2.9,"X":16.2,"YouTube":0.1},"フォーマット":{"静止画":28.9,"動画":27.7,"カルーセル":43.5},"広告タイプ":{"コンバージョン":100.0},"LPタイプ":{"非記事LP":99.9,"記事LP":0.1},"アフィリエイトタイプ":{"EC系":89.8,"非アフィリエイト":10.2}}}};
+const crossTimeSeries = {"260228":{"チェルラーブリリオ":{"S15":{"obs":168,"fmt":{"静止画":100.0},"media":{"Yahoo":3.0,"SmartNews":97.0},"lp":{"記事LP":100.0}},"E02":{"obs":606,"fmt":{"静止画":100.0},"media":{"Yahoo":0.8,"SmartNews":99.2},"lp":{"記事LP":100.0}},"E08":{"obs":5,"fmt":{"静止画":100.0},"media":{"Yahoo":100.0},"lp":{"記事LP":100.0}},"S06":{"obs":275,"fmt":{"動画":21.1,"静止画":78.9},"media":{"Facebook":21.1,"Yahoo":78.9},"lp":{"記事LP":21.1,"非記事LP":78.9}},"S01":{"obs":303,"fmt":{"静止画":100.0},"media":{"SmartNews":100.0},"lp":{"記事LP":100.0}},"E05":{"obs":623,"fmt":{"静止画":99.2,"動画":0.8},"media":{"SmartNews":99.2,"TikTok":0.8},"lp":{"記事LP":100.0}},"S05":{"obs":5,"fmt":{"動画":100.0},"media":{"TikTok":100.0},"lp":{"記事LP":100.0}}},"オージオ":{"S06":{"obs":9650,"fmt":{"カルーセル":21.3,"静止画":78.7},"media":{"SmartNews":100.0},"lp":{"記事LP":26.7,"非記事LP":73.3}},"E09":{"obs":62809,"fmt":{"カルーセル":20.6,"静止画":78.1,"動画":1.3},"media":{"SmartNews":32.7,"LINE":67.0,"Facebook":0.0,"Instagram":0.3},"lp":{"記事LP":21.7,"非記事LP":11.3}},"S02":{"obs":11105,"fmt":{"カルーセル":97.9,"静止画":2.1},"media":{"SmartNews":97.9,"Yahoo":2.1},"lp":{"記事LP":97.9,"非記事LP":2.1}},"S14":{"obs":18475,"fmt":{"カルーセル":58.9,"静止画":41.1},"media":{"SmartNews":100.0,"Instagram":0.0},"lp":{"記事LP":61.7,"非記事LP":38.3}},"E08":{"obs":1230,"fmt":{"静止画":89.3,"動画":10.7},"media":{"Yahoo":18.5,"Facebook":3.5,"Instagram":78.0},"lp":{"非記事LP":18.5,"記事LP":81.5}},"E02":{"obs":10372,"fmt":{"動画":1.6,"静止画":98.4},"media":{"Facebook":0.6,"Instagram":26.2,"SmartNews":73.2},"lp":{"記事LP":31.8,"非記事LP":68.2}},"E04":{"obs":146,"fmt":{"動画":50.7,"静止画":49.3},"media":{"Facebook":16.4,"Instagram":83.6},"lp":{"記事LP":100.0}},"S09":{"obs":129,"fmt":{"静止画":92.2,"動画":7.8},"media":{"Facebook":1.6,"Instagram":98.4},"lp":{"記事LP":100.0}},"S11":{"obs":129,"fmt":{"静止画":92.2,"動画":7.8},"media":{"Facebook":1.6,"Instagram":98.4},"lp":{"記事LP":100.0}},"S15":{"obs":743,"fmt":{"静止画":90.0,"動画":10.0},"media":{"Facebook":0.5,"Instagram":92.6,"LINE":6.9},"lp":{"記事LP":93.1}},"E05":{"obs":1456,"fmt":{"静止画":97.1,"動画":2.9},"media":{"Facebook":1.2,"Instagram":98.8},"lp":{"記事LP":100.0}},"E06":{"obs":12,"fmt":{"静止画":100.0},"media":{"Facebook":100.0},"lp":{"記事LP":100.0}},"S10":{"obs":1885,"fmt":{"静止画":97.8,"動画":2.2},"media":{"Facebook":0.8,"Instagram":99.2},"lp":{"記事LP":100.0}},"S18":{"obs":333,"fmt":{"静止画":90.1,"動画":9.9},"media":{"Facebook":1.2,"Instagram":98.8},"lp":{"記事LP":100.0}},"E01":{"obs":1885,"fmt":{"静止画":97.8,"動画":2.2},"media":{"Facebook":0.8,"Instagram":99.2},"lp":{"記事LP":100.0}},"E10":{"obs":759,"fmt":{"静止画":98.3,"動画":1.7},"media":{"Instagram":100.0},"lp":{"記事LP":100.0}},"S13":{"obs":1,"fmt":{"静止画":100.0},"media":{"Instagram":100.0},"lp":{"記事LP":100.0}}},"エリクシール":{"S02":{"obs":38802,"fmt":{"動画":0.4,"静止画":99.6},"media":{"Instagram":0.5,"Facebook":0.0,"Google":84.6,"LINE":14.9},"lp":{"非記事LP":100.0}},"S06":{"obs":137417,"fmt":{"動画":0.4,"静止画":99.5,"カルーセル":0.0},"media":{"Instagram":0.2,"TikTok":0.3,"Facebook":0.0,"Google":66.6,"LINE":31.9,"Yahoo":1.0},"lp":{"非記事LP":100.0}},"E01":{"obs":71883,"fmt":{"動画":1.5,"静止画":98.5,"カルーセル":0.1},"media":{"YouTube":0.8,"Instagram":1.6,"Facebook":0.0,"Google":79.3,"LINE":16.6,"Yahoo":1.7},"lp":{"非記事LP":99.5,"記事LP":0.5}},"S14":{"obs":33840,"fmt":{"動画":0.4,"静止画":99.6},"media":{"Instagram":0.4,"Google":61.4,"LINE":34.6,"Yahoo":3.6},"lp":{"非記事LP":100.0}},"S16":{"obs":33841,"fmt":{"動画":0.4,"静止画":99.6},"media":{"Instagram":0.4,"Google":61.4,"LINE":34.6,"Yahoo":3.6},"lp":{"非記事LP":100.0}},"S04":{"obs":12274,"fmt":{"動画":0.1,"静止画":99.9},"media":{"Instagram":0.1,"Google":88.8,"LINE":11.1},"lp":{"非記事LP":100.0}},"S12":{"obs":1,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S13":{"obs":14796,"fmt":{"動画":0.0,"静止画":100.0},"media":{"Instagram":0.3,"Google":90.6,"LINE":9.2},"lp":{"非記事LP":100.0}},"E08":{"obs":1,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S09":{"obs":21852,"fmt":{"動画":0.8,"静止画":99.0,"カルーセル":0.3},"media":{"Instagram":1.0,"Google":12.0,"LINE":87.0},"lp":{"非記事LP":100.0}},"E02":{"obs":21176,"fmt":{"動画":0.7,"静止画":99.0,"カルーセル":0.3},"media":{"Instagram":1.0,"Google":9.3,"LINE":89.7},"lp":{"非記事LP":100.0}},"S11":{"obs":38757,"fmt":{"動画":1.5,"静止画":98.5},"media":{"Instagram":3.0,"Google":97.0},"lp":{"非記事LP":100.0}},"E07":{"obs":14,"fmt":{"動画":78.6,"静止画":21.4},"media":{"Instagram":78.6,"Facebook":21.4},"lp":{"非記事LP":100.0}},"E05":{"obs":191,"fmt":{"動画":9.4,"静止画":90.6},"media":{"Instagram":9.4,"Google":90.6},"lp":{"非記事LP":100.0}},"E06":{"obs":14,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S05":{"obs":3,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S15":{"obs":17464,"fmt":{"静止画":100.0},"media":{"Google":97.9,"Instagram":2.1},"lp":{"非記事LP":100.0}},"S18":{"obs":308044,"fmt":{"静止画":100.0,"動画":0.0},"media":{"Google":100.0,"Instagram":0.0},"lp":{"非記事LP":100.0}},"S01":{"obs":64,"fmt":{"動画":9.4,"カルーセル":90.6},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S07":{"obs":5,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S19":{"obs":5,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"E04":{"obs":10,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"E09":{"obs":5,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"E10":{"obs":306,"fmt":{"動画":2.0,"カルーセル":19.0,"静止画":79.1},"media":{"Instagram":20.9,"LINE":79.1},"lp":{"非記事LP":100.0}},"S03":{"obs":1,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S08":{"obs":1,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}}},"POLA リンクルショット":{"S13":{"obs":45,"fmt":{"動画":100.0},"media":{"Facebook":100.0},"lp":{"非記事LP":100.0}},"E01":{"obs":50,"fmt":{"動画":90.0,"静止画":10.0},"media":{"Facebook":94.0,"Yahoo":6.0},"lp":{"非記事LP":100.0}},"E02":{"obs":462,"fmt":{"動画":31.8,"静止画":68.2},"media":{"Facebook":55.2,"Instagram":44.8},"lp":{"非記事LP":100.0}},"E06":{"obs":50,"fmt":{"動画":90.0,"静止画":10.0},"media":{"Facebook":94.0,"Yahoo":6.0},"lp":{"非記事LP":100.0}},"S09":{"obs":417,"fmt":{"静止画":75.5,"動画":24.5},"media":{"Facebook":50.4,"Instagram":49.6},"lp":{"非記事LP":100.0}},"E09":{"obs":2,"fmt":{"静止画":100.0},"media":{"Google":100.0},"lp":{"非記事LP":100.0}}},"ONE BY KOSE":{"S09":{"obs":859,"fmt":{"動画":53.1,"カルーセル":46.9},"media":{"YouTube":3.0,"Instagram":97.0},"lp":{"非記事LP":100.0}},"E02":{"obs":892,"fmt":{"動画":51.1,"静止画":3.7,"カルーセル":45.2},"media":{"YouTube":2.9,"Facebook":3.7,"Instagram":93.4},"lp":{"非記事LP":100.0}},"S14":{"obs":2162,"fmt":{"動画":22.3,"カルーセル":77.6,"静止画":0.1},"media":{"YouTube":1.9,"TikTok":0.3,"Instagram":97.7},"lp":{"非記事LP":100.0}},"E01":{"obs":1323,"fmt":{"動画":30.7,"静止画":0.1,"カルーセル":69.2},"media":{"TikTok":0.1,"Instagram":99.9},"lp":{"非記事LP":100.0}},"E05":{"obs":404,"fmt":{"動画":0.2,"カルーセル":99.8},"media":{"TikTok":0.2,"Instagram":99.8},"lp":{"非記事LP":100.0}},"S13":{"obs":33,"fmt":{"静止画":100.0},"media":{"Facebook":100.0},"lp":{"非記事LP":100.0}},"S01":{"obs":147,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"E06":{"obs":430,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S04":{"obs":513,"fmt":{"カルーセル":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S16":{"obs":513,"fmt":{"カルーセル":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"E10":{"obs":1200,"fmt":{"カルーセル":76.3,"動画":23.7},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S06":{"obs":403,"fmt":{"カルーセル":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"E04":{"obs":403,"fmt":{"カルーセル":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}}},"DEW":{"E01":{"obs":123,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}}},"アテニア":{"S06":{"obs":9431,"fmt":{"動画":4.2,"静止画":12.2,"カルーセル":83.6},"media":{"Instagram":91.8,"Facebook":2.7,"Yahoo":4.8,"YouTube":0.6},"lp":{"非記事LP":20.7}},"E01":{"obs":2955,"fmt":{"動画":41.8,"カルーセル":13.8,"静止画":44.4},"media":{"Instagram":50.9,"Facebook":21.2,"Yahoo":7.4,"YouTube":20.5},"lp":{"非記事LP":99.8,"記事LP":0.2}},"E02":{"obs":2213,"fmt":{"動画":53.6,"静止画":42.3,"カルーセル":4.1},"media":{"Instagram":28.1,"Facebook":30.1,"Pangle":0.9,"TikTok":0.8,"Yahoo":4.5,"YouTube":35.7},"lp":{"非記事LP":100.0}},"E07":{"obs":1,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{}},"E09":{"obs":1283,"fmt":{"動画":1.9,"静止画":98.1},"media":{"Instagram":1.9,"Yahoo":98.1},"lp":{"記事LP":0.4,"非記事LP":99.5}},"S02":{"obs":3214,"fmt":{"動画":21.8,"静止画":78.2},"media":{"Instagram":78.3,"Facebook":0.4,"Yahoo":2.3,"YouTube":18.9},"lp":{"非記事LP":24.3,"記事LP":0.2}},"S14":{"obs":72,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":93.1,"記事LP":6.9}},"E06":{"obs":2516,"fmt":{"動画":3.5,"静止画":96.5},"media":{"Instagram":99.9,"Facebook":0.1},"lp":{"非記事LP":3.5}},"E08":{"obs":1025,"fmt":{"動画":62.3,"静止画":37.7},"media":{"Instagram":8.8,"Facebook":19.9,"Yahoo":17.3,"YouTube":54.0},"lp":{"非記事LP":100.0}},"S17":{"obs":3,"fmt":{"動画":100.0},"media":{"Facebook":100.0},"lp":{"非記事LP":100.0}},"E05":{"obs":9908,"fmt":{"動画":0.0,"静止画":24.5,"カルーセル":75.5},"media":{"Facebook":0.0,"Instagram":100.0},"lp":{"非記事LP":0.0}},"S01":{"obs":7478,"fmt":{"動画":0.0,"カルーセル":100.0},"media":{"Instagram":100.0},"lp":{}},"S09":{"obs":69,"fmt":{"静止画":100.0},"media":{"Instagram":30.4,"Yahoo":69.6},"lp":{"非記事LP":100.0}},"E03":{"obs":7477,"fmt":{"カルーセル":100.0},"media":{"Instagram":100.0},"lp":{}},"S18":{"obs":123,"fmt":{"静止画":100.0},"media":{"Yahoo":100.0},"lp":{"非記事LP":100.0}},"S12":{"obs":371,"fmt":{"動画":100.0},"media":{"YouTube":100.0},"lp":{"非記事LP":100.0}},"S15":{"obs":371,"fmt":{"動画":100.0},"media":{"YouTube":100.0},"lp":{"非記事LP":100.0}}},"ディセンシア":{"S02":{"obs":6,"fmt":{"静止画":100.0},"media":{"Facebook":100.0},"lp":{"非記事LP":100.0}},"S13":{"obs":6,"fmt":{"静止画":100.0},"media":{"Facebook":100.0},"lp":{"非記事LP":100.0}},"E02":{"obs":888,"fmt":{"静止画":97.9,"動画":2.1},"media":{"Facebook":0.7,"Google":0.2,"Yahoo":99.1},"lp":{"非記事LP":100.0}},"E01":{"obs":1,"fmt":{"静止画":100.0},"media":{"Yahoo":100.0},"lp":{"非記事LP":100.0}},"E06":{"obs":1,"fmt":{"静止画":100.0},"media":{"Yahoo":100.0},"lp":{"非記事LP":100.0}}},"ドモホルンリンクル":{"E06":{"obs":662,"fmt":{"静止画":0.2,"カルーセル":99.8},"media":{"SmartNews":0.2,"Instagram":99.8},"lp":{"非記事LP":100.0}},"E01":{"obs":786,"fmt":{"静止画":15.9,"カルーセル":84.1},"media":{"Facebook":14.1,"Instagram":85.9},"lp":{"非記事LP":100.0}},"S04":{"obs":138,"fmt":{"静止画":100.0},"media":{"Facebook":87.7,"Instagram":12.3},"lp":{"非記事LP":100.0}},"S06":{"obs":801,"fmt":{"静止画":17.2,"動画":0.2,"カルーセル":82.5},"media":{"Facebook":15.4,"Instagram":84.6},"lp":{"非記事LP":100.0}},"S14":{"obs":669,"fmt":{"動画":0.3,"カルーセル":98.8,"静止画":0.9},"media":{"Facebook":0.3,"Instagram":99.7},"lp":{"非記事LP":100.0}},"E10":{"obs":895,"fmt":{"動画":26.1,"カルーセル":73.9},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S02":{"obs":663,"fmt":{"カルーセル":99.7,"静止画":0.3},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S09":{"obs":661,"fmt":{"カルーセル":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S13":{"obs":661,"fmt":{"カルーセル":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S16":{"obs":661,"fmt":{"カルーセル":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"E02":{"obs":661,"fmt":{"カルーセル":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"E05":{"obs":678,"fmt":{"カルーセル":97.5,"動画":2.5},"media":{"Instagram":97.5,"X":2.5},"lp":{"非記事LP":100.0}},"E03":{"obs":1,"fmt":{"静止画":100.0},"media":{"SmartNews":100.0},"lp":{"非記事LP":100.0}},"E04":{"obs":17,"fmt":{"動画":100.0},"media":{"X":100.0},"lp":{"非記事LP":100.0}}}},"260315":{"チェルラーブリリオ":{"S15":{"obs":68,"fmt":{"静止画":82.4,"動画":17.6},"media":{"Yahoo":82.4,"YouTube":17.6},"lp":{"記事LP":100.0}},"E02":{"obs":704,"fmt":{"静止画":98.3,"動画":1.7},"media":{"Yahoo":8.0,"SmartNews":90.3,"YouTube":1.7},"lp":{"記事LP":100.0}},"E08":{"obs":56,"fmt":{"静止画":100.0},"media":{"Yahoo":100.0},"lp":{"記事LP":100.0}},"S06":{"obs":311,"fmt":{"動画":18.6,"静止画":81.4},"media":{"Facebook":18.6,"Yahoo":81.4},"lp":{"記事LP":18.6,"非記事LP":81.4}},"S03":{"obs":247,"fmt":{"静止画":100.0},"media":{"SmartNews":98.4,"Yahoo":1.6},"lp":{"記事LP":98.4,"非記事LP":1.6}},"E05":{"obs":83,"fmt":{"静止画":94.0,"動画":6.0},"media":{"SmartNews":94.0,"TikTok":6.0},"lp":{"記事LP":100.0}},"S01":{"obs":52,"fmt":{"静止画":100.0},"media":{"SmartNews":100.0},"lp":{"記事LP":100.0}},"S05":{"obs":5,"fmt":{"動画":100.0},"media":{"TikTok":100.0},"lp":{"記事LP":100.0}},"E01":{"obs":12,"fmt":{"動画":100.0},"media":{"YouTube":100.0},"lp":{"記事LP":100.0}}},"オージオ":{"S06":{"obs":23905,"fmt":{"カルーセル":41.0,"静止画":59.0},"media":{"SmartNews":100.0},"lp":{"記事LP":46.1,"非記事LP":53.9}},"S14":{"obs":24319,"fmt":{"カルーセル":47.0,"静止画":53.0},"media":{"SmartNews":100.0},"lp":{"記事LP":47.0,"非記事LP":53.0}},"E09":{"obs":71286,"fmt":{"カルーセル":29.0,"静止画":69.8,"動画":1.1},"media":{"SmartNews":48.7,"LINE":51.3},"lp":{"記事LP":30.8,"非記事LP":17.9}},"S02":{"obs":11418,"fmt":{"カルーセル":97.4,"静止画":2.6},"media":{"SmartNews":97.4,"Yahoo":2.6},"lp":{"記事LP":97.4,"非記事LP":2.6}},"E08":{"obs":1243,"fmt":{"静止画":95.0,"動画":5.0},"media":{"Yahoo":24.0,"Facebook":7.5,"Instagram":68.5},"lp":{"非記事LP":24.0,"記事LP":76.0}},"E02":{"obs":14056,"fmt":{"動画":0.5,"静止画":99.5},"media":{"Facebook":1.7,"Instagram":6.6,"SmartNews":91.6},"lp":{"記事LP":8.4,"非記事LP":91.6}},"S15":{"obs":973,"fmt":{"静止画":92.3,"動画":7.7},"media":{"Facebook":5.7,"Instagram":89.1,"LINE":5.2},"lp":{"記事LP":94.8}},"E04":{"obs":560,"fmt":{"静止画":100.0},"media":{"Facebook":36.8,"Instagram":63.2},"lp":{"記事LP":100.0}},"E05":{"obs":553,"fmt":{"静止画":98.4,"動画":1.6},"media":{"Facebook":37.1,"Instagram":62.9},"lp":{"記事LP":100.0}},"E06":{"obs":205,"fmt":{"静止画":100.0},"media":{"Facebook":100.0},"lp":{"記事LP":100.0}},"E10":{"obs":899,"fmt":{"静止画":98.1,"動画":1.9},"media":{"Facebook":6.1,"Instagram":93.9},"lp":{"記事LP":100.0}},"S10":{"obs":224,"fmt":{"静止画":95.5,"動画":4.5},"media":{"Facebook":67.4,"Instagram":32.6},"lp":{"記事LP":100.0}},"E01":{"obs":224,"fmt":{"静止画":95.5,"動画":4.5},"media":{"Facebook":67.4,"Instagram":32.6},"lp":{"記事LP":100.0}},"S18":{"obs":56,"fmt":{"静止画":100.0},"media":{"Facebook":1.8,"Instagram":98.2},"lp":{"記事LP":100.0}},"S09":{"obs":7,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"記事LP":100.0}},"S11":{"obs":7,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"記事LP":100.0}}},"エリクシール":{"S02":{"obs":31227,"fmt":{"動画":0.4,"静止画":99.6},"media":{"Instagram":0.6,"Facebook":0.1,"Google":99.4},"lp":{"非記事LP":100.0}},"S06":{"obs":139170,"fmt":{"動画":0.7,"静止画":99.3},"media":{"Instagram":0.1,"TikTok":0.6,"Facebook":0.0,"Google":88.6,"LINE":10.6,"Yahoo":0.0},"lp":{"非記事LP":100.0}},"E01":{"obs":56518,"fmt":{"動画":1.8,"静止画":98.2},"media":{"YouTube":1.0,"Instagram":1.2,"Facebook":0.0,"Google":80.2,"LINE":17.6,"Yahoo":0.0},"lp":{"非記事LP":99.4,"記事LP":0.6}},"S09":{"obs":2750,"fmt":{"動画":6.3,"静止画":93.7},"media":{"Instagram":6.3,"Google":93.7},"lp":{"非記事LP":100.0}},"E02":{"obs":2165,"fmt":{"動画":7.3,"静止画":92.7},"media":{"Instagram":7.3,"Google":92.7},"lp":{"非記事LP":100.0}},"S14":{"obs":36335,"fmt":{"動画":0.3,"静止画":99.7},"media":{"Instagram":0.3,"Facebook":0.0,"Google":72.3,"LINE":27.3,"Yahoo":0.0},"lp":{"非記事LP":100.0}},"S16":{"obs":36329,"fmt":{"動画":0.3,"静止画":99.7},"media":{"Instagram":0.3,"Google":72.3,"LINE":27.3,"Yahoo":0.0},"lp":{"非記事LP":100.0}},"S04":{"obs":19006,"fmt":{"動画":0.0,"静止画":100.0},"media":{"Instagram":0.1,"Google":92.8,"LINE":7.2,"Yahoo":0.0},"lp":{"非記事LP":100.0}},"S12":{"obs":1,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S13":{"obs":21547,"fmt":{"動画":0.0,"静止画":100.0},"media":{"Instagram":0.2,"Google":93.5,"LINE":6.3,"Yahoo":0.0},"lp":{"非記事LP":100.0}},"E08":{"obs":1,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S11":{"obs":35893,"fmt":{"動画":1.7,"静止画":98.3},"media":{"Instagram":3.3,"Google":96.7},"lp":{"非記事LP":100.0}},"E07":{"obs":31,"fmt":{"動画":35.5,"静止画":64.5},"media":{"Instagram":41.9,"Facebook":41.9,"Google":16.1},"lp":{"非記事LP":100.0}},"E05":{"obs":108,"fmt":{"動画":16.7,"静止画":83.3},"media":{"Instagram":16.7,"Facebook":6.5,"Google":76.9},"lp":{"非記事LP":100.0}},"E06":{"obs":14,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S05":{"obs":3,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S10":{"obs":7,"fmt":{"静止画":100.0},"media":{"Facebook":100.0},"lp":{"非記事LP":100.0}},"S15":{"obs":15315,"fmt":{"静止画":100.0},"media":{"Google":97.9,"Instagram":2.1},"lp":{"非記事LP":100.0}},"S18":{"obs":114,"fmt":{"静止画":99.1,"動画":0.9},"media":{"Google":99.1,"Instagram":0.9},"lp":{"非記事LP":100.0}},"S01":{"obs":6,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S07":{"obs":5,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S19":{"obs":5,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"E04":{"obs":10,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"E09":{"obs":5,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"E10":{"obs":6,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S03":{"obs":1,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S08":{"obs":1,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}}},"POLA リンクルショット":{"S13":{"obs":45,"fmt":{"動画":100.0},"media":{"Facebook":100.0},"lp":{"非記事LP":100.0}},"E01":{"obs":48,"fmt":{"動画":93.8,"静止画":6.2},"media":{"Facebook":93.8,"Yahoo":6.2},"lp":{"非記事LP":100.0}},"E02":{"obs":57,"fmt":{"動画":80.7,"静止画":19.3},"media":{"Facebook":100.0},"lp":{"非記事LP":100.0}},"E06":{"obs":48,"fmt":{"動画":93.8,"静止画":6.2},"media":{"Facebook":93.8,"Yahoo":6.2},"lp":{"非記事LP":100.0}},"S09":{"obs":12,"fmt":{"静止画":91.7,"動画":8.3},"media":{"Facebook":100.0},"lp":{"非記事LP":100.0}},"E09":{"obs":1,"fmt":{"静止画":100.0},"media":{"Google":100.0},"lp":{"非記事LP":100.0}}},"ONE BY KOSE":{"S09":{"obs":1272,"fmt":{"動画":49.8,"カルーセル":50.2},"media":{"YouTube":2.0,"Instagram":98.0},"lp":{"非記事LP":100.0}},"E02":{"obs":1273,"fmt":{"動画":49.7,"静止画":0.1,"カルーセル":50.2},"media":{"YouTube":2.0,"Facebook":0.1,"Instagram":97.9},"lp":{"非記事LP":100.0}},"S14":{"obs":3278,"fmt":{"動画":32.2,"カルーセル":67.7,"静止画":0.1},"media":{"YouTube":3.7,"TikTok":6.9,"Instagram":89.4},"lp":{"非記事LP":100.0}},"E01":{"obs":2230,"fmt":{"動画":34.7,"静止画":0.0,"カルーセル":65.3},"media":{"TikTok":4.2,"Instagram":95.8},"lp":{"非記事LP":100.0}},"E05":{"obs":732,"fmt":{"動画":12.7,"カルーセル":87.3},"media":{"TikTok":12.7,"Instagram":87.3},"lp":{"非記事LP":100.0}},"S13":{"obs":1,"fmt":{"静止画":100.0},"media":{"Facebook":100.0},"lp":{"非記事LP":100.0}},"S01":{"obs":147,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"E06":{"obs":607,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S04":{"obs":817,"fmt":{"カルーセル":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S16":{"obs":817,"fmt":{"カルーセル":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"E10":{"obs":1917,"fmt":{"カルーセル":76.0,"動画":24.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S06":{"obs":639,"fmt":{"カルーセル":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"E04":{"obs":639,"fmt":{"カルーセル":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}}},"DEW":{"E01":{"obs":41,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}}},"アテニア":{"S06":{"obs":8616,"fmt":{"動画":1.2,"静止画":12.0,"カルーセル":86.8},"media":{"Instagram":87.2,"Facebook":0.4,"Yahoo":11.6,"YouTube":0.9},"lp":{"非記事LP":13.2}},"E01":{"obs":898,"fmt":{"動画":39.8,"静止画":59.9,"カルーセル":0.3},"media":{"Instagram":6.0,"Facebook":1.2,"Yahoo":59.0,"YouTube":33.7},"lp":{"非記事LP":99.4,"記事LP":0.6}},"E02":{"obs":640,"fmt":{"動画":69.4,"静止画":30.6},"media":{"Instagram":15.0,"TikTok":5.8,"Facebook":7.8,"Pangle":1.6,"SmartNews":0.3,"Yahoo":22.0,"YouTube":47.5},"lp":{"非記事LP":100.0}},"E07":{"obs":1,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{}},"E09":{"obs":952,"fmt":{"動画":2.5,"静止画":97.5},"media":{"Instagram":2.5,"SmartNews":0.2,"Yahoo":97.3},"lp":{"記事LP":0.5,"非記事LP":99.4}},"S02":{"obs":6905,"fmt":{"動画":5.7,"静止画":94.3},"media":{"Instagram":92.6,"Facebook":0.4,"Yahoo":2.6,"YouTube":4.4},"lp":{"非記事LP":8.6,"記事LP":0.1}},"S14":{"obs":72,"fmt":{"動画":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":93.1,"記事LP":6.9}},"E06":{"obs":6395,"fmt":{"動画":1.4,"静止画":98.6},"media":{"Instagram":100.0,"Facebook":0.0},"lp":{"非記事LP":1.4}},"E08":{"obs":439,"fmt":{"動画":19.8,"静止画":80.2},"media":{"Instagram":20.0,"Facebook":7.7,"SmartNews":0.5,"TikTok":0.2,"Yahoo":71.3,"YouTube":0.2},"lp":{"非記事LP":100.0}},"S17":{"obs":9,"fmt":{"静止画":66.7,"動画":33.3},"media":{"Facebook":100.0},"lp":{"非記事LP":100.0}},"E05":{"obs":13787,"fmt":{"動画":0.0,"静止画":45.7,"カルーセル":54.2},"media":{"Facebook":0.0,"Instagram":100.0},"lp":{"非記事LP":0.0}},"S01":{"obs":7477,"fmt":{"カルーセル":100.0},"media":{"Instagram":100.0},"lp":{}},"E03":{"obs":7477,"fmt":{"カルーセル":100.0},"media":{"Instagram":100.0},"lp":{}},"S10":{"obs":2,"fmt":{"静止画":100.0},"media":{"SmartNews":100.0},"lp":{"非記事LP":100.0}},"S18":{"obs":141,"fmt":{"静止画":100.0},"media":{"Yahoo":100.0},"lp":{"非記事LP":100.0}},"E04":{"obs":24,"fmt":{"静止画":100.0},"media":{"Yahoo":100.0},"lp":{"非記事LP":100.0}}},"ディセンシア":{"S02":{"obs":10,"fmt":{"静止画":100.0},"media":{"Facebook":100.0},"lp":{"非記事LP":100.0}},"S13":{"obs":10,"fmt":{"静止画":100.0},"media":{"Facebook":100.0},"lp":{"非記事LP":100.0}},"E02":{"obs":1370,"fmt":{"静止画":91.6,"動画":8.4},"media":{"Facebook":0.7,"Google":0.1,"Instagram":0.1,"LINE":0.2,"Yahoo":98.8},"lp":{"非記事LP":99.9,"記事LP":0.1}},"S09":{"obs":1,"fmt":{"静止画":100.0},"media":{"LINE":100.0},"lp":{"非記事LP":100.0}},"E01":{"obs":2,"fmt":{"静止画":100.0},"media":{"LINE":50.0,"Yahoo":50.0},"lp":{"非記事LP":100.0}},"E06":{"obs":1,"fmt":{"静止画":100.0},"media":{"Yahoo":100.0},"lp":{"非記事LP":100.0}}},"ドモホルンリンクル":{"S04":{"obs":135,"fmt":{"静止画":100.0},"media":{"Facebook":91.9,"Instagram":8.1},"lp":{"非記事LP":100.0}},"S06":{"obs":1590,"fmt":{"静止画":8.5,"動画":0.1,"カルーセル":91.4},"media":{"Facebook":7.9,"Instagram":92.1},"lp":{"非記事LP":100.0}},"S14":{"obs":1466,"fmt":{"静止画":0.8,"動画":0.1,"カルーセル":99.1},"media":{"Facebook":0.9,"Instagram":99.1},"lp":{"非記事LP":100.0}},"E06":{"obs":1465,"fmt":{"静止画":0.8,"カルーセル":99.2},"media":{"SmartNews":0.8,"Instagram":99.2},"lp":{"非記事LP":100.0}},"E01":{"obs":1454,"fmt":{"静止画":0.1,"カルーセル":99.9},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S02":{"obs":1453,"fmt":{"カルーセル":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S09":{"obs":1453,"fmt":{"カルーセル":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"S13":{"obs":1457,"fmt":{"カルーセル":99.7,"動画":0.3},"media":{"Instagram":99.7,"YouTube":0.3},"lp":{"非記事LP":99.7,"記事LP":0.3}},"S16":{"obs":1453,"fmt":{"カルーセル":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"E02":{"obs":1453,"fmt":{"カルーセル":100.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"E05":{"obs":1995,"fmt":{"カルーセル":72.8,"動画":27.2},"media":{"Instagram":72.8,"X":27.2},"lp":{"非記事LP":100.0}},"E10":{"obs":1468,"fmt":{"カルーセル":99.0,"動画":1.0},"media":{"Instagram":100.0},"lp":{"非記事LP":100.0}},"E03":{"obs":2,"fmt":{"静止画":100.0},"media":{"SmartNews":100.0},"lp":{"非記事LP":100.0}},"E04":{"obs":542,"fmt":{"動画":100.0},"media":{"X":100.0},"lp":{"非記事LP":100.0}}}}};
+
+// === 後方互換エイリアス ===
+const {brands, brandColors, brandShort} = reportMeta;
+const selfBrand = reportMeta.selfBrand;
+const currentSOV = sovTimeSeries[currentPeriodId];
+const previousSOV = sovTimeSeries[previousPeriodId];
+const dimData = dimTimeSeries[currentPeriodId];
+const previousDimData = dimTimeSeries[previousPeriodId];
+const crossData = crossTimeSeries[currentPeriodId];
+const observedVolume = {
+  current: volumeTimeSeries[currentPeriodId],
+  previous: volumeTimeSeries[previousPeriodId],
+};
+
+// === Opportunity Score ===
+function opportunityScore(id) {
+  const adv = cepAdv(id);
+  const compAvg = (brands.filter(b=>b!==selfBrand).reduce((s,b) => s + (currentSOV[b]?.[id]||0), 0)) / (brands.length - 1);
+  const mentionCount = cepMentionCount(id);
+  return adv * (1 - compAvg/100) * Math.log2(1 + mentionCount/1000);
+}
+
+// === 戦略提案 ===
+const quarterlyStrategy = {
+  lastUpdated: '2026Q1',
+  sovRebalance: { current: {}, recommended: {'S03':95,'S05':60,'E08':5,'S04':10,'S07':15,'E09':10} },
+  strategies: [
+    {id:1,icon:'green',title:'「ほうれい線・首シワ」訴求の維持',targetCepIds:['S03'],body:'S03でチェルラーブリリオSOV 99.6%と独占状態。UGC言及136件で中規模市場。競合未参入のうちにポジション確立を継続。'},
+    {id:2,icon:'yellow',title:'「乾燥小じわ」市場への参入検討',targetCepIds:['S04'],body:'S04はUGC488件で大規模市場。チェルラーブリリオSOV 1.6%と未投資。エリクシール58.3%が支配的だが市場規模が大きく参入余地あり。'},
+    {id:3,icon:'red',title:'「シワ改善即効性」の集中投資',targetCepIds:['S07'],body:'S07はUGC838件でカテゴリー最大市場。チェルラーブリリオSOV 0%。エリクシール44.3%とPOLA 31.9%が二強。卵殻膜成分の即効性訴求で差別化。'},
+    {id:4,icon:'green',title:'「有効成分」訴求の拡大',targetCepIds:['S09'],body:'S09(レチノール等有効成分)はUGC515件で大規模市場。卵殻膜+有効成分の科学的エビデンス訴求で差別化可能。'},
+    {id:5,icon:'blue',title:'「即効実感」体験価値の訴求',targetCepIds:['E09'],body:'E09はUGC509件で大規模市場。エリクシール38.1%が首位。チェルラーブリリオの卵殻膜×即効性の独自ポジション構築。'},
+    {id:6,icon:'red',title:'「コスパ」軸は慎重検討',targetCepIds:['E08'],body:'E08はUGC120件で中規模市場。プチプラ競合と差別化困難。プレミアム路線を維持し投資優先度は低く設定。'},
+  ],
+};
+
+// === インテリジェンスアラート ===
+function generateAlerts() {
+  const cur = sovTimeSeries[currentPeriodId];
+  const prev = sovTimeSeries[previousPeriodId];
+  const alerts = [];
+  const allIds = Object.keys(cepMaster).filter(id => cepMaster[id].status === 'active');
+
+  allIds.forEach(id => {
+    const adv = cepAdv(id);
+    const fSov = cur[selfBrand]?.[id] || 0;
+    const fPrev = prev[selfBrand]?.[id] || 0;
+    const compSovs = brands.filter(b=>b!==selfBrand).map(b => ({brand:b, sov: cur[b]?.[id]||0}));
+    const compMax = compSovs.reduce((a,b) => b.sov > a.sov ? b : a, {brand:'',sov:0});
+    const ms = cepMaster[id].marketSize;
+
+    if (adv > 3 && fSov < 5 && compMax.sov > 50) {
+      alerts.push({
+        type: 'threat', priority: ms === 'large' ? 'high' : 'medium', cepId: id,
+        title: `${cepLabel(id)}（${id}）: ${compMax.brand}が${compMax.sov.toFixed(0)}%独占`,
+        detail: `CEP優位+${adv}ptを活かせていない。${selfBrand} SOV ${fSov.toFixed(1)}%。市場規模${sizeBadgeHtml(id)}`,
+        resolveCondition: `SOVが10%以上になれば解消`,
+      });
+    }
+    if (adv < -3 && fSov > 30) {
+      alerts.push({
+        type: 'overinvest', priority: fSov > 50 ? 'high' : 'medium', cepId: id,
+        title: `${cepLabel(id)}（${id}）: SOV ${fSov.toFixed(1)}%で過剰投資の可能性`,
+        detail: `CEP劣位${adv}ptに対してSOVが高い。他CEPへの再配分を検討。`,
+        resolveCondition: `SOVが20%以下になれば解消`,
+      });
+    }
+    if (adv > 3 && fSov < 15 && (ms === 'large' || ms === 'medium')) {
+      const isThreat = fSov < 5 && compMax.sov > 50;
+      if (!isThreat) {
+        alerts.push({
+          type: 'opportunity', priority: ms === 'large' ? 'high' : 'medium', cepId: id,
+          title: `${cepLabel(id)}（${id}）: CEP優位+${adv}ptだがSOV未投資`,
+          detail: `${selfBrand} SOV ${fSov.toFixed(1)}%。市場規模${sizeBadgeHtml(id)}。投資拡大の余地あり。`,
+          resolveCondition: `SOVが15%以上になれば解消`,
+        });
+      }
+    }
+    if (fSov > 20 && compMax.sov > 20 && Math.abs(fSov - compMax.sov) < 10) {
+      alerts.push({
+        type: 'contention', priority: 'medium', cepId: id,
+        title: `${cepLabel(id)}（${id}）: ${compMax.brand}と首位争い`,
+        detail: `${selfBrand} ${fSov.toFixed(1)}% vs ${compMax.brand} ${compMax.sov.toFixed(1)}%`,
+        resolveCondition: `差が10pt以上開けば解消`,
+      });
+    }
+    if ((fPrev - fSov) > 25) {
+      alerts.push({
+        type: 'decline', priority: 'high', cepId: id,
+        title: `${cepLabel(id)}（${id}）: SOVが${(fPrev-fSov).toFixed(1)}pt急落`,
+        detail: `${fPrev.toFixed(1)}%→${fSov.toFixed(1)}%。意図した抑制か要確認。`,
+        resolveCondition: `SOVが回復すれば解消`,
+      });
+    }
+    if ((fSov - fPrev) > 25) {
+      alerts.push({
+        type: 'surge', priority: 'medium', cepId: id,
+        title: `${cepLabel(id)}（${id}）: SOVが+${(fSov-fPrev).toFixed(1)}pt急騰`,
+        detail: `${fPrev.toFixed(1)}%→${fSov.toFixed(1)}%。投資効果を継続モニタリング。`,
+        resolveCondition: `SOVが安定すれば解消`,
+      });
+    }
+  });
+
+  const typeGroup = {threat:'strategic',opportunity:'strategic',overinvest:'investment',contention:'competitive',decline:'momentum',surge:'momentum'};
+  const seen = new Map();
+  const deduped = alerts.filter(a => {
+    const key = a.cepId + ':' + (typeGroup[a.type]||a.type);
+    if (seen.has(key)) return false;
+    seen.set(key, true);
+    return true;
+  });
+  const pOrder = {high:1,medium:2,low:3};
+  deduped.sort((a,b) => (pOrder[a.priority]||9) - (pOrder[b.priority]||9));
+  return deduped;
+}
+
+// === 半月次サマリー ===
+function generateMonthlySummary() {
+  const cur = sovTimeSeries[currentPeriodId];
+  const prev = sovTimeSeries[previousPeriodId];
+  const allIds = allActiveCEPs();
+  const changes = allIds.map(id => ({
+    id,
+    delta: (cur[selfBrand]?.[id]||0) - (prev[selfBrand]?.[id]||0),
+    curSOV: cur[selfBrand]?.[id]||0,
+    prevSOV: prev[selfBrand]?.[id]||0,
+  })).sort((a,b) => Math.abs(b.delta) - Math.abs(a.delta));
+
+  const top3 = changes.slice(0,3).map(c => {
+    const dir = c.delta > 0 ? '増加' : '減少';
+    const severity = Math.abs(c.delta) > 20 ? 'high' : Math.abs(c.delta) > 10 ? 'medium' : 'low';
+    return {
+      title: `${selfBrand}「${cepLabel(c.id)}」SOVが${c.delta>0?'+':''}${c.delta.toFixed(1)}pt${dir}`,
+      description: `前期間${c.prevSOV.toFixed(1)}%→今期間${c.curSOV.toFixed(1)}%。${getStrategyNote(c.id, c.delta)}`,
+      severity: severity,
+    };
+  });
+
+  const maintain = [], strengthen = [], reduce = [];
+  allIds.forEach(id => {
+    const adv = cepAdv(id);
+    const fSov = cur[selfBrand]?.[id]||0;
+    const compAvg = (brands.filter(b=>b!==selfBrand).reduce((s,b)=>s+(cur[b]?.[id]||0),0))/(brands.length-1);
+    const d = (cur[selfBrand]?.[id]||0) - (prev[selfBrand]?.[id]||0);
+    if (adv > 3 && fSov > compAvg && fSov > 15) maintain.push({cepId:id,reason:`SOV${fSov.toFixed(0)}%でCEP優位+${adv}ptを活用中。`});
+    else if (adv > 3 && fSov < 15) strengthen.push({cepId:id,reason:`CEP優位+${adv}ptだがSOV${fSov.toFixed(0)}%と低い。投資拡大余地。`});
+    else if (adv < -3 && fSov > 30) reduce.push({cepId:id,reason:`CEP劣位${adv}ptにSOV${fSov.toFixed(0)}%は過剰投資。`});
+  });
+
+  return {
+    top3Changes: top3,
+    alerts: generateAlerts(),
+    maintainCEPs: maintain.slice(0,4),
+    strengthenCEPs: strengthen.slice(0,4),
+    reduceCEPs: reduce.slice(0,4),
+  };
+}
+
+function getStrategyNote(id, d) {
+  const adv = cepAdv(id);
+  const rec = quarterlyStrategy.strategies.find(s => s.targetCepIds.includes(id));
+  if (rec) return rec.body.slice(0, 80) + '...';
+  if (adv > 3 && d > 0) return '戦略方向（強化）と一致した動き。';
+  if (adv < -3 && d < 0) return '戦略方向（抑制）と一致した動き。';
+  return '';
+}
+
+const monthlySummary = generateMonthlySummary();
+
+// === 定数 ===
+const allMedia = ['X','Instagram','TikTok','YouTube','Facebook','Google','LINE','Yahoo','SmartNews'];
+const mediaColors = {'X':'#1d9bf0','Instagram':'#e4405f','TikTok':'#00f2ea','YouTube':'#ff0000','Facebook':'#1877f2','Google':'#4285f4','LINE':'#06c755','Yahoo':'#ff0033','SmartNews':'#ff6600'};
+const formatColors = {'動画':'#3b82f6','静止画':'#f59e0b','カルーセル':'#10b981'};
+const allFormats = ['動画','静止画','カルーセル'];
+
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
+const situationAxes = activeCEPs('situation');
+const experienceAxes = activeCEPs('experience');
+
+function delta(cur, prev) {
+  const d = cur - prev;
+  if (Math.abs(d) < 1) return '<span class="delta-flat">&rarr;</span>';
+  if (d > 0) return `<span class="delta-up">&uarr;+${d.toFixed(1)}pt</span>`;
+  return `<span class="delta-down">&darr;${d.toFixed(1)}pt</span>`;
+}
+function deltaNum(cur, prev) {
+  const d = ((cur - prev) / (prev || 1)) * 100;
+  if (Math.abs(d) < 1) return '<span class="delta-flat">&rarr;</span>';
+  if (d > 0) return `<span class="delta-up">&uarr;+${d.toFixed(0)}%</span>`;
+  return `<span class="delta-down">&darr;${d.toFixed(0)}%</span>`;
+}
+function fmtNum(n) { return n.toLocaleString(); }
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+function getStrategy(id) {
+  const adv = cepAdv(id);
+  const fSov = currentSOV[selfBrand]?.[id] || 0;
+  const compAvg = (brands.filter(b=>b!==selfBrand).reduce((s,b) => s + (currentSOV[b]?.[id]||0), 0)) / (brands.length - 1);
+  const mentionCount = cepMentionCount(id);
+
+  if (mentionCount < 50 && fSov > 20) return {label:'小規模過剰投資',cls:'badge-warning'};
+  if (adv > 3 && fSov < compAvg) return {label:'投資不足',cls:'badge-danger'};
+  if (adv > 3 && fSov >= compAvg) return {label:'維持・強化',cls:'badge-success'};
+  if (adv < -3 && fSov > compAvg) return {label:'過剰投資',cls:'badge-warning'};
+  if (adv < -3 && fSov <= compAvg) return {label:'撤退候補',cls:'badge-info'};
+  return {label:'要検討',cls:'badge-info'};
+}
+
+// ============================================================
+// INSIGHTS GENERATOR
+// ============================================================
+function generateInsights(containerId, insights) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '<div class="card"><h2 style="margin-bottom:10px">Key Insights</h2><div class="grid2">' +
+    insights.map(i => `<div class="insight-box"><strong>${i.title}</strong>：${i.text}</div>`).join('') +
+    '</div></div>';
+}
+
+function renderOverviewInsights() {
+  const allIds = [...situationAxes,...experienceAxes];
+  let maxUp = {id:null,d:0}, maxDown = {id:null,d:0};
+  allIds.forEach(id => {
+    const d = (currentSOV[selfBrand]?.[id]||0) - (previousSOV[selfBrand]?.[id]||0);
+    if (d > maxUp.d) maxUp = {id,d};
+    if (d < maxDown.d) maxDown = {id,d};
+  });
+  const volEntries = Object.entries(observedVolume.current).sort((a,b)=>b[1]-a[1]);
+  const topVol = volEntries[0];
+  const selfVol = observedVolume.current[selfBrand]||0;
+  const selfVolPrev = observedVolume.previous[selfBrand]||0;
+  const selfVolDelta = ((selfVol-selfVolPrev)/(selfVolPrev||1)*100).toFixed(1);
+
+  const underinvested = allIds.filter(id => cepAdv(id) > 3)
+    .sort((a,b) => {
+      const scoreA = cepAdv(a) * Math.log2(1 + cepMentionCount(a)/1000) * (1/(1+(currentSOV[selfBrand]?.[a]||0)/100));
+      const scoreB = cepAdv(b) * Math.log2(1 + cepMentionCount(b)/1000) * (1/(1+(currentSOV[selfBrand]?.[b]||0)/100));
+      return scoreB - scoreA;
+    });
+
+  // Find small-market overinvested CEP for market-size warning
+  const smallOverinvest = allIds.filter(id => cepMentionCount(id) < 100 && (currentSOV[selfBrand]?.[id]||0) > 20)
+    .sort((a,b) => (currentSOV[selfBrand]?.[b]||0) - (currentSOV[selfBrand]?.[a]||0));
+
+  const insights = [
+    {title:`${selfBrand}総観測量`, text:`${fmtNum(selfVol)}件（前期比${selfVolDelta>0?'+':''}${selfVolDelta}%）。カテゴリ最大は${topVol[0]}の${fmtNum(topVol[1])}件で約${Math.max(1,Math.round(topVol[1]/(selfVol||1)))}倍の規模差`},
+    {title:'最大SOV増加', text:maxUp.id ? `${cepLabel(maxUp.id)}(${maxUp.id})が+${maxUp.d.toFixed(1)}ptで今期最大の投資拡大` : 'なし'},
+    {title:'最大SOV減少', text:maxDown.id ? `${cepLabel(maxDown.id)}(${maxDown.id})が${maxDown.d.toFixed(1)}ptで今期最大の投資縮小` : 'なし'},
+    {title:'投資不足の注目CEP', text:underinvested.length>0 ? `${cepLabel(underinvested[0])}(${underinvested[0]}) — CEP優位+${cepAdv(underinvested[0])}pt・言及数${fmtNum(cepMentionCount(underinvested[0]))}件だがSOV${(currentSOV[selfBrand]?.[underinvested[0]]||0).toFixed(1)}%と低い` : 'CEP優位の高い軸は概ね投資済み'},
+    {title:'市場規模注意', text:smallOverinvest.length>0 ? `${cepLabel(smallOverinvest[0])}(${smallOverinvest[0]})は言及数${fmtNum(cepMentionCount(smallOverinvest[0]))}件と小規模。SOV${(currentSOV[selfBrand]?.[smallOverinvest[0]]||0).toFixed(1)}%の投資対効果を要検証` : '小規模市場への過剰投資なし'},
+  ];
+  generateInsights('overview-insights', insights);
+}
+
+function renderScatterInsights() {
+  const allIds = [...situationAxes,...experienceAxes];
+  const q1=[], q2=[], q3=[], q4=[];
+  allIds.forEach(id => {
+    const adv = cepAdv(id);
+    const fSov = currentSOV[selfBrand]?.[id]||0;
+    const compAvg = (brands.filter(b=>b!==selfBrand).reduce((s,b)=>s+(currentSOV[b]?.[id]||0),0))/(brands.length-1);
+    const diff = fSov - compAvg;
+    if (adv > 0 && diff > 0) q1.push(id);
+    else if (adv < 0 && diff > 0) q2.push(id);
+    else if (adv > 0 && diff < 0) q3.push(id);
+    else q4.push(id);
+  });
+  // Find biggest position move
+  let biggestMove = {id:null,d:0};
+  allIds.forEach(id => {
+    const fSov = currentSOV[selfBrand]?.[id]||0;
+    const pfSov = previousSOV[selfBrand]?.[id]||0;
+    const compAvg = brands.filter(b=>b!==selfBrand).reduce((s,b)=>s+(currentSOV[b]?.[id]||0),0)/(brands.length-1);
+    const prevCompAvg = brands.filter(b=>b!==selfBrand).reduce((s,b)=>s+(previousSOV[b]?.[id]||0),0)/(brands.length-1);
+    const curDiff = fSov - compAvg;
+    const prevDiff = pfSov - prevCompAvg;
+    const move = Math.abs(curDiff - prevDiff);
+    if (move > Math.abs(biggestMove.d)) biggestMove = {id, d: curDiff - prevDiff};
+  });
+  const insights = [
+    {title:'強みを活かして投資中', text:q1.length > 0 ? q1.map(id=>cepLabel(id).slice(0,6)+'('+id+')').join('、')+' — CEP優位かつ競合超過SOV。この投資姿勢を維持' : '該当なし'},
+    {title:'弱みに過剰投資', text:q2.length > 0 ? q2.map(id=>cepLabel(id).slice(0,6)+'('+id+')').join('、')+' — CEP劣位なのに競合超過SOV。配分を他軸へシフト検討' : '該当なし'},
+    {title:'強みなのに投資不足', text:q3.length > 0 ? q3.map(id=>cepLabel(id).slice(0,6)+'('+id+')').join('、')+' — CEP優位だが競合に負けているSOV。最優先の投資拡大候補' : '該当なし'},
+    {title:'最大ポジション変動', text:biggestMove.id ? cepLabel(biggestMove.id)+'('+biggestMove.id+') — 対競合SOV差が'+(biggestMove.d>0?'+':'')+biggestMove.d.toFixed(1)+'pt変動' : 'なし'},
+  ];
+  generateInsights('scatter-insights', insights);
+}
+
+function renderWhitespaceInsights() {
+  const allIds = [...situationAxes,...experienceAxes];
+  const scored = allIds.map(id => {
+    const adv = cepAdv(id);
+    const compAvg = brands.filter(b=>b!==selfBrand).reduce((s,b)=>s+(currentSOV[b]?.[id]||0),0)/(brands.length-1);
+    const fSov = currentSOV[selfBrand]?.[id]||0;
+    const os = opportunityScore(id);
+    return {id, ws: os, adv, compAvg, fSov};
+  }).sort((a,b) => b.ws - a.ws);
+  const top = scored[0];
+  const bottom = scored[scored.length-1];
+  const blueOcean = scored.filter(s => s.ws > 5 && s.fSov < 15);
+  const alreadyCapturing = scored.filter(s => s.ws > 3 && s.fSov > 30);
+
+  const insights = [
+    {title:'最大機会スコア', text: top ? cepLabel(top.id)+'('+top.id+') — スコア'+top.ws.toFixed(1)+'。CEP優位+'+top.adv+'pt × 市場規模'+fmtNum(cepMentionCount(top.id))+'件' : 'なし'},
+    {title:'ブルーオーシャン機会', text: blueOcean.length > 0 ? blueOcean.map(s=>cepLabel(s.id).slice(0,6)+'('+s.id+')').join('、')+' — 高機会スコアかつチェルラー SOV低。即座に投資拡大の余地' : '高機会スコアの軸は概ねチェルラーがカバー済み'},
+    {title:'成功事例', text: alreadyCapturing.length > 0 ? alreadyCapturing.map(s=>cepLabel(s.id).slice(0,6)+'('+s.id+')').join('、')+' — 機会スコアが高くチェルラーが既に高SOV。ベストプラクティスとして継続' : '---'},
+    {title:'最もレッドオーシャン', text: bottom ? cepLabel(bottom.id)+'('+bottom.id+') — スコア'+bottom.ws.toFixed(1)+'。CEP劣位'+bottom.adv+'ptで競合が密集する領域' : '---'},
+  ];
+  generateInsights('whitespace-insights', insights);
+}
+
+function renderExpansionInsights() {
+  const allIds = [...situationAxes,...experienceAxes];
+  const scored = allIds.map(id => {
+    const adv = cepAdv(id);
+    const compAvg = brands.filter(b=>b!==selfBrand).reduce((s,b)=>s+(currentSOV[b]?.[id]||0),0)/(brands.length-1);
+    return {id, ws: adv * (1 - compAvg/100), adv, compAvg};
+  }).filter(s => s.ws > 0).sort((a,b) => b.ws - a.ws);
+
+  let maxUnserved = {id:null, count:0};
+  scored.forEach(s => {
+    const selfMedia = crossData[selfBrand]?.[s.id]?.media || {};
+    const unserved = allMedia.filter(m => !selfMedia[m] || selfMedia[m] === 0);
+    const competitorUsed = unserved.filter(m => {
+      return brands.filter(b=>b!==selfBrand).some(b => {
+        const d = crossData[b]?.[s.id];
+        return d && d.media && (d.media[m]||0) > 5;
+      });
+    });
+    if (competitorUsed.length > maxUnserved.count) maxUnserved = {id: s.id, count: competitorUsed.length};
+  });
+
+  const selfMediaCount = allMedia.filter(m => (dimData[selfBrand]?.['媒体']?.[m]||0) > 1).length;
+  const avgMediaCount = brands.filter(b=>b!==selfBrand).reduce((s,b) => {
+    return s + allMedia.filter(m => (dimData[b]?.['媒体']?.[m]||0) > 1).length;
+  }, 0) / (brands.length - 1);
+
+  let bestROI = {id:null, media:null, score:0};
+  scored.slice(0,5).forEach(s => {
+    const selfMedia = crossData[selfBrand]?.[s.id]?.media || {};
+    allMedia.forEach(m => {
+      if ((selfMedia[m]||0) > 0) return;
+      let maxObs = 0;
+      brands.filter(b=>b!==selfBrand).forEach(b => {
+        const d = crossData[b]?.[s.id];
+        if (d && d.media && (d.media[m]||0) > 5) maxObs = Math.max(maxObs, d.obs * (d.media[m]/100));
+      });
+      const roiScore = s.ws * maxObs;
+      if (roiScore > bestROI.score) bestROI = {id: s.id, media: m, score: roiScore};
+    });
+  });
+
+  const redOceanMedia = allMedia.map(m => {
+    const competing = brands.filter(b=>b!==selfBrand).filter(b => (dimData[b]?.['媒体']?.[m]||0) > 10).length;
+    return {m, competing};
+  }).sort((a,b) => b.competing - a.competing);
+
+  const insights = [
+    {title:'未出稿媒体が最多のCEP', text: maxUnserved.id ? cepLabel(maxUnserved.id)+'('+maxUnserved.id+') — 競合出稿中の'+maxUnserved.count+'媒体にチェルラー未出稿' : '---'},
+    {title:'媒体多様性', text: 'チェルラー: '+selfMediaCount+'媒体（1%以上）。カテゴリ平均: '+avgMediaCount.toFixed(1)+'媒体。'+(selfMediaCount < avgMediaCount ? '媒体の拡張余地あり' : '媒体カバレッジは十分')},
+    {title:'最高ROI期待の拡張候補', text: bestROI.id ? cepLabel(bestROI.id)+'('+bestROI.id+') × '+bestROI.media+' — WSスコアと競合実績obsから最もROI期待が高い' : '---'},
+    {title:'レッドオーシャン注意', text: redOceanMedia[0] ? redOceanMedia[0].m+'は'+redOceanMedia[0].competing+'社が集中投資。差別化が困難な可能性' : '---'},
+  ];
+  generateInsights('expansion-insights', insights);
+}
+
+function renderReferenceInsights() {
+  const fmtSpecialists = allFormats.map(f => {
+    let maxBrand = '', maxPct = 0;
+    brands.forEach(b => {
+      const pct = dimData[b]?.['フォーマット']?.[f] || 0;
+      if (pct > maxPct) { maxPct = pct; maxBrand = b; }
+    });
+    return {format: f, brand: maxBrand, pct: maxPct};
+  });
+
+  const hhiScores = brands.map(b => {
+    const mediaData = dimData[b]?.['媒体'] || {};
+    const hhi = Object.values(mediaData).reduce((s, v) => s + (v/100)**2, 0);
+    return {brand: b, hhi};
+  }).sort((a,b) => b.hhi - a.hhi);
+
+  const selfFmt = dimData[selfBrand]?.['フォーマット'] || {};
+  const avgFmt = {};
+  allFormats.forEach(f => {
+    avgFmt[f] = brands.filter(b=>b!==selfBrand).reduce((s,b) => s + (dimData[b]?.['フォーマット']?.[f]||0), 0) / (brands.length - 1);
+  });
+  const biggestGap = allFormats.map(f => ({f, gap: (selfFmt[f]||0) - (avgFmt[f]||0)})).sort((a,b) => Math.abs(b.gap) - Math.abs(a.gap))[0];
+
+  const lpUsage = brands.map(b => {
+    const lp = dimData[b]?.['LPタイプ']?.['記事LP'] || 0;
+    return {brand: b, lp};
+  }).sort((a,b) => b.lp - a.lp);
+  const topLP = lpUsage[0];
+
+  const insights = [
+    {title:'フォーマット特化', text: fmtSpecialists.map(s => s.format+': '+brandShort[s.brand]+' '+s.pct.toFixed(1)+'%').join(' / ')},
+    {title:'媒体集中度(HHI)', text: '最も集中: '+brandShort[hhiScores[0].brand]+'(HHI '+(hhiScores[0].hhi*100).toFixed(0)+') / 最も分散: '+brandShort[hhiScores[hhiScores.length-1].brand]+'(HHI '+(hhiScores[hhiScores.length-1].hhi*100).toFixed(0)+')'},
+    {title:'チェルラーのフォーマット特異性', text: biggestGap ? biggestGap.f+'がカテゴリ平均比'+(biggestGap.gap>0?'+':'')+biggestGap.gap.toFixed(1)+'pt — チェルラー'+(selfFmt[biggestGap.f]||0).toFixed(1)+'% vs 平均'+(avgFmt[biggestGap.f]||0).toFixed(1)+'%' : '---'},
+    {title:'記事LP活用', text: topLP && topLP.lp > 5 ? brandShort[topLP.brand]+'が'+topLP.lp.toFixed(1)+'%活用。記事LP戦略は差別化要因' : '記事LP活用率は全体的に低い'},
+  ];
+  generateInsights('reference-insights', insights);
+}
+
+// ============================================================
+// TAB NAVIGATION
+// ============================================================
+const tabConfig = [
+  {id:'summary',     label:'サマリー',                    group:1},
+  {id:'overview',    label:'CEP×SOV全体像',               group:1},
+  {id:'trend',       label:'★ 時系列推移',                group:1},
+  {id:'marketsize',  label:'★ 市場規模マップ',             group:2},
+  {id:'whitespace',  label:'★ ホワイトスペース',           group:2},
+  {id:'expansion',   label:'★ 媒体拡張シミュレーション',     group:2},
+  {id:'reference',   label:'配信構造リファレンス',           group:3},
+  {id:'cepmaster',   label:'CEPマスター',                   group:3},
+  {id:'strategy',    label:'四半期戦略',                    group:4},
+  {id:'guide',       label:'使い方',                       group:5},
+];
+const groupLabels = {1:'月次レビュー', 2:'市場規模×ホワイトスペース×媒体拡張', 3:'参考資料', 4:'四半期', 5:'ヘルプ'};
+
+function buildTabNav() {
+  const nav = document.getElementById('tab-nav');
+  let html = '', lastGroup = 0;
+  tabConfig.forEach(t => {
+    if (t.group !== lastGroup) {
+      if (lastGroup > 0) html += '<div class="tab-divider"></div>';
+      lastGroup = t.group;
+    }
+    const active = t.id === 'summary' ? ' active' : '';
+    const star = t.label.startsWith('★') ? ' star' : '';
+    html += `<div class="tab${active}${star}" data-tab="${t.id}" onclick="switchTab('${t.id}')">${t.label}</div>`;
+  });
+  nav.innerHTML = html;
+}
+
+function switchTab(name, pushHash) {
+  const el = document.getElementById('tab-' + name);
+  if (!el) return;
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const btn = document.querySelector(`.tab[data-tab="${name}"]`);
+  if (btn) btn.classList.add('active');
+  if (pushHash !== false) history.replaceState(null,'','#'+name);
+  if (name === 'overview' && !rendered.overview) { renderOverview(); rendered.overview=true; }
+  if (name === 'trend' && !rendered.trend) { renderTrend(); rendered.trend=true; }
+  if (name === 'marketsize' && !rendered.marketsize) { renderMarketSize(); rendered.marketsize=true; }
+  if (name === 'whitespace' && !rendered.whitespace) { renderWhitespace(); rendered.whitespace=true; }
+  if (name === 'expansion' && !rendered.expansion) { renderExpansion(); rendered.expansion=true; }
+  if (name === 'reference' && !rendered.reference) { renderReference(); rendered.reference=true; }
+  if (name === 'cepmaster' && !rendered.cepmaster) { renderRefCepMasterTable(); rendered.cepmaster=true; }
+  if (name === 'strategy' && !rendered.strategy) { renderStrategy(); rendered.strategy=true; }
+}
+
+const rendered = {summary:false,overview:false,trend:false,marketsize:false,whitespace:false,expansion:false,reference:false,cepmaster:false,strategy:false};
+
+function initHashRouting() {
+  const hash = window.location.hash.slice(1) || 'summary';
+  switchTab(hash, false);
+}
+
+// ============================================================
+// RENDER FUNCTIONS (matching FANCL v5 structure)
+// ============================================================
+
+function renderSummary() {
+  rendered.summary = true;
+  const summary = monthlySummary;
+  const alerts = summary.alerts || [];
+
+  // KPI
+  renderCompactKPI('kpi-compact');
+
+  // Top3 Changes
+  const t3 = document.getElementById('top3-changes');
+  t3.innerHTML = summary.top3Changes.map(c => {
+    const cepTags = (c.relatedCepIds||[]).map(id =>
+      '<span style="background:rgba(59,130,246,0.15);padding:1px 6px;border-radius:3px;font-size:0.65rem;margin-right:3px">'+id+'</span>'
+    ).join('');
+    return '<div class="summary-change '+c.severity+'"><h4>'+c.title+' '+cepTags+'</h4><p>'+c.description+'</p></div>';
+  }).join('');
+
+  // Intelligence Alerts (rich card format)
+  const alertEl = document.getElementById('intelligence-alerts');
+  const typeConfig = {
+    threat:     {icon:'⚠️', label:'脅威',     color:'var(--danger)'},
+    overinvest: {icon:'📊', label:'過剰投資',  color:'var(--warning)'},
+    opportunity:{icon:'🎯', label:'機会',     color:'var(--success)'},
+    contention: {icon:'⚔️', label:'首位争い',  color:'var(--accent)'},
+    decline:    {icon:'📉', label:'急落',     color:'var(--danger)'},
+    surge:      {icon:'📈', label:'急騰',     color:'var(--success)'},
+  };
+  if (alerts.length === 0) {
+    alertEl.innerHTML = '<div class="card" style="font-size:0.78rem;color:var(--muted)">現在アクティブなアラートはありません</div>';
+  } else {
+    alertEl.innerHTML = alerts.map(a => {
+      const tc = typeConfig[a.type] || {icon:'ℹ️', label:a.type, color:'var(--muted)'};
+      const prBadge = a.priority === 'high'
+        ? '<span class="badge badge-danger">HIGH</span>'
+        : '<span class="badge badge-warning">MED</span>';
+      return '<div class="alert-card" style="border-left:3px solid '+tc.color+';padding:10px 14px;margin-bottom:8px;border-radius:0 8px 8px 0;background:rgba(0,0,0,0.15)">'
+        +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">'
+        +'<span style="font-size:0.72rem;font-weight:700">'+tc.icon+' '+tc.label+'</span>'
+        +prBadge
+        +'<span style="background:rgba(59,130,246,0.15);padding:1px 6px;border-radius:3px;font-size:0.65rem">'+a.cepId+'</span>'
+        +'</div>'
+        +'<div style="font-size:0.82rem;font-weight:600;margin-bottom:3px">'+a.title+'</div>'
+        +'<div style="font-size:0.75rem;color:var(--muted);margin-bottom:2px">'+a.detail+'</div>'
+        +'<div style="font-size:0.68rem;color:var(--muted);font-style:italic">解消条件: '+a.resolveCondition+'</div>'
+        +'</div>';
+    }).join('');
+  }
+
+  // CEP Action Cards
+  document.getElementById('maintain-ceps').innerHTML = (summary.maintainCEPs||[]).map(c =>
+    '<div class="cep-action-card maintain"><h4>'+cepIdTag(c.cepId)+'</h4><p>'+c.reason+'</p></div>'
+  ).join('') || '<div style="font-size:0.72rem;color:var(--muted)">該当なし</div>';
+  document.getElementById('strengthen-ceps').innerHTML = (summary.strengthenCEPs||[]).map(c =>
+    '<div class="cep-action-card strengthen"><h4>'+cepIdTag(c.cepId)+'</h4><p>'+c.reason+'</p></div>'
+  ).join('') || '<div style="font-size:0.72rem;color:var(--muted)">該当なし</div>';
+  document.getElementById('reduce-ceps').innerHTML = (summary.reduceCEPs||[]).map(c =>
+    '<div class="cep-action-card reduce"><h4>'+cepIdTag(c.cepId)+'</h4><p>'+c.reason+'</p></div>'
+  ).join('') || '<div style="font-size:0.72rem;color:var(--muted)">該当なし</div>';
+}
+
+function renderCompactKPI(containerId) {
+  const c = document.getElementById(containerId);
+  if (!c) return;
+  c.innerHTML = brands.map(b => {
+    const cur = observedVolume.current[b]||0;
+    const prev = observedVolume.previous[b]||0;
+    return '<div class="kpi-compact-item"><span class="brand-name" style="color:'+brandColors[b]+'">'+brandShort[b]+'</span><span class="kpi-val">'+fmtNum(cur)+'</span><span>'+deltaNum(cur,prev)+'</span></div>';
+  }).join('');
+}
+
+function renderBrandLegend(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  let html = '<div class="legend">';
+  brands.forEach(b => { html += '<div class="legend-item"><div class="legend-dot" style="background:'+brandColors[b]+'"></div><span>'+brandShort[b]+'</span></div>'; });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function renderOverview() {
+  renderOverviewInsights();
+  renderScatterInsights();
+  renderBrandLegend('brand-legend-overview');
+
+  // Dynamic brand header columns (competitors only, self brand has its own column)
+  const hdrEl = document.getElementById('overview-brand-headers');
+  if (hdrEl) {
+    let hdrHtml = '';
+    brands.filter(b=>b!==selfBrand).forEach(b => {
+      hdrHtml += '<th style="color:'+brandColors[b]+';font-size:0.65rem">'+brandShort[b]+' SOV</th>';
+    });
+    hdrEl.outerHTML = hdrHtml;
+  }
+
+  const colCount = brands.length + 7;
+  const tbody = document.getElementById('overview-table-body');
+  let html = '';
+  html += '<tr class="group-header-row"><td colspan="'+colCount+'">状況軸（Situation CEPs）</td></tr>';
+  situationAxes.forEach(id => { html += renderOverviewRow(id); });
+  html += '<tr class="group-header-row"><td colspan="'+colCount+'">体験価値軸（Experience CEPs）</td></tr>';
+  experienceAxes.forEach(id => { html += renderOverviewRow(id); });
+  tbody.innerHTML = html;
+  drawScatter();
+}
+
+function renderOverviewRow(id) {
+  const adv = cepAdv(id);
+  const strategy = getStrategy(id);
+  const advColor = adv > 0 ? 'var(--success)' : adv < 0 ? 'var(--danger)' : 'var(--muted)';
+  const mc = cepMentionCount(id);
+  const ms = cepMentionShare(id);
+  let html = '<tr><td style="font-weight:600">'+cepIdTag(id)+'</td>';
+  html += '<td style="color:'+advColor+';font-weight:700">'+(adv>0?'+':'')+adv+'</td>';
+  html += '<td style="font-size:0.72rem">'+fmtNum(mc)+'</td>';
+  html += '<td style="font-size:0.72rem">'+ms.toFixed(1)+'%</td>';
+  html += '<td>'+sizeBadgeHtml(id)+'</td>';
+  // Self brand SOV + delta column
+  const selfCur = currentSOV[selfBrand]?.[id] || 0;
+  const selfPrev = previousSOV[selfBrand]?.[id] || 0;
+  html += '<td style="font-weight:700;color:var(--cherulla)">'+selfCur.toFixed(1)+'% '+delta(selfCur,selfPrev)+'</td>';
+  const d = selfCur - selfPrev;
+  html += '<td style="font-weight:700;color:'+(d>1?'var(--success)':d<-1?'var(--danger)':'var(--muted)')+'"><span>'+(d>0?'+':'')+d.toFixed(1)+'</span></td>';
+  // Competitor brand SOV columns
+  brands.filter(b=>b!==selfBrand).forEach(b => {
+    const v = currentSOV[b]?.[id] || 0;
+    const pv = previousSOV[b]?.[id] || 0;
+    html += '<td style="color:'+brandColors[b]+'">'+v.toFixed(1)+'% <span style="font-size:0.6rem">'+delta(v,pv)+'</span></td>';
+  });
+  html += '<td><span class="badge '+strategy.cls+'">'+strategy.label+'</span></td></tr>';
+  return html;
+}
+
+function drawScatter() {
+  const canvas = document.getElementById('scatter-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const ml=70,mr=40,mt=40,mb=60,pw=W-ml-mr,ph=H-mt-mb;
+  const allAxes = [...situationAxes,...experienceAxes];
+  const maxMentions = Math.max(...allAxes.map(id => cepMentionCount(id)));
+  const points = allAxes.map(id => {
+    const adv = cepAdv(id);
+    const fSov = currentSOV[selfBrand]?.[id]||0;
+    const pfSov = previousSOV[selfBrand]?.[id]||0;
+    const compAvg = brands.filter(b=>b!==selfBrand).reduce((s,b)=>s+(currentSOV[b]?.[id]||0),0)/(brands.length-1);
+    const prevCompAvg = brands.filter(b=>b!==selfBrand).reduce((s,b)=>s+(previousSOV[b]?.[id]||0),0)/(brands.length-1);
+    const mentions = cepMentionCount(id);
+    return {id, label: cepLabel(id), adv, sovDiff: fSov-compAvg, prevSovDiff: pfSov-prevCompAvg, mentions, type: situationAxes.includes(id)?'状況':'体験価値'};
+  });
+  // Data-adaptive axis range with padding
+  const advVals = points.map(p=>p.adv);
+  const diffVals = points.map(p=>p.sovDiff).concat(points.map(p=>p.prevSovDiff));
+  const advPad = Math.max(2, (Math.max(...advVals)-Math.min(...advVals))*0.15);
+  const diffPad = Math.max(5, (Math.max(...diffVals)-Math.min(...diffVals))*0.15);
+  const minAdv = Math.min(0, Math.min(...advVals)) - advPad;
+  const maxAdv = Math.max(0, Math.max(...advVals)) + advPad;
+  const minDiff = Math.min(0, Math.min(...diffVals)) - diffPad;
+  const maxDiff = Math.max(0, Math.max(...diffVals)) + diffPad;
+  const zeroX=ml+pw*(0-minAdv)/(maxAdv-minAdv);
+  const zeroY=mt+ph*(1-(0-minDiff)/(maxDiff-minDiff));
+  // Quadrant fills
+  ctx.fillStyle='rgba(16,185,129,0.05)';ctx.fillRect(zeroX,mt,W-mr-zeroX,zeroY-mt);
+  ctx.fillStyle='rgba(239,68,68,0.05)';ctx.fillRect(ml,zeroY,zeroX-ml,H-mb-zeroY);
+  ctx.fillStyle='rgba(245,158,11,0.05)';ctx.fillRect(zeroX,zeroY,W-mr-zeroX,H-mb-zeroY);
+  ctx.fillStyle='rgba(139,92,246,0.05)';ctx.fillRect(ml,mt,zeroX-ml,zeroY-mt);
+  // Grid
+  ctx.strokeStyle='#334155';ctx.lineWidth=0.5;
+  for(let i=0;i<=5;i++){const y=mt+ph*i/5;ctx.beginPath();ctx.moveTo(ml,y);ctx.lineTo(W-mr,y);ctx.stroke();const val=maxDiff-(maxDiff-minDiff)*i/5;ctx.fillStyle='#94a3b8';ctx.font='10px sans-serif';ctx.textAlign='right';ctx.fillText((val>0?'+':'')+val.toFixed(0)+'%',ml-5,y+4);}
+  for(let i=0;i<=4;i++){const x=ml+pw*i/4;ctx.beginPath();ctx.moveTo(x,mt);ctx.lineTo(x,H-mb);ctx.stroke();const val=minAdv+(maxAdv-minAdv)*i/4;ctx.fillStyle='#94a3b8';ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillText((val>0?'+':'')+val.toFixed(0)+'pt',x,H-mb+15);}
+  // Center lines
+  ctx.strokeStyle='#64748b';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(zeroX,mt);ctx.lineTo(zeroX,H-mb);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ml,zeroY);ctx.lineTo(W-mr,zeroY);ctx.stroke();ctx.setLineDash([]);
+  // Quadrant labels
+  ctx.fillStyle='rgba(148,163,184,0.5)';ctx.font='11px sans-serif';ctx.textAlign='center';
+  ctx.fillText('強みを活かして投資中',(zeroX+W-mr)/2,mt+20);
+  ctx.fillText('弱みに過剰投資',(ml+zeroX)/2,mt+20);
+  ctx.fillText('強みなのに投資不足',(zeroX+W-mr)/2,H-mb-10);
+  ctx.fillText('正しい非投資',(ml+zeroX)/2,H-mb-10);
+  // Axis labels
+  ctx.fillStyle='#e2e8f0';ctx.font='11px sans-serif';ctx.textAlign='center';
+  ctx.fillText('← CEP劣位 | チェルラーブリリオ CEP優位スコア(pt) | CEP優位 →',W/2,H-5);
+  ctx.save();ctx.translate(15,H/2);ctx.rotate(-Math.PI/2);ctx.fillText('← 競合超過 | チェルラーブリリオ SOV差分(vs競合平均) | 自社超過 →',0,0);ctx.restore();
+  // Points
+  const sColors = {'状況':'#3b82f6','体験価値':'#f59e0b'};
+  points.forEach(p => {
+    const x=ml+pw*(p.adv-minAdv)/(maxAdv-minAdv);
+    const y=mt+ph*(1-(p.sovDiff-minDiff)/(maxDiff-minDiff));
+    const py=mt+ph*(1-(p.prevSovDiff-minDiff)/(maxDiff-minDiff));
+    const size = Math.max(5, Math.min(16, Math.sqrt(p.mentions/maxMentions)*30));
+    // Ghost (previous)
+    ctx.beginPath();ctx.arc(x,py,size*0.7,0,Math.PI*2);ctx.fillStyle=sColors[p.type];ctx.globalAlpha=0.15;ctx.fill();ctx.globalAlpha=1;
+    // Movement arrow
+    if(Math.abs(y-py)>3){ctx.beginPath();ctx.moveTo(x,py);ctx.lineTo(x,y);ctx.strokeStyle=sColors[p.type];ctx.lineWidth=1;ctx.globalAlpha=0.3;ctx.stroke();ctx.globalAlpha=1;}
+    // Current point
+    ctx.beginPath();ctx.arc(x,y,size,0,Math.PI*2);ctx.fillStyle=sColors[p.type];ctx.globalAlpha=0.8;ctx.fill();ctx.globalAlpha=1;ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.fillStyle='#e2e8f0';ctx.font='9px sans-serif';ctx.textAlign='left';ctx.fillText(p.label.slice(0,8),x+size+3,y+3);
+  });
+  // Legend
+  ctx.fillStyle='#3b82f6';ctx.beginPath();ctx.arc(ml+10,H-38,5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#e2e8f0';ctx.font='10px sans-serif';ctx.textAlign='left';ctx.fillText('状況軸',ml+20,H-35);
+  ctx.fillStyle='#f59e0b';ctx.beginPath();ctx.arc(ml+80,H-38,5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#e2e8f0';ctx.fillText('体験価値軸',ml+90,H-35);
+  ctx.fillStyle='#94a3b8';ctx.font='9px sans-serif';ctx.fillText('(バブルサイズ=CEP言及数、薄色=前期)',ml+170,H-35);
+}
+
+function renderMarketSize() {
+  renderMarketSizeInsights();
+  renderMarketSizeTable();
+  drawMarketBubble();
+}
+
+function renderMarketSizeInsights() {
+  const allIds = [...situationAxes,...experienceAxes];
+  // Largest market
+  const sorted = allIds.slice().sort((a,b)=>cepMentionCount(b)-cepMentionCount(a));
+  const largest = sorted[0];
+  // Highest self SOV CEP
+  const sovSorted = allIds.slice().sort((a,b) => (currentSOV[selfBrand]?.[b]||0) - (currentSOV[selfBrand]?.[a]||0));
+  const highestSov = sovSorted[0];
+  const hsSov = currentSOV[selfBrand]?.[highestSov]||0;
+  // Over-investment risk: small market (<1000) with SOV > 20%
+  const overInvest = allIds.filter(id => cepMentionCount(id) < 200 && (currentSOV[selfBrand]?.[id]||0) > 20);
+  // Best opportunity: large market (>500), CEP優位, low SOV (<20%)
+  const bestOpp = allIds.filter(id => cepMentionCount(id) > 500 && cepAdv(id) > 0 && (currentSOV[selfBrand]?.[id]||0) < 20);
+
+  const insights = [
+    {title:'市場規模最大のCEP', text: largest ? cepLabel(largest)+'('+largest+') — 言及数'+fmtNum(cepMentionCount(largest))+'件' : 'N/A'},
+    {title:'チェルラーブリリオ SOV最高のCEP', text: highestSov ? cepLabel(highestSov)+'('+highestSov+') — SOV '+hsSov.toFixed(1)+'%' : 'N/A'},
+    {title:'過剰投資リスク', text: overInvest.length > 0 ? '小規模市場(言及数<200)にSOV>20%のCEP: '+overInvest.map(id=>cepLabel(id).slice(0,6)+'('+id+')').join('、') : '該当なし'},
+    {title:'最大の投資機会', text: bestOpp.length > 0 ? '大規模市場(言及数>500)でCEP優位かつSOV低い: '+bestOpp.map(id=>cepLabel(id).slice(0,6)+'('+id+')').join('、') : '条件に合致するCEPなし（SOV投入済み）'},
+  ];
+  generateInsights('marketsize-insights', insights);
+}
+
+function renderMarketSizeTable() {
+  const allIds = [...situationAxes,...experienceAxes];
+  const tbody = document.getElementById('marketsize-table-body');
+  if (!tbody) return;
+  const items = allIds.map(id => {
+    const m = cepMentions[id]||{total:0,byBrand:null};
+    const mc = m.total;
+    const adv = cepAdv(id);
+    const fSov = currentSOV[selfBrand]?.[id]||0;
+    const compAvg = (brands.filter(b=>b!==selfBrand).reduce((s,b)=>s+(currentSOV[b]?.[id]||0),0))/(brands.length-1);
+    let judgment = '', judgmentIcon = '';
+    if (mc >= 500 && adv > 0 && fSov < compAvg) { judgment = '最優先投資'; judgmentIcon = '🟢'; }
+    else if (mc >= 500 && adv > 0 && fSov >= compAvg) { judgment = '維持'; judgmentIcon = '🟡'; }
+    else if (mc < 200 && adv < 0 && fSov > compAvg) { judgment = '過剰投資'; judgmentIcon = '🔴'; }
+    else if (mc < 200 && fSov > 20) { judgment = '小規模過剰'; judgmentIcon = '🔴'; }
+    else if (mc >= 500 && adv < 0 && fSov > compAvg) { judgment = '大市場過剰'; judgmentIcon = '🟠'; }
+    else if (mc >= 200 && adv > 0 && fSov < 15) { judgment = '投資拡大候補'; judgmentIcon = '🟢'; }
+    else { judgment = '現状維持'; judgmentIcon = '⚪'; }
+    return {id, total: mc, adv, fSov, judgment, judgmentIcon, type: cepMaster[id]?.type === 'situation' ? '状況' : '体験価値'};
+  }).sort((a,b) => b.total - a.total);
+
+  let html = '';
+  items.forEach(item => {
+    const advColor = item.adv > 0 ? 'var(--success)' : item.adv < 0 ? 'var(--danger)' : 'var(--muted)';
+    html += '<tr><td style="font-weight:600">'+cepIdTag(item.id)+'</td><td>'+item.type+'</td><td style="font-weight:700">'+fmtNum(item.total)+'</td><td>'+cepMentionShare(item.id).toFixed(1)+'%</td><td style="color:'+advColor+';font-weight:700">'+(item.adv>0?'+':'')+item.adv+'</td><td style="color:var(--cherulla)">'+item.fSov.toFixed(1)+'%</td><td>'+sizeBadgeHtml(item.id)+'</td><td>'+item.judgmentIcon+' '+item.judgment+'</td></tr>';
+  });
+  tbody.innerHTML = html;
+}
+
+function drawMarketBubble() {
+  const canvas = document.getElementById('market-bubble-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const ml=80,mr=40,mt=40,mb=60,pw=W-ml-mr,ph=H-mt-mb;
+  const allAxes = [...situationAxes,...experienceAxes];
+
+  const maxAdv=10,minAdv=-10;
+  const mentionValues = allAxes.map(id=>cepMentionCount(id));
+  const minMent = Math.min(...mentionValues);
+  const maxMent = Math.max(...mentionValues);
+  // Log scale for Y
+  const logMin = Math.log2(Math.max(100, minMent));
+  const logMax = Math.log2(maxMent * 1.2);
+
+  const zeroX=ml+pw*(0-minAdv)/(maxAdv-minAdv);
+
+  // Quadrant fills (threshold at 500件)
+  const thresholdY = mt + ph * (1 - (Math.log2(500) - logMin)/(logMax - logMin));
+  ctx.fillStyle='rgba(16,185,129,0.06)';ctx.fillRect(zeroX,mt,W-mr-zeroX,thresholdY-mt);
+  ctx.fillStyle='rgba(139,92,246,0.06)';ctx.fillRect(ml,mt,zeroX-ml,thresholdY-mt);
+  ctx.fillStyle='rgba(245,158,11,0.06)';ctx.fillRect(zeroX,thresholdY,W-mr-zeroX,H-mb-thresholdY);
+  ctx.fillStyle='rgba(239,68,68,0.06)';ctx.fillRect(ml,thresholdY,zeroX-ml,H-mb-thresholdY);
+
+  // Grid X
+  ctx.strokeStyle='#334155';ctx.lineWidth=0.5;
+  for(let i=0;i<=4;i++){const x=ml+pw*i/4;ctx.beginPath();ctx.moveTo(x,mt);ctx.lineTo(x,H-mb);ctx.stroke();const val=minAdv+(maxAdv-minAdv)*i/4;ctx.fillStyle='#94a3b8';ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillText((val>0?'+':'')+val.toFixed(0)+'pt',x,H-mb+15);}
+  // Y grid (log scale markers)
+  [50,100,200,500,1000,1500].forEach(v => {
+    if (v < minMent*0.8 || v > maxMent*1.3) return;
+    const ly = mt + ph * (1 - (Math.log2(v) - logMin)/(logMax - logMin));
+    if (ly < mt || ly > H-mb) return;
+    ctx.beginPath();ctx.moveTo(ml,ly);ctx.lineTo(W-mr,ly);ctx.stroke();
+    ctx.fillStyle='#94a3b8';ctx.font='10px sans-serif';ctx.textAlign='right';ctx.fillText(fmtNum(v),ml-5,ly+4);
+  });
+
+  // Center line & threshold
+  ctx.strokeStyle='#64748b';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(zeroX,mt);ctx.lineTo(zeroX,H-mb);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ml,thresholdY);ctx.lineTo(W-mr,thresholdY);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Quadrant labels
+  ctx.fillStyle='rgba(148,163,184,0.5)';ctx.font='11px sans-serif';ctx.textAlign='center';
+  ctx.fillText('大市場×優位',(zeroX+W-mr)/2,mt+18);
+  ctx.fillText('大市場×劣位',(ml+zeroX)/2,mt+18);
+  ctx.fillText('小市場×優位',(zeroX+W-mr)/2,H-mb-10);
+  ctx.fillText('小市場×劣位',(ml+zeroX)/2,H-mb-10);
+
+  // Axis labels
+  ctx.fillStyle='#e2e8f0';ctx.font='11px sans-serif';ctx.textAlign='center';
+  ctx.fillText('← CEP劣位 | チェルラーブリリオ CEP優位スコア(pt) | CEP優位 →',W/2,H-5);
+  ctx.save();ctx.translate(15,H/2);ctx.rotate(-Math.PI/2);ctx.fillText('← 小規模 | 市場規模（言及数・対数スケール） | 大規模 →',0,0);ctx.restore();
+
+  // Points
+  allAxes.forEach(id => {
+    const adv = cepAdv(id);
+    const mentions = cepMentionCount(id);
+    const selfSov = currentSOV[selfBrand]?.[id]||0;
+    const x = ml + pw * (adv - minAdv)/(maxAdv - minAdv);
+    const logV = Math.log2(Math.max(100, mentions));
+    const y = mt + ph * (1 - (logV - logMin)/(logMax - logMin));
+    const size = Math.max(6, Math.min(18, selfSov * 0.6));
+    const color = adv > 0 ? '#10b981' : '#ef4444';
+
+    ctx.beginPath();ctx.arc(x,y,size,0,Math.PI*2);
+    ctx.fillStyle=color;ctx.globalAlpha=0.6;ctx.fill();
+    ctx.globalAlpha=1;ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.fillStyle='#e2e8f0';ctx.font='9px sans-serif';ctx.textAlign='left';
+    ctx.fillText(cepLabel(id).slice(0,8)+' ('+fmtNum(mentions)+')',x+size+3,y+3);
+  });
+
+  // Legend
+  ctx.fillStyle='#10b981';ctx.beginPath();ctx.arc(ml+10,H-38,5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#e2e8f0';ctx.font='10px sans-serif';ctx.textAlign='left';ctx.fillText('CEP優位',ml+20,H-35);
+  ctx.fillStyle='#ef4444';ctx.beginPath();ctx.arc(ml+90,H-38,5,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#e2e8f0';ctx.fillText('CEP劣位',ml+100,H-35);
+  ctx.fillStyle='#94a3b8';ctx.font='9px sans-serif';ctx.fillText('バブルサイズ = チェルラーブリリオ SOV / 点線 = 500件(大規模閾値)',ml+170,H-35);
+}
+
+function renderWhitespace() {
+  renderWhitespaceInsights();
+  renderWhitespaceTable();
+  renderGapChart();
+  renderCompetitionHeatmap();
+  renderCoverageMatrix();
+}
+
+function renderWhitespaceTable() {
+  const allAxes = [...situationAxes,...experienceAxes];
+  const tbody = document.getElementById('whitespace-table-body');
+  if (!tbody) return;
+  const items = allAxes.map(id => {
+    const adv = cepAdv(id);
+    const fSov = currentSOV[selfBrand]?.[id]||0;
+    const compAvg = brands.filter(b=>b!==selfBrand).reduce((s,b)=>s+(currentSOV[b]?.[id]||0),0)/(brands.length-1);
+    const os = opportunityScore(id);
+    const mc = cepMentionCount(id);
+    return {id, adv, fSov, compAvg, wsScore: os, mc, type: situationAxes.includes(id)?'状況':'体験価値'};
+  }).sort((a,b) => b.wsScore - a.wsScore);
+  let html = '';
+  items.forEach(item => {
+    const advColor = item.adv > 0 ? 'var(--success)' : 'var(--danger)';
+    let action = '';
+    if (item.wsScore > 5) action = '<span class="badge badge-success">即座に投資拡大</span>';
+    else if (item.wsScore > 2) action = '<span class="badge badge-warning">段階的に投資</span>';
+    else if (item.wsScore > 0) action = '<span class="badge badge-info">様子見</span>';
+    else action = '<span class="badge badge-danger">投資抑制</span>';
+    const smallWarn = item.mc < 200 ? ' <span style="color:var(--warning);font-size:0.65rem">⚠小</span>' : '';
+    html += '<tr><td style="font-weight:600">'+cepIdTag(item.id)+'</td><td>'+item.type+'</td>'
+      +'<td style="color:'+advColor+';font-weight:700">'+(item.adv>0?'+':'')+item.adv+'</td>'
+      +'<td>'+item.compAvg.toFixed(1)+'%</td><td style="color:var(--cherulla);font-weight:700">'+item.fSov+'%</td>'
+      +'<td style="font-size:0.72rem">'+fmtNum(item.mc)+smallWarn+'</td>'
+      +'<td>'+sizeBadgeHtml(item.id)+'</td>'
+      +'<td style="font-weight:700;color:'+(item.wsScore>3?'var(--success)':item.wsScore>0?'var(--warning)':'var(--danger)')+'">'+item.wsScore.toFixed(1)+'</td>'
+      +'<td>'+action+'</td></tr>';
+  });
+  tbody.innerHTML = html;
+}
+
+function renderGapChart() {
+  const allAxes = [...situationAxes,...experienceAxes];
+  const container = document.getElementById('gap-chart');
+  if (!container) return;
+  let html = '';
+  allAxes.forEach(id => {
+    const fSov = currentSOV[selfBrand]?.[id]||0;
+    const compAvg = brands.filter(b=>b!==selfBrand).reduce((s,b)=>s+(currentSOV[b]?.[id]||0),0)/(brands.length-1);
+    const diff = fSov - compAvg;
+    const barW = Math.min(Math.abs(diff)/80*100,100);
+    const color = diff > 0 ? 'var(--success)' : 'var(--danger)';
+    const mc = cepMentionCount(id);
+    const opacity = mc >= 500 ? 1 : mc >= 200 ? 0.6 : 0.3;
+    html += '<div style="display:flex;align-items:center;margin-bottom:4px">'
+      +'<div style="width:90px;text-align:right;font-size:0.68rem;padding-right:8px">'+cepLabel(id).slice(0,8)+' '+sizeBadgeHtml(id)+'</div>'
+      +'<div style="flex:1;display:flex;align-items:center;position:relative;height:14px">'
+      +'<div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--border)"></div>'
+      +(diff >= 0
+        ? '<div style="width:50%"></div><div style="width:'+barW/2+'%;height:14px;background:'+color+';border-radius:0 3px 3px 0;opacity:'+opacity+'"></div>'
+        : '<div style="width:'+(50-barW/2)+'%"></div><div style="width:'+barW/2+'%;height:14px;background:'+color+';border-radius:3px 0 0 3px;opacity:'+opacity+'"></div>')
+      +'</div>'
+      +'<div style="width:50px;font-size:0.68rem;padding-left:4px;color:'+color+'">'+(diff>0?'+':'')+diff.toFixed(1)+'</div></div>';
+  });
+  container.innerHTML = html;
+}
+
+function renderCompetitionHeatmap() {
+  const allAxes = [...situationAxes,...experienceAxes];
+  const container = document.getElementById('competition-heatmap');
+  if (!container) return;
+  let html = '<table><thead><tr><th>CEP軸</th>';
+  brands.forEach(b => { html += '<th style="color:'+brandColors[b]+'">'+brandShort[b]+'</th>'; });
+  html += '<th>MAX</th></tr></thead><tbody>';
+  allAxes.forEach(id => {
+    html += '<tr><td style="font-size:0.68rem">'+cepLabel(id).slice(0,8)+' <span style="font-size:0.58rem;color:var(--muted)">'+id+'</span></td>';
+    let maxVal=0,maxBrand='';
+    brands.forEach(b => { const v=currentSOV[b]?.[id]||0; if(v>maxVal){ maxVal=v; maxBrand=b; } });
+    brands.forEach(b => {
+      const v=currentSOV[b]?.[id]||0;
+      const rgb = hexToRgb(brandColors[b]);
+      const bg='rgba('+rgb+','+Math.min(v/100,1)*0.6+')';
+      html += '<td style="background:'+bg+';'+(v===maxVal&&v>0?'font-weight:800':'')+';font-size:0.72rem;text-align:center">'+v+'%</td>';
+    });
+    html += '<td style="font-size:0.68rem;color:'+(brandColors[maxBrand]||'var(--muted)')+'">'+( brandShort[maxBrand]||'-')+'</td></tr>';
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function renderCoverageMatrix() {
+  const allAxes = [...situationAxes,...experienceAxes];
+  const wsCeps = allAxes.map(id => {
+    const adv = cepAdv(id);
+    const compAvg = brands.filter(b=>b!==selfBrand).reduce((s,b)=>s+(currentSOV[b]?.[id]||0),0)/(brands.length-1);
+    return {id, ws: adv * (1 - compAvg/100)};
+  }).filter(s => s.ws > 0).sort((a,b) => b.ws - a.ws);
+
+  const container = document.getElementById('coverage-matrix');
+  if (!container) return;
+  let html = '<table class="coverage-matrix"><thead><tr><th style="text-align:left">CEP (WSスコア順)</th><th>WS</th>';
+  allMedia.forEach(m => { html += '<th style="color:'+(mediaColors[m]||'var(--muted)')+';font-size:0.62rem">'+m+'</th>'; });
+  html += '</tr></thead><tbody>';
+
+  wsCeps.forEach(({id, ws}) => {
+    html += '<tr><td class="cep-name">'+cepLabel(id)+' <span style="font-size:0.58rem;color:var(--muted)">'+id+'</span></td>';
+    html += '<td style="font-weight:700;color:var(--warning)">'+ws.toFixed(1)+'</td>';
+    allMedia.forEach(m => {
+      const selfCd = crossData[selfBrand]?.[id];
+      const selfPct = selfCd ? (selfCd.media?.[m]||0) : 0;
+      let compPresent = [];
+      brands.filter(b=>b!==selfBrand).forEach(b => {
+        const d = crossData[b]?.[id];
+        if (d && d.media && (d.media[m]||0) > 5) {
+          compPresent.push({brand: b, pct: d.media[m]});
+        }
+      });
+      const isSelfPresent = selfPct > 0;
+      const isCompPresent = compPresent.length > 0;
+      let cellContent = '';
+      let cellClass = '';
+      if (isSelfPresent) {
+        cellContent = '<span style="color:var(--cherulla);font-weight:700">C</span>';
+        compPresent.forEach(cp => {
+          cellContent += '<span style="color:'+brandColors[cp.brand]+';font-size:0.55rem;margin-left:1px">'+brandShort[cp.brand].charAt(0)+'</span>';
+        });
+      } else if (isCompPresent) {
+        cellClass = ' gap-indicator';
+        compPresent.forEach(cp => {
+          cellContent += '<span style="color:'+brandColors[cp.brand]+';font-size:0.6rem;font-weight:700">'+brandShort[cp.brand].charAt(0)+'</span>';
+        });
+      } else {
+        cellContent = '<span style="color:var(--muted)">-</span>';
+      }
+      html += '<td class="'+cellClass+'" title="'+(isSelfPresent ? 'チェルラー:'+selfPct.toFixed(0)+'%' : 'チェルラー未出稿')+(compPresent.length > 0 ? ' / '+compPresent.map(c=>brandShort[c.brand]+':'+c.pct.toFixed(0)+'%').join(', ') : '')+'">'+cellContent+'</td>';
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  html += '<div style="margin-top:8px;font-size:0.68rem;color:var(--muted)"><span style="display:inline-block;width:12px;height:12px;background:rgba(239,68,68,0.25);border-radius:2px;vertical-align:middle;margin-right:4px"></span>赤背景 = チェルラー未出稿×競合出稿中（拡張候補） / <span style="color:var(--cherulla);font-weight:700">C</span>=チェルラー出稿中 / 競合はブランド名の頭文字（>5%のみ表示）</div>';
+  container.innerHTML = html;
+}
+
+function renderExpansion() {
+  renderExpansionInsights();
+  renderExpansionCards();
+  renderIntegratedHeatmap();
+}
+
+function renderExpansionCards() {
+  const allAxes = [...situationAxes,...experienceAxes];
+  const scored = allAxes.map(id => {
+    const adv = cepAdv(id);
+    const compAvg = brands.filter(b=>b!==selfBrand).reduce((s,b)=>s+(currentSOV[b]?.[id]||0),0)/(brands.length-1);
+    const fSov = currentSOV[selfBrand]?.[id]||0;
+    return {id, ws: adv * (1 - compAvg/100), adv, compAvg, fSov};
+  }).filter(s => s.ws > 0).sort((a,b) => b.ws - a.ws).slice(0, 5);
+
+  const container = document.getElementById('expansion-cards');
+  if (!container) return;
+  let html = '';
+
+  scored.forEach(s => {
+    const selfData = crossData[selfBrand]?.[s.id];
+    const selfMedia = selfData ? selfData.media : {};
+    const selfObs = selfData ? selfData.obs : 0;
+    const mc = cepMentionCount(s.id);
+    const candidates = [];
+    allMedia.forEach(m => {
+      if ((selfMedia[m]||0) > 0) return;
+      let bestCompetitor = null;
+      brands.filter(b=>b!==selfBrand).forEach(b => {
+        const d = crossData[b]?.[s.id];
+        if (d && d.media && (d.media[m]||0) > 5) {
+          const obsForMedia = Math.round(d.obs * d.media[m] / 100);
+          if (!bestCompetitor || obsForMedia > bestCompetitor.obs) {
+            bestCompetitor = {brand: b, pct: d.media[m], obs: d.obs, obsForMedia, fmt: d.fmt};
+          }
+        }
+      });
+      if (bestCompetitor) {
+        const topFmt = bestCompetitor.fmt ? Object.entries(bestCompetitor.fmt).sort((a,b)=>b[1]-a[1])[0] : null;
+        candidates.push({media: m, competitor: bestCompetitor, topFmt});
+      }
+    });
+
+    const fSov = currentSOV[selfBrand]?.[s.id]||0;
+    const sovDiff = fSov - s.compAvg;
+    const selfMediaStr = Object.entries(selfMedia).filter(([_,v])=>v>0).sort((a,b)=>b[1]-a[1]).map(([m,v])=>m+' '+v.toFixed(0)+'%').join(', ') || 'なし';
+
+    html += '<div class="expansion-card">'
+      +'<div class="card-header">'
+      +'<div>'
+      +'<h4>'+cepLabel(s.id)+' <span style="font-size:0.65rem;color:var(--muted)">'+s.id+'</span> '+sizeBadgeHtml(s.id)+'</h4>'
+      +'<div style="font-size:0.75rem;color:var(--muted)">CEP優位: '+(s.adv>0?'+':'')+s.adv+'pt | チェルラー SOV: '+fSov+'% | 言及数: '+fmtNum(mc)+'件</div>'
+      +'</div>'
+      +'<div class="ws-score">WS: '+s.ws.toFixed(1)+'</div>'
+      +'</div>';
+
+    if (candidates.length > 0) {
+      html += '<div style="margin-bottom:6px;font-size:0.78rem;font-weight:600">拡張候補媒体:</div>';
+      candidates.forEach(c => {
+        html += '<div class="media-candidate">'
+          +'<div class="media-name-exp" style="color:'+(mediaColors[c.media]||'var(--text)')+'">'+c.media+'</div>'
+          +'<div class="competitor-ref">← '+c.competitor.brand+' '+c.competitor.pct.toFixed(0)+'% / '+fmtNum(c.competitor.obs)+' obs</div>'
+          +'<div style="font-size:0.72rem;color:var(--accent)">推奨フォーマット: '+(c.topFmt ? c.topFmt[0]+' '+c.topFmt[1].toFixed(0)+'%' : '-')+'</div>'
+          +'</div>';
+      });
+    } else {
+      html += '<div style="font-size:0.78rem;color:var(--muted);padding:8px">拡張候補なし（競合の出稿が少ない、またはチェルラーが既にカバー）</div>';
+    }
+
+    html += '<div class="fancl-current">チェルラー現状: '+selfMediaStr+' / '+fmtNum(selfObs)+' obs | 対競合SOV差: '+(sovDiff>0?'+':'')+sovDiff.toFixed(1)+'%</div>';
+    html += '</div>';
+  });
+
+  container.innerHTML = html;
+}
+
+function renderIntegratedHeatmap() {
+  const container = document.getElementById('integrated-heatmap');
+  if (!container) return;
+  const allAxes = [...situationAxes,...experienceAxes];
+  let html = '<table class="cross-heatmap"><thead><tr><th style="text-align:left">CEP軸</th><th>obs</th>';
+  allMedia.forEach(m => { html += '<th style="color:'+(mediaColors[m]||'var(--muted)')+';font-size:0.62rem">'+m+'</th>'; });
+  html += '</tr></thead><tbody>';
+
+  const scored = allAxes.map(id => {
+    const adv = cepAdv(id);
+    const compAvg = brands.filter(b=>b!==selfBrand).reduce((s,b)=>s+(currentSOV[b]?.[id]||0),0)/(brands.length-1);
+    return {id, ws: adv * (1 - compAvg/100)};
+  }).filter(s => s.ws > 0).sort((a,b) => b.ws - a.ws);
+
+  scored.forEach(({id}) => {
+    brands.forEach((b, bi) => {
+      if (bi === 0) html += '<tr><td class="axis-name" rowspan="'+brands.length+'" style="vertical-align:top">'+cepLabel(id).slice(0,8)+' <span style="font-size:0.58rem;color:var(--muted)">'+id+'</span></td>';
+      else html += '<tr>';
+      const d = crossData[b]?.[id];
+      const obs = d ? d.obs : 0;
+      html += '<td style="font-size:0.6rem;color:'+brandColors[b]+';font-weight:600;white-space:nowrap">'+brandShort[b]+' '+(obs > 0 ? (obs/1000).toFixed(0)+'K' : '-')+'</td>';
+      allMedia.forEach(m => {
+        const v = d ? (d.media?.[m]||0) : 0;
+        const rgb = mediaColors[m] ? hexToRgb(mediaColors[m]) : '100,100,100';
+        html += '<td style="background:rgba('+rgb+','+Math.min(v/100,1)*0.6+');'+(v>30?'font-weight:800':'')+'">'+(v>0?v.toFixed(0)+'%':'-')+'</td>';
+      });
+      html += '</tr>';
+    });
+  });
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function renderReference() {
+  renderReferenceInsights();
+  renderRefMediaLegend();
+  renderRefMediaStacked();
+  renderDimStackedBar('ref-format-chart','フォーマット',formatColors,allFormats);
+  renderRefSummaryTable();
+  renderRefBrandDetail();
+}
+
+function renderRefMediaLegend() {
+  const el = document.getElementById('ref-media-legend');
+  if (!el) return;
+  el.innerHTML = allMedia.map(m =>
+    '<div class="legend-item"><div class="legend-dot" style="background:'+mediaColors[m]+'"></div>'+m+'</div>'
+  ).join('');
+}
+
+function renderRefMediaStacked() {
+  const container = document.getElementById('ref-media-stacked');
+  if (!container) return;
+  let html = '';
+  brands.forEach(b => {
+    const data = dimData[b]?.['媒体']||{};
+    const obs = dimData[b]?.total_obs||0;
+    html += '<div class="h-bar-row"><div class="h-bar-label" style="color:'+brandColors[b]+'">'+brandShort[b]+'<br><span style="font-size:0.58rem;color:var(--muted)">'+(obs/1000).toFixed(0)+'K</span></div><div class="h-bar-track">';
+    const sorted = allMedia.slice().sort((a,bb)=>(data[bb]||0)-(data[a]||0));
+    sorted.forEach(m => {
+      const pct = data[m]||0;
+      if (pct >= 0.5) html += '<div class="h-bar-seg" style="width:'+pct+'%;background:'+mediaColors[m]+'" title="'+m+': '+pct+'%">'+(pct>=4?m+' '+pct+'%':(pct>=2?pct+'%':''))+'</div>';
+    });
+    html += '</div></div>';
+  });
+  container.innerHTML = html;
+}
+
+function renderRefSummaryTable() {
+  const el = document.getElementById('ref-summary-table');
+  if (!el) return;
+  let html = '';
+  brands.forEach(b => {
+    const d = dimData[b];
+    if (!d) return;
+    const fmtData = d['フォーマット']||{};
+    const mediaData = d['媒体']||{};
+    const topFmt = Object.entries(fmtData).sort((a,bb)=>bb[1]-a[1])[0] || ['---',0];
+    const topMedia = Object.entries(mediaData).sort((a,bb)=>bb[1]-a[1])[0] || ['---',0];
+    const lpPct = (d['LPタイプ']||{})['記事LP']||0;
+    const affPct = (d['アフィリエイトタイプ']||{})['EC系']||0;
+    const mediaCount = Object.entries(mediaData).filter(([_,v])=>v>1).length;
+    html += '<tr>'
+      +'<td style="font-weight:700;color:'+brandColors[b]+'">'+brandShort[b]+'</td>'
+      +'<td>'+fmtNum(d.total_obs||0)+'</td>'
+      +'<td>'+topFmt[0]+' '+topFmt[1].toFixed(1)+'%</td>'
+      +'<td>'+topMedia[0]+' '+topMedia[1].toFixed(1)+'%</td>'
+      +'<td>'+mediaCount+'媒体</td>'
+      +'<td style="'+(lpPct>10?'font-weight:800;color:var(--warning)':'')+'">'+lpPct.toFixed(1)+'%</td>'
+      +'<td>'+(affPct > 0 ? affPct.toFixed(1)+'%' : '非アフィ')+'</td>'
+      +'</tr>';
+  });
+  el.innerHTML = html;
+}
+
+function renderRefBrandDetail() {
+  const container = document.getElementById('ref-brand-detail');
+  if (!container) return;
+  let html = '';
+  brands.forEach(b => {
+    const bd = crossData[b];
+    if (!bd || Object.keys(bd).length===0) return;
+    html += '<div class="card"><h3 style="color:'+brandColors[b]+'">'+brandShort[b]+' 配信構造</h3>';
+    Object.entries(bd).sort((a,bb)=>(bb[1].obs||0)-(a[1].obs||0)).slice(0,8).forEach(([cid,cd]) => {
+      html += '<div class="cross-card"><div class="cep-row-header"><span class="axis">'+cepIdTag(cid)+'</span><span style="font-size:0.72rem;color:var(--muted)">obs='+fmtNum(cd.obs||0)+'</span></div>';
+      if (cd.fmt) {
+        html += '<div class="h-bar-row"><div class="h-bar-label">フォーマット</div><div class="h-bar-track">';
+        allFormats.forEach(f => { const pct=cd.fmt[f]||0; if(pct>0) html += '<div class="h-bar-seg" style="width:'+pct+'%;background:'+formatColors[f]+'">'+(pct>5?f+' '+pct.toFixed(0)+'%':'')+'</div>'; });
+        html += '</div></div>';
+      }
+      if (cd.media) {
+        html += '<div class="h-bar-row"><div class="h-bar-label">媒体</div><div class="h-bar-track">';
+        Object.entries(cd.media).sort((a,bb)=>bb[1]-a[1]).forEach(([m,pct]) => { if(pct>0) { const col=mediaColors[m]||'#666'; html += '<div class="h-bar-seg" style="width:'+pct+'%;background:'+col+'">'+(pct>5?m+' '+pct.toFixed(0)+'%':'')+'</div>'; } });
+        html += '</div></div>';
+      }
+      if (cd.lp) {
+        html += '<div class="h-bar-row"><div class="h-bar-label">LP</div><div class="h-bar-track">';
+        Object.entries(cd.lp).forEach(([lp,pct]) => { if(pct>0) { const col=lp==='記事LP'?'#f59e0b':'#3b82f6'; html += '<div class="h-bar-seg" style="width:'+pct+'%;background:'+col+'">'+(pct>5?lp+' '+pct.toFixed(0)+'%':'')+'</div>'; } });
+        html += '</div></div>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function renderRefCepMasterTable() {
+  const el = document.getElementById('ref-cep-master-table');
+  if (!el) return;
+  const cur = sovTimeSeries[currentPeriodId];
+  const compBrands = brands.filter(b=>b!==selfBrand);
+  let html = '';
+  allActiveCEPs().forEach(id => {
+    const m = cepMaster[id];
+    if (!m) return;
+    const fSov = cur?.[selfBrand]?.[id]||0;
+    const compMax = compBrands.reduce((best, b) => {
+      const s = cur?.[b]?.[id]||0;
+      return s > best.sov ? {brand:b, sov:s} : best;
+    }, {brand:'-', sov:0});
+    const advColor = m.advantage > 3 ? 'var(--success)' : m.advantage < -3 ? 'var(--danger)' : 'var(--muted)';
+    const typeLabel = m.type === 'situation' ? '状況' : '体験価値';
+    html += '<tr>'
+      +'<td style="font-weight:700;font-size:0.72rem">'+id+'</td>'
+      +'<td>'+m.label+'</td>'
+      +'<td style="font-size:0.7rem">'+typeLabel+'</td>'
+      +'<td style="font-weight:700;color:'+advColor+'">'+(m.advantage>0?'+':'')+m.advantage+'</td>'
+      +'<td>'+sizeBadgeHtml(id)+'</td>'
+      +'<td style="font-weight:600">'+fSov.toFixed(1)+'%</td>'
+      +'<td style="font-size:0.7rem">'+(compMax.sov > 0 ? brandShort[compMax.brand]+' '+compMax.sov.toFixed(1)+'%' : '-')+'</td>'
+      +'<td style="font-size:0.65rem;color:var(--muted)">'+(m.keywords||[]).join(', ')+'</td>'
+      +'</tr>';
+  });
+  el.innerHTML = html;
+}
+
+function renderDimStackedBar(containerId, dimension, segColors, segOrder) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  let html = '';
+  brands.forEach(b => {
+    const bd = dimData[b];
+    if (!bd) return;
+    const dimD = bd[dimension] || {};
+    const obs = bd.total_obs||0;
+    html += '<div class="h-bar-row"><div class="h-bar-label" style="color:'+brandColors[b]+'">'+brandShort[b]+'<br><span style="font-size:0.58rem;color:var(--muted)">'+(obs/1000).toFixed(0)+'K</span></div><div class="h-bar-track">';
+    segOrder.forEach(seg => {
+      const pct = dimD[seg]||0;
+      if (pct >= 0.5) { const col=segColors[seg]||'#666'; html += '<div class="h-bar-seg" style="width:'+pct+'%;background:'+col+'" title="'+seg+': '+pct+'%">'+(pct>5?seg+' '+pct.toFixed(0)+'%':'')+'</div>'; }
+    });
+    html += '</div></div>';
+  });
+  el.innerHTML = html;
+}
+
+function renderStrategy() {
+  renderStrategyInsights();
+  renderStrategyCards();
+  renderSOVRebalance();
+}
+
+function renderStrategyInsights() {
+  const curSov = currentSOV[selfBrand]||{};
+  const allIds = allActiveCEPs();
+  // 1) 最重点CEP: highest advantage with decent market
+  const topAdv = allIds.slice().sort((a,b)=>cepAdv(b)-cepAdv(a))[0];
+  // 2) SOV過集中: CEP with highest self SOV
+  const topSov = allIds.slice().sort((a,b)=>(curSov[b]||0)-(curSov[a]||0))[0];
+  const topSovVal = curSov[topSov]||0;
+  // 3) 最大拡大機会: high advantage but low SOV
+  const expandOpp = allIds.filter(id=>cepAdv(id)>0).sort((a,b)=>{
+    const sa = cepAdv(a)*(1-(curSov[a]||0)/100);
+    const sb = cepAdv(b)*(1-(curSov[b]||0)/100);
+    return sb-sa;
+  })[0];
+  // 4) 戦略カバレッジ: how many CEPs have SOV>0
+  const covered = allIds.filter(id=>(curSov[id]||0)>0).length;
+  const insights = [
+    {title:'最重点CEP', text: topAdv ? cepShort(topAdv)+'('+topAdv+') — 優位 '+cepAdv(topAdv).toFixed(1)+'pt' : 'N/A'},
+    {title:'SOV過集中', text: topSov ? cepShort(topSov)+'('+topSov+') — '+topSovVal.toFixed(1)+'%'+(topSovVal>50?' → 分散推奨':'') : 'N/A'},
+    {title:'最大拡大機会', text: expandOpp ? cepShort(expandOpp)+'('+expandOpp+') — 優位 '+cepAdv(expandOpp).toFixed(1)+'pt / SOV '+(curSov[expandOpp]||0).toFixed(1)+'%' : '該当なし'},
+    {title:'CEPカバレッジ', text: covered+' / '+allIds.length+' CEP に出稿中'+(covered<allIds.length*0.3?' — カバー率低、新規投資検討':'')},
+  ];
+  generateInsights('strategy-insights', insights);
+}
+
+function renderStrategyCards() {
+  document.getElementById('strategy-updated').textContent = quarterlyStrategy.lastUpdated;
+  const iconColors = {red:'var(--danger)',green:'var(--success)',yellow:'var(--warning)',blue:'var(--accent)'};
+  document.getElementById('strategy-cards').innerHTML = quarterlyStrategy.strategies.map(s => {
+    const cepTags = (s.targetCepIds||[]).map(id =>
+      '<span style="background:rgba(59,130,246,0.15);padding:1px 6px;border-radius:3px;font-size:0.65rem;margin-left:4px">'+id+'</span>'
+    ).join('');
+    return '<div class="strategy-card"><h4 style="color:'+(iconColors[s.icon]||'var(--accent)')+'">戦略'+s.id+'：'+s.title+' '+cepTags+'</h4><p>'+s.body+'</p></div>';
+  }).join('');
+}
+
+function renderSOVRebalance() {
+  const curSov = currentSOV[selfBrand]||{};
+  const allIds = allActiveCEPs();
+  // Build SOV data: filter to CEPs with SOV>0 or mentionCount>100
+  const targetIds = allIds.filter(id=>(curSov[id]||0)>0||cepMentionCount(id)>100).slice(0,15);
+  // Compute recommended values algorithmically
+  const sovData = {};
+  targetIds.forEach(id => {
+    const cur = curSov[id]||0;
+    const adv = cepAdv(id);
+    let rec;
+    if (adv>5&&cur<20) rec = 20;
+    else if (adv>3&&cur>50) rec = 30;
+    else if (adv<-3&&cur>20) rec = 10;
+    else if (cur>0) rec = cur;
+    else rec = 7;
+    sovData[id] = {cur, rec};
+  });
+  const colors2 = ['#ef4444','#3b82f6','#f59e0b','#8b5cf6','#10b981','#06b6d4','#ec4899','#84cc16','#f97316','#14b8a6','#a855f7','#f43f5e','#22d3ee','#eab308','#6366f1'];
+  ['current','recommended'].forEach(mode => {
+    const container = document.getElementById(mode+'-sov');
+    if (!container) return;
+    let html = '';
+    targetIds.forEach((id,i) => {
+      const val = mode==='current' ? sovData[id].cur : sovData[id].rec;
+      const curVal = sovData[id].cur;
+      const recVal = sovData[id].rec;
+      const isChanged = mode==='recommended' && Math.abs(recVal-curVal)>5;
+      const arrow = mode==='recommended' ? (recVal>curVal?' ↑':recVal<curVal?' ↓':'') : '';
+      const arrowColor = recVal>curVal?'var(--success)':'var(--danger)';
+      html += '<div style="display:flex;align-items:center;margin-bottom:5px">'
+        +'<div style="width:100px;font-size:0.72rem;text-align:right;padding-right:8px">'+cepShort(id)+' <span style="font-size:0.58rem;color:var(--muted)">'+id+'</span></div>'
+        +'<div style="flex:1;background:rgba(255,255,255,0.05);border-radius:3px;height:18px">'
+        +'<div style="height:100%;width:'+Math.min(val,100)+'%;background:'+colors2[i%colors2.length]+';border-radius:3px;opacity:0.7"></div></div>'
+        +'<div style="width:60px;font-size:0.72rem;text-align:right;padding-left:4px;'+(isChanged?'font-weight:800':'')+'">'+val.toFixed(1)+'%'
+        +'<span style="color:'+arrowColor+';font-size:0.68rem">'+arrow+'</span></div></div>';
+    });
+    container.innerHTML = html;
+  });
+}
+
+function renderTrend() {
+  renderTrendKPI();
+  drawSOVTrendChart();
+  renderSOVWaterfall();
+  renderCompetitorDropdown();
+  drawCompetitorTrendChart();
+  drawVolumeTrendChart();
+  renderMediaTrend();
+  renderTrendInsights();
+}
+
+function renderTrendInsights() {
+  const cur = sovTimeSeries[currentPeriodId];
+  const prev = sovTimeSeries[previousPeriodId];
+  const allIds = allActiveCEPs();
+  let maxChange = {id:null,d:0};
+  allIds.forEach(id => {
+    const d = Math.abs((cur[selfBrand]?.[id]||0) - (prev[selfBrand]?.[id]||0));
+    if (d > Math.abs(maxChange.d)) maxChange = {id, d: (cur[selfBrand]?.[id]||0) - (prev[selfBrand]?.[id]||0)};
+  });
+  let maxCompChange = {brand:null,id:null,d:0};
+  brands.filter(b=>b!==selfBrand).forEach(b => {
+    allIds.forEach(id => {
+      const d = Math.abs((cur[b]?.[id]||0) - (prev[b]?.[id]||0));
+      if (d > Math.abs(maxCompChange.d)) maxCompChange = {brand:b,id,d:(cur[b]?.[id]||0)-(prev[b]?.[id]||0)};
+    });
+  });
+  // Volume trend
+  const totalCur = Object.values(volumeTimeSeries[currentPeriodId]||{}).reduce((s,v)=>s+v,0);
+  const totalPrev = Object.values(volumeTimeSeries[previousPeriodId]||{}).reduce((s,v)=>s+v,0);
+  const volChange = totalPrev > 0 ? ((totalCur-totalPrev)/totalPrev*100) : 0;
+
+  // Strategy alignment for top change
+  let stratNote = '';
+  if (maxChange.id) {
+    const adv = cepAdv(maxChange.id);
+    if (maxChange.d > 5 && adv > 3) stratNote = cepLabel(maxChange.id)+'('+maxChange.id+')の+'+ maxChange.d.toFixed(1)+'ptはCEP優位+'+adv+'ptの強み軸への投資拡大として戦略方向と一致';
+    else if (maxChange.d < -5 && adv < -3) stratNote = cepLabel(maxChange.id)+'('+maxChange.id+')の'+maxChange.d.toFixed(1)+'ptはCEP劣位の軸からの撤退として合理的';
+    else if (maxChange.d > 5 && adv < 0) stratNote = cepLabel(maxChange.id)+'('+maxChange.id+')の+'+ maxChange.d.toFixed(1)+'ptはCEP劣位軸への投資増。戦略的意図を確認';
+    else stratNote = '大きな戦略方向の乖離は見られず';
+  }
+
+  const insights = [
+    {title:selfBrand+'最大SOV変化', text: maxChange.id ? cepLabel(maxChange.id)+'('+maxChange.id+')が'+(maxChange.d>0?'+':'')+maxChange.d.toFixed(1)+'ptで最大の変化' : 'なし'},
+    {title:'競合最大変化', text: maxCompChange.brand ? brandShort[maxCompChange.brand]+'の'+cepLabel(maxCompChange.id)+'('+maxCompChange.id+')が'+(maxCompChange.d>0?'+':'')+maxCompChange.d.toFixed(1)+'pt' : 'なし'},
+    {title:'市場全体の出稿量', text:'全ブランド合計: '+fmtNum(totalPrev)+'→'+fmtNum(totalCur)+'（'+(volChange>0?'+':'')+volChange.toFixed(1)+'%）'},
+    {title:'戦略整合性', text: stratNote || '特記事項なし'},
+  ];
+  generateInsights('trend-insights', insights);
+}
+
+function renderTrendKPI() {
+  const el = document.getElementById('trend-kpi');
+  if (!el) return;
+  let html = '<div class="period-selector"><span class="period-badge">' + periods.map(p=>p.label).join(' → ') + '</span><span style="color:var(--muted);font-size:0.72rem">半月ベース比較</span></div>';
+  html += '<div class="trend-kpi-row">';
+  brands.forEach(b => {
+    const cur = volumeTimeSeries[currentPeriodId]?.[b]||0;
+    const prev = volumeTimeSeries[previousPeriodId]?.[b]||0;
+    const pct = prev > 0 ? ((cur-prev)/prev*100) : 0;
+    const color = pct >= 0 ? 'var(--success)' : 'var(--danger)';
+    const arrow = pct >= 0 ? '▲' : '▼';
+    html += '<div class="trend-kpi-item"><div class="brand" style="color:'+brandColors[b]+'">'+brandShort[b]+'</div><div class="vals">'+fmtNum(prev)+' → '+fmtNum(cur)+'</div><div class="delta-val" style="color:'+color+'">'+arrow+(pct>=0?'+':'')+pct.toFixed(1)+'%</div></div>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function renderCompetitorDropdown() {
+  const select = document.getElementById('competitor-cep-select');
+  if (!select || select.options.length > 1) return;
+  const allIds = allActiveCEPs();
+  allIds.forEach(id => {
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.text = id+' '+cepLabel(id);
+    select.add(opt);
+  });
+  select.value = allIds[0] || 'S01';
+  select.addEventListener('change', () => drawCompetitorTrendChart());
+}
+
+function drawSOVTrendChart() {
+  const canvas = document.getElementById('sov-trend-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const ml=60,mr=20,mt=30,mb=40,pw=W-ml-mr,ph=H-mt-mb;
+
+  const allIds = allActiveCEPs();
+  const changes = allIds.map(id => ({
+    id,
+    delta: Math.abs((sovTimeSeries[currentPeriodId][selfBrand]?.[id]||0)-(sovTimeSeries[previousPeriodId][selfBrand]?.[id]||0)),
+  })).sort((a,b)=>b.delta-a.delta);
+  const topCeps = changes.slice(0,8).map(c=>c.id);
+
+  const palette = ['#3b82f6','#ef4444','#10b981','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16'];
+  const cepColors = {};
+  topCeps.forEach((id,i) => cepColors[id] = palette[i%palette.length]);
+
+  // Grid
+  ctx.strokeStyle='#334155';ctx.lineWidth=0.5;
+  for(let i=0;i<=5;i++){
+    const y=mt+ph*i/5;
+    ctx.beginPath();ctx.moveTo(ml,y);ctx.lineTo(W-mr,y);ctx.stroke();
+    ctx.fillStyle='#94a3b8';ctx.font='10px sans-serif';ctx.textAlign='right';
+    ctx.fillText((100-i*20)+'%',ml-5,y+4);
+  }
+  periods.forEach((p,i) => {
+    const x = ml + (pw * i / (periods.length-1 || 1));
+    ctx.fillStyle='#e2e8f0';ctx.font='11px sans-serif';ctx.textAlign='center';
+    ctx.fillText(p.shortLabel, x, H-mb+20);
+  });
+
+  // Draw lines
+  topCeps.forEach(id => {
+    ctx.strokeStyle = cepColors[id];
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    periods.forEach((p,i) => {
+      const val = sovTimeSeries[p.id][selfBrand]?.[id]||0;
+      const x = ml + (pw * i / (periods.length-1 || 1));
+      const y = mt + ph * (1 - val/100);
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+    // Points + end label
+    periods.forEach((p,i) => {
+      const val = sovTimeSeries[p.id][selfBrand]?.[id]||0;
+      const x = ml + (pw * i / (periods.length-1 || 1));
+      const y = mt + ph * (1 - val/100);
+      ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle=cepColors[id];ctx.fill();
+      if (i === periods.length-1) {
+        ctx.fillStyle='#e2e8f0';ctx.font='9px sans-serif';ctx.textAlign='left';
+        ctx.fillText(val.toFixed(1)+'%',x+6,y+3);
+      }
+    });
+  });
+
+  // Recommended SOV lines
+  const rec = quarterlyStrategy.sovRebalance?.recommended || {};
+  topCeps.forEach(id => {
+    if (rec[id] !== undefined) {
+      const y = mt + ph * (1 - rec[id]/100);
+      ctx.strokeStyle = cepColors[id]; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.moveTo(ml,y);ctx.lineTo(W-mr,y);ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = cepColors[id]; ctx.globalAlpha = 0.5; ctx.font = '8px sans-serif'; ctx.textAlign = 'right';
+      ctx.fillText('推奨'+rec[id]+'%', W-mr, y-3);
+      ctx.globalAlpha = 1;
+    }
+  });
+
+  // Legend
+  const legendEl = document.getElementById('sov-trend-legend');
+  if (legendEl) {
+    legendEl.innerHTML = topCeps.map(id =>
+      '<div class="trend-legend-item"><div class="trend-legend-line" style="background:'+cepColors[id]+'"></div>'+cepLabel(id)+' ('+id+')</div>'
+    ).join('');
+  }
+}
+
+function drawCompetitorTrendChart() {
+  const select = document.getElementById('competitor-cep-select');
+  if (!select) return;
+  const selectedCep = select.value || allActiveCEPs()[0];
+  const canvas = document.getElementById('competitor-trend-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const ml=60,mr=20,mt=30,mb=40,pw=W-ml-mr,ph=H-mt-mb;
+
+  // Grid
+  ctx.strokeStyle='#334155';ctx.lineWidth=0.5;
+  for(let i=0;i<=5;i++){
+    const y=mt+ph*i/5;
+    ctx.beginPath();ctx.moveTo(ml,y);ctx.lineTo(W-mr,y);ctx.stroke();
+    ctx.fillStyle='#94a3b8';ctx.font='10px sans-serif';ctx.textAlign='right';
+    ctx.fillText((100-i*20)+'%',ml-5,y+4);
+  }
+  periods.forEach((p,i) => {
+    const x = ml + (pw * i / (periods.length-1 || 1));
+    ctx.fillStyle='#e2e8f0';ctx.font='11px sans-serif';ctx.textAlign='center';
+    ctx.fillText(p.shortLabel, x, H-mb+20);
+  });
+
+  // Draw brand lines
+  brands.forEach(b => {
+    ctx.strokeStyle = brandColors[b];
+    ctx.lineWidth = b===selfBrand ? 3 : 1.5;
+    ctx.beginPath();
+    periods.forEach((p,i) => {
+      const val = sovTimeSeries[p.id][b]?.[selectedCep]||0;
+      const x = ml + (pw * i / (periods.length-1 || 1));
+      const y = mt + ph * (1 - val/100);
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+    // End label
+    const lastVal = sovTimeSeries[currentPeriodId][b]?.[selectedCep]||0;
+    const lastX = ml + pw;
+    const lastY = mt + ph * (1 - lastVal/100);
+    ctx.beginPath();ctx.arc(lastX,lastY,3,0,Math.PI*2);ctx.fillStyle=brandColors[b];ctx.fill();
+    ctx.fillStyle=brandColors[b];ctx.font='9px sans-serif';ctx.textAlign='left';
+    ctx.fillText(brandShort[b]+' '+lastVal.toFixed(1)+'%',lastX+5,lastY+3);
+  });
+}
+
+function drawVolumeTrendChart() {
+  const canvas = document.getElementById('volume-trend-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const ml=70,mr=20,mt=30,mb=40,pw=W-ml-mr,ph=H-mt-mb;
+
+  // Calculate max total volume across all periods
+  let maxVol = 0;
+  periods.forEach(p => {
+    let total = 0;
+    brands.forEach(b => total += (volumeTimeSeries[p.id]?.[b]||0));
+    if (total > maxVol) maxVol = total;
+  });
+  if (maxVol === 0) maxVol = 1;
+
+  // Grid
+  ctx.strokeStyle='#334155';ctx.lineWidth=0.5;
+  for(let i=0;i<=4;i++){
+    const y=mt+ph*i/4;
+    ctx.beginPath();ctx.moveTo(ml,y);ctx.lineTo(W-mr,y);ctx.stroke();
+    ctx.fillStyle='#94a3b8';ctx.font='10px sans-serif';ctx.textAlign='right';
+    const val = maxVol * (1-i/4);
+    ctx.fillText((val/1000).toFixed(0)+'K',ml-5,y+4);
+  }
+  periods.forEach((p,i) => {
+    const x = ml + (pw * i / (periods.length-1 || 1));
+    ctx.fillStyle='#e2e8f0';ctx.font='11px sans-serif';ctx.textAlign='center';
+    ctx.fillText(p.shortLabel, x, H-mb+20);
+  });
+
+  // Stacked bars
+  const barWidth = Math.min(80, pw / (periods.length * 2));
+  periods.forEach((p,pi) => {
+    const cx = ml + (pw * pi / (periods.length-1 || 1));
+    let cumY = 0;
+    brands.forEach(b => {
+      const vol = volumeTimeSeries[p.id]?.[b]||0;
+      const h = (vol/maxVol)*ph;
+      const x = cx - barWidth/2;
+      const y = mt + ph - cumY - h;
+      ctx.fillStyle = brandColors[b];
+      ctx.globalAlpha = 0.8;
+      ctx.fillRect(x, y, barWidth, h);
+      ctx.globalAlpha = 1;
+      if (h > 15) {
+        ctx.fillStyle='white';ctx.font='8px sans-serif';ctx.textAlign='center';
+        ctx.fillText(brandShort[b]+' '+(vol/1000).toFixed(0)+'K', cx, y+h/2+3);
+      }
+      cumY += h;
+    });
+  });
+}
+
+function renderSOVWaterfall() {
+  const el = document.getElementById('sov-waterfall');
+  if (!el) return;
+  const allIds = allActiveCEPs();
+  const cur = sovTimeSeries[currentPeriodId];
+  const prev = sovTimeSeries[previousPeriodId];
+
+  // Strategy direction map from quarterlyStrategy
+  const strategyDir = {};
+  if (quarterlyStrategy && quarterlyStrategy.strategies) {
+    quarterlyStrategy.strategies.forEach(s => {
+      const isReduce = s.icon === 'red' || (s.label||'').includes('抑制');
+      const isStrengthen = s.icon === 'green' || (s.label||'').includes('強化') || (s.label||'').includes('拡大');
+      s.targetCepIds.forEach(id => {
+        strategyDir[id] = isReduce ? 'reduce' : isStrengthen ? 'strengthen' : 'maintain';
+      });
+    });
+  }
+
+  const pLabels = periods.map(p=>p.shortLabel);
+  let html = '<table><thead><tr><th>CEP</th><th>'+pLabels[0]+' SOV</th><th>'+pLabels[pLabels.length-1]+' SOV</th><th>Δ</th><th style="width:200px">変化</th><th>方向性判定</th></tr></thead><tbody>';
+  const items = allIds.map(id => ({
+    id,
+    prev: prev[selfBrand]?.[id]||0,
+    cur: cur[selfBrand]?.[id]||0,
+    delta: (cur[selfBrand]?.[id]||0) - (prev[selfBrand]?.[id]||0),
+  })).sort((a,b) => Math.abs(b.delta) - Math.abs(a.delta));
+
+  items.forEach(item => {
+    const barW = Math.min(Math.abs(item.delta)/50*100, 100);
+    const barColor = item.delta >= 0 ? 'var(--success)' : 'var(--danger)';
+    const barClass = item.delta >= 0 ? 'waterfall-positive' : 'waterfall-negative';
+
+    // Direction judgment
+    const dir = strategyDir[item.id];
+    let judgment = '<span style="color:var(--muted)">➡️ 未設定</span>';
+    if (dir === 'reduce' && item.delta < -1) judgment = '<span style="color:var(--success)">✅ 一致（抑制）</span>';
+    else if (dir === 'reduce' && item.delta > 1) judgment = '<span style="color:var(--danger)">⚠️ 不一致（増加中）</span>';
+    else if (dir === 'strengthen' && item.delta > 1) judgment = '<span style="color:var(--success)">✅ 一致（強化）</span>';
+    else if (dir === 'strengthen' && item.delta < -1) judgment = '<span style="color:var(--danger)">⚠️ 不一致（減少中）</span>';
+    else if (dir === 'maintain') judgment = '<span style="color:var(--muted)">➡️ 維持</span>';
+    else if (Math.abs(item.delta) <= 1) judgment = '<span style="color:var(--muted)">➡️ 横ばい</span>';
+
+    html += '<tr><td style="font-weight:600">'+cepIdTag(item.id)+'</td><td>'+item.prev.toFixed(1)+'%</td><td>'+item.cur.toFixed(1)+'%</td><td style="color:'+barColor+';font-weight:700">'+(item.delta>0?'+':'')+item.delta.toFixed(1)+'</td><td><div class="waterfall-bar '+barClass+'" style="width:'+barW+'%"></div></td><td>'+judgment+'</td></tr>';
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function renderMediaTrend() {
+  const el = document.getElementById('media-trend');
+  if (!el) return;
+  let html = '';
+  brands.forEach(b => {
+    html += '<div class="card" style="margin-bottom:12px"><h3 style="color:'+brandColors[b]+';margin-bottom:8px">'+brandShort[b]+'</h3>';
+    // Collect all media across both periods
+    const allMediaSet = new Set();
+    periods.forEach(p => {
+      const md = dimTimeSeries[p.id]?.[b]?.['媒体'] || {};
+      Object.keys(md).forEach(m => allMediaSet.add(m));
+    });
+    const mediaList = [...allMediaSet].sort();
+
+    // Period header
+    html += '<div style="display:flex;margin-bottom:4px"><div style="width:70px"></div>';
+    periods.forEach(p => { html += '<div style="flex:1;text-align:center;font-size:0.68rem;color:var(--muted)">'+p.shortLabel+'</div>'; });
+    html += '</div>';
+
+    mediaList.forEach(m => {
+      html += '<div class="media-trend-row"><div class="media-trend-label" style="color:'+(mediaColors[m]||'var(--text)')+'">'+m+'</div><div class="media-trend-bars">';
+      periods.forEach(p => {
+        const val = dimTimeSeries[p.id]?.[b]?.['媒体']?.[m] || 0;
+        html += '<div class="media-trend-bar-wrap"><div style="height:18px;background:'+(mediaColors[m]||'#666')+';width:'+Math.min(val,100)+'%;border-radius:3px;opacity:0.7"></div><div class="media-trend-bar-label">'+(val > 0 ? val.toFixed(1)+'%' : '-')+'</div></div>';
+      });
+      html += '</div></div>';
+    });
+
+    // Change notes: disappeared / appeared media
+    const curMedia = dimTimeSeries[currentPeriodId]?.[b]?.['媒体'] || {};
+    const prevMedia = dimTimeSeries[previousPeriodId]?.[b]?.['媒体'] || {};
+    const disappeared = Object.keys(prevMedia).filter(m => (prevMedia[m]||0) > 1 && !(curMedia[m] > 0));
+    const appeared = Object.keys(curMedia).filter(m => (curMedia[m]||0) > 1 && !(prevMedia[m] > 0));
+    if (disappeared.length > 0 || appeared.length > 0) {
+      html += '<div style="font-size:0.72rem;margin-top:4px;padding:4px 8px;background:rgba(245,158,11,0.08);border-radius:4px">';
+      if (disappeared.length > 0) html += '<span style="color:var(--danger)">消失: '+disappeared.join(', ')+'</span> ';
+      if (appeared.length > 0) html += '<span style="color:var(--success)">出現: '+appeared.join(', ')+'</span>';
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  buildTabNav();
+  renderSummary();
+  initHashRouting();
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+
+<h1>Kaname MMaaS — CEPs×広告SOV 月次訴求判断ダッシュボード v5</h1>
+<p class="subtitle">シワ化粧品カテゴリー | 9ブランド × 29CEP | 期間: 2026/02/28〜2026/03/15 | カテゴリー分析（アルマード チェルラーブリリオ）</p>
+
+<div id="tab-nav" class="tabs"></div>
+
+<div id="tab-summary" class="tab-content active">
+  <h2>ブランド別 絶対観測量</h2>
+  <div class="kpi-compact" id="kpi-compact"></div>
+
+  <h2 style="margin-top:20px">今期のTop3変化</h2>
+  <div id="top3-changes"></div>
+
+  <div class="grid2" style="margin-top:20px;align-items:start">
+    <div>
+      <h2 style="margin-top:0">CEPアクション方針</h2>
+      <h3 style="color:var(--accent);margin-bottom:6px;font-size:0.82rem">維持</h3>
+      <div id="maintain-ceps"></div>
+      <h3 style="color:var(--success);margin-top:12px;margin-bottom:6px;font-size:0.82rem">強化</h3>
+      <div id="strengthen-ceps"></div>
+      <h3 style="color:var(--danger);margin-top:12px;margin-bottom:6px;font-size:0.82rem">抑制</h3>
+      <div id="reduce-ceps"></div>
+    </div>
+    <div>
+      <h2 style="margin-top:0">インテリジェンスアラート</h2>
+      <div id="alert-legend" style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-bottom:8px;font-size:0.68rem">
+        <span><span style="color:var(--danger)">⚠️</span> 脅威</span>
+        <span><span style="color:var(--warning)">📊</span> 過剰投資</span>
+        <span><span style="color:var(--success)">🎯</span> 機会</span>
+        <span><span style="color:var(--accent)">⚔️</span> 首位争い</span>
+        <span><span style="color:var(--danger)">📉</span> 急落</span>
+        <span><span style="color:var(--success)">📈</span> 急騰</span>
+      </div>
+      <p style="font-size:0.65rem;color:var(--muted);margin-bottom:8px">データから自動検出。解消条件を満たすまで毎期表示。</p>
+      <div id="intelligence-alerts"></div>
+    </div>
+  </div>
+
+  <div class="disclaimer">本レポートは会議での議論用叩き台です。実行指示書ではありません。</div>
+</div>
+<div id="tab-overview" class="tab-content">
+  <div id="overview-insights" style="margin-bottom:16px"></div>
+  <div class="card">
+    <h2>CEP×SOV 9社比較テーブル（状況軸・体験価値軸統合）</h2>
+    <div class="legend" id="brand-legend-overview"></div>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:12px">CEP優位スコア(pt) = CEPsリスニング®によるチェルラーブリリオのメンタルアドバンテージ。広告SOV(%) = 該当CEPキーワードを含む広告全体における各ブランドのシェア（9社合計=100%）。言及数 = CEP分析データの市場全体の言及数。</p>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr>
+        <th>CEP軸</th><th>CEP優位(pt)</th><th>言及数</th><th>市場%</th><th>規模</th>
+        <th style="color:var(--cherulla)">チェルラー SOV</th><th>Δ前期比</th>
+        <th id="overview-brand-headers"></th>
+        <th>戦略判定</th>
+      </tr></thead>
+      <tbody id="overview-table-body"></tbody>
+    </table>
+    </div>
+  </div>
+
+  <div id="scatter-insights" style="margin-bottom:16px"></div>
+  <div class="card">
+    <h2>CEPポジショニングマップ</h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:8px">X軸: チェルラーブリリオ CEP優位スコア(pt)。Y軸: チェルラーブリリオ広告SOV - 競合平均SOV。バブルサイズ = CEP言及数（市場規模）。薄色 = 前期位置。</p>
+    <canvas id="scatter-canvas" width="900" height="550"></canvas>
+  </div>
+</div>
+<div id="tab-trend" class="tab-content">
+  <div id="trend-insights" style="margin-bottom:16px"></div>
+  <div id="trend-kpi"></div>
+
+  <div class="card">
+    <h2>チェルラーブリリオ SOV推移チャート（変化量TOP8 CEP）</h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:8px">折れ線: チェルラーブリリオ SOV推移。点線: 四半期戦略の推奨SOV値。</p>
+    <div class="trend-legend" id="sov-trend-legend"></div>
+    <canvas id="sov-trend-canvas" width="900" height="400"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>SOV変化ウォーターフォールテーブル</h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:8px">全CEPのチェルラーブリリオ SOV変化を一覧。方向性判定は四半期戦略との整合性を自動判定。</p>
+    <div id="sov-waterfall" style="overflow-x:auto"></div>
+  </div>
+
+  <div class="card">
+    <h2>競合SOV推移比較 <select id="competitor-cep-select" style="background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:0.78rem;margin-left:8px"></select></h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:8px">選択したCEPについて全9ブランドのSOV推移を比較。太線 = チェルラーブリリオ。</p>
+    <canvas id="competitor-trend-canvas" width="900" height="400"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>観測量推移（ブランド別積み上げ棒グラフ）</h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:8px">ブランド別の広告観測ボリューム推移。</p>
+    <canvas id="volume-trend-canvas" width="900" height="350"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>媒体構成推移</h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:8px">ブランドごとの媒体ミックスの変化を期間並列で表示。</p>
+    <div id="media-trend"></div>
+  </div>
+</div>
+<div id="tab-marketsize" class="tab-content">
+  <div id="marketsize-insights" style="margin-bottom:16px"></div>
+  <div class="card">
+    <h2>CEP市場規模バブルチャート</h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:8px">X軸: CEP優位スコア(pt)。Y軸: 市場規模（言及数・対数スケール）。バブルサイズ = チェルラーブリリオ SOV。緑 = CEP優位、赤 = CEP劣位。点線 = 大規模市場の閾値(500件)。</p>
+    <canvas id="market-bubble-canvas" width="900" height="550"></canvas>
+  </div>
+  <div class="card">
+    <h2>市場規模ランキングテーブル</h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:12px">CEP言及数の降順。投資効率判定は市場規模×CEP優位×広告SOVの組み合わせから自動算出。</p>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr>
+        <th>CEP名</th><th>タイプ</th><th>言及数</th><th>市場%</th><th>CEP優位</th><th>広告SOV</th><th>規模</th><th>投資効率判定</th>
+      </tr></thead>
+      <tbody id="marketsize-table-body"></tbody>
+    </table>
+    </div>
+  </div>
+</div>
+<div id="tab-whitespace" class="tab-content">
+  <div id="whitespace-insights" style="margin-bottom:16px"></div>
+  <div class="card">
+    <h2>ホワイトスペース分析</h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:12px">機会スコア(v2) = CEP優位 × (1 - 競合平均SOV/100) × log2(1 + 言及数/1000)。市場規模を加味した投資判断指標。⚠ = 小規模市場（言及数200件未満）</p>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr>
+        <th>CEP軸</th><th>タイプ</th><th>CEP優位(pt)</th><th>競合平均SOV</th><th>チェルラー SOV</th>
+        <th>言及数</th><th>規模</th><th>機会スコア(v2)</th><th>推奨</th>
+      </tr></thead>
+      <tbody id="whitespace-table-body"></tbody>
+    </table>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <h2>CEP軸別：チェルラー vs 競合 SOV差</h2>
+      <p style="font-size:0.72rem;color:var(--muted);margin-bottom:8px">バーの濃淡 = 市場規模（濃い = 大規模、薄い = 小規模）</p>
+      <div id="gap-chart"></div>
+    </div>
+    <div class="card">
+      <h2>各CEP軸での競合SOV分布</h2>
+      <div id="competition-heatmap"></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>ホワイトスペース×媒体カバレッジ マトリクス</h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:12px">WSスコア > 0 のCEPについて、各ブランドの媒体出稿状況を表示。赤背景 = チェルラー未出稿×競合出稿中 = 拡張候補</p>
+    <div id="coverage-matrix"></div>
+  </div>
+</div>
+<div id="tab-expansion" class="tab-content">
+  <div id="expansion-insights" style="margin-bottom:16px"></div>
+  <div class="card">
+    <h2>媒体拡張シミュレーション — ホワイトスペースTOP5</h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:12px">WSスコアTOP5のCEPについて、チェルラー未出稿×競合成功パターンに基づく拡張候補を自動生成</p>
+    <div id="expansion-cards"></div>
+  </div>
+  <div class="card">
+    <h2>CEP×媒体 統合ヒートマップ（WSスコア正のCEPのみ）</h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:12px">ホワイトスペースCEP × 全媒体の出稿分布。ブランド別の配信パターンを一覧比較</p>
+    <div id="integrated-heatmap" style="overflow-x:auto"></div>
+  </div>
+</div>
+<div id="tab-reference" class="tab-content">
+  <div id="reference-insights" style="margin-bottom:16px"></div>
+  <div class="card">
+    <h2>媒体構成比（スタックバー）</h2>
+    <div class="legend" id="ref-media-legend"></div>
+    <div id="ref-media-stacked"></div>
+  </div>
+  <div class="card">
+    <h2>フォーマット別構成比</h2>
+    <div class="legend"><div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>動画</div><div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>静止画</div><div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>カルーセル</div></div>
+    <div id="ref-format-chart"></div>
+  </div>
+  <div class="card">
+    <h2>配信構造サマリーテーブル</h2>
+    <table>
+      <thead><tr><th>ブランド</th><th>総観測数</th><th>主要フォーマット</th><th>主要媒体</th><th>媒体数</th><th>記事LP比率</th><th>EC系アフィ率</th></tr></thead>
+      <tbody id="ref-summary-table"></tbody>
+    </table>
+  </div>
+  <div id="ref-brand-detail"></div>
+</div>
+<div id="tab-cepmaster" class="tab-content">
+  <div class="card">
+    <h2>CEPマスター一覧</h2>
+    <p style="font-size:0.72rem;color:var(--muted);margin-bottom:8px">四半期更新。CEP優位スコアは消費者調査ベースのチェルラーブリリオ相対優位度(pt)。市場規模は全ブランド合計の言及数ベース。</p>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr><th>ID</th><th>ラベル</th><th>タイプ</th><th>CEP優位</th><th>市場規模</th><th>チェルラー SOV</th><th>競合最大</th><th>キーワード</th></tr></thead>
+      <tbody id="ref-cep-master-table"></tbody>
+    </table>
+    </div>
+  </div>
+</div>
+<div id="tab-strategy" class="tab-content">
+  <div id="strategy-insights" style="margin-bottom:16px"></div>
+  <div class="card">
+    <h2>チェルラーブリリオ 広告戦略リバランス提案 <span class="quarterly-badge">四半期更新</span></h2>
+    <p style="font-size:0.75rem;color:var(--muted);margin-bottom:6px">最終更新: <span id="strategy-updated"></span></p>
+    <div id="strategy-cards"></div>
+  </div>
+  <div class="card">
+    <h2>推奨SOVリバランス</h2>
+    <div class="grid2">
+      <div><h3 style="margin-bottom:8px">現状SOV配分</h3><div id="current-sov"></div></div>
+      <div><h3 style="margin-bottom:8px">推奨SOV配分</h3><div id="recommended-sov"></div></div>
+    </div>
+  </div>
+  <div class="disclaimer">このタブは四半期更新です。月次では変更しません。</div>
+</div>
+<div id="tab-guide" class="tab-content">
+
+  <div class="card">
+    <h2>1. ダッシュボードの読み方</h2>
+    <p style="font-size:0.8rem;margin-bottom:12px">このダッシュボードは、CEP（Category Entry Point＝カテゴリー想起手がかり）ごとの広告SOV（Share of Voice＝広告出稿シェア）を9ブランドで比較し、広告訴求の意思決定を支援するツールです。半月ごとに更新されます。</p>
+
+    <h3 style="margin-top:16px;margin-bottom:8px">各タブの目的と着眼点</h3>
+    <table style="font-size:0.78rem">
+      <thead><tr><th style="width:180px">タブ</th><th>目的</th><th>見るべきポイント</th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:700">サマリー</td><td>今期の全体状況を把握する</td><td>まず観測量で市場全体の動きを掴む→Top3変化で大きな動きを確認→アラートで要対応事項を把握→アクション方針で具体的な方向性を確認</td></tr>
+        <tr><td style="font-weight:700">CEP×SOV全体像</td><td>9社の競争環境を俯瞰する</td><td>テーブルで全CEPの各社SOVを比較。ポジショニングマップでCEP優位×SOV投下量の分布を視覚的に把握。前期からの移動方向（薄色→濃色）にも注目</td></tr>
+        <tr><td style="font-weight:700">★ 時系列推移</td><td>SOV変化のトレンドを追う</td><td>チェルラーブリリオ SOV推移チャートで変化量の大きいCEPの動向を確認。ウォーターフォールテーブルで全CEPの方向性を一覧。競合比較で特定CEPの9社推移を深掘り</td></tr>
+        <tr><td style="font-weight:700">★ 市場規模マップ</td><td>大規模市場での位置づけを確認する</td><td>バブルチャートで市場規模（Y軸）×CEP優位（X軸）×チェルラーブリリオシェア（バブル）の3軸を同時に把握。右上の大バブル＝投資効率の高い領域</td></tr>
+        <tr><td style="font-weight:700">★ ホワイトスペース</td><td>競合不在の空白領域を発見する</td><td>ギャップチャートでCEP優位と実際のSOV投下のギャップを可視化。競争ヒートマップで全CEP×全ブランドの力関係を一覧。カバレッジマトリクスで出稿有無を確認</td></tr>
+        <tr><td style="font-weight:700">★ 媒体拡張シミュレーション</td><td>新媒体参入の効果を試算する</td><td>各CEPについて、未出稿の媒体に参入した場合のSOV改善効果をシミュレーション。優先度の高い媒体×CEPの組み合わせを発見</td></tr>
+        <tr><td style="font-weight:700">配信構造リファレンス</td><td>媒体構成やフォーマットの詳細を確認する</td><td>9社の媒体構成比、フォーマット構成比、配信構造サマリーテーブル。ブランド別のCEP×媒体×フォーマット配信構造を詳細に比較</td></tr>
+        <tr><td style="font-weight:700">CEPマスター</td><td>全CEPの定義と優位スコアを確認する</td><td>29個の全CEP（状況軸19＋体験価値軸10）のID・ラベル・タイプ・CEP優位スコア・市場規模・チェルラーSOV・競合最大SOV・キーワードを一覧表示</td></tr>
+        <tr><td style="font-weight:700">四半期戦略</td><td>中期方針との整合性を確認する</td><td>四半期ごとに更新されるチェルラーブリリオの広告戦略リバランス提案。各CEPへの推奨SOV配分値（時系列推移タブの点線にも反映）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>2. 用語集</h2>
+    <table style="font-size:0.78rem">
+      <thead><tr><th style="width:180px">用語</th><th>定義</th></tr></thead>
+      <tbody>
+        <tr><td style="font-weight:700">CEP（Category Entry Point）</td><td>消費者がカテゴリーを想起するきっかけ。「シワが気になる」「ハリがほしい」など。状況軸（S系）と体験価値軸（E系）の2タイプがある</td></tr>
+        <tr><td style="font-weight:700">SOV（Share of Voice）</td><td>あるCEP軸キーワードを含む全ブランドの広告のうち、各ブランドが占めるシェア（%）。同一CEPの9社合計は100%になる</td></tr>
+        <tr><td style="font-weight:700">CEP優位スコア<br>（メンタルアドバンテージ）</td><td>kaname.axのCEPsリスニング®分析によるメンタルアドバンテージスコア。チェルラーブリリオの相対優位度（pt）を示す。正の値＝自社有利、負の値＝競合有利。四半期更新</td></tr>
+        <tr><td style="font-weight:700">市場規模（大/中/小）</td><td>全ブランド合計のCEP言及数ベース。大＝500件以上、中＝200〜499件、小＝199件以下</td></tr>
+        <tr><td style="font-weight:700">観測量</td><td>広告クリエイティブの観測数。広告出稿ボリュームの代理指標</td></tr>
+        <tr><td style="font-weight:700">ホワイトスペース</td><td>CEP優位があるにもかかわらず、自社・競合ともにSOVが低い（広告投下が少ない）領域。開拓の機会</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>3. 意思決定フロー</h2>
+    <p style="font-size:0.78rem;margin-bottom:12px">半月ごとの更新時に、以下の手順で確認・判断することを推奨します。</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+      <div style="flex:1;min-width:180px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:8px;padding:12px">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:4px">Step 1: 状況把握</div>
+        <div style="font-size:0.75rem">サマリータブで観測量の増減→Top3変化→インテリジェンスアラートの順に確認。HIGHアラートが新規発生していないかをチェック</div>
+      </div>
+      <div style="flex:1;min-width:180px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:12px">
+        <div style="font-weight:700;color:var(--success);margin-bottom:4px">Step 2: 方針確認</div>
+        <div style="font-size:0.75rem">CEPアクション方針で維持・強化・抑制の分類を確認。前期から分類が変わったCEPがあれば注目</div>
+      </div>
+      <div style="flex:1;min-width:180px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:12px">
+        <div style="font-weight:700;color:var(--warning);margin-bottom:4px">Step 3: 深掘り</div>
+        <div style="font-size:0.75rem">気になるCEPがあれば、全体像・時系列・市場規模マップで詳細を確認。ホワイトスペースや媒体拡張シミュレーションで機会を探索</div>
+      </div>
+      <div style="flex:1;min-width:180px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:8px;padding:12px">
+        <div style="font-weight:700;color:#8b5cf6;margin-bottom:4px">Step 4: 整合性チェック</div>
+        <div style="font-size:0.75rem">四半期戦略タブで中期方針との整合性を確認。戦略方向と異なる動きがあれば、意図的か偶発的かを判断</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>4. インテリジェンスアラート詳細</h2>
+    <p style="font-size:0.78rem;margin-bottom:12px">アラートはデータから自動検出されます。解消条件を満たすまで毎期表示され続けます。</p>
+    <table style="font-size:0.78rem">
+      <thead><tr><th style="width:100px">タイプ</th><th>発動条件</th><th>解消条件</th><th>推奨アクション</th></tr></thead>
+      <tbody>
+        <tr>
+          <td style="font-weight:700;color:var(--danger)">⚠️ 脅威</td>
+          <td>CEP優位+3pt超なのに自社SOV5%未満、競合50%超</td>
+          <td>自社SOVが10%以上</td>
+          <td>市場規模マップで規模を確認→大規模なら媒体拡張シミュレーションで参入チャネルを検討→テスト出稿を企画</td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:var(--warning)">📊 過剰投資</td>
+          <td>CEP劣位-3pt未満なのにSOV30%超</td>
+          <td>SOV20%以下、またはCEP優位改善</td>
+          <td>当該CEPへの出稿を段階的に減らし、強化対象CEPへ予算を再配分</td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:var(--success)">🎯 機会</td>
+          <td>CEP優位+3pt超、中〜大規模市場、SOV15%未満（脅威に該当しない）</td>
+          <td>SOV15%以上</td>
+          <td>ホワイトスペースタブでギャップ規模を確認→媒体拡張シミュレーションで最適チャネルを選定→投資拡大</td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:var(--accent)">⚔️ 首位争い</td>
+          <td>自社SOV20%超かつ競合トップとの差が10pt以内</td>
+          <td>差が10pt以上</td>
+          <td>時系列推移で直近のトレンドを確認→モメンタムがあれば維持、失速なら追加投資を検討</td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:var(--danger)">📉 急落</td>
+          <td>前期比25pt以上のSOV下落</td>
+          <td>SOV回復、または意図的な抑制と判断</td>
+          <td>意図した抑制か確認→意図的でなければ配信構造リファレンスで媒体構成変化を調査→原因を特定して対応</td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:var(--success)">📈 急騰</td>
+          <td>前期比25pt以上のSOV上昇</td>
+          <td>SOV安定化</td>
+          <td>急騰原因を調査→意図的な施策の効果か確認→維持可能性と次期方針を検討</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>5. ダッシュボード更新手順（データ担当者向け）</h2>
+    <p style="font-size:0.78rem;margin-bottom:8px">半月ごと（月初・月中）に以下の手順でデータを更新します。</p>
+    <table style="font-size:0.78rem">
+      <thead><tr><th style="width:40px">#</th><th style="width:220px">作業</th><th>変更箇所</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>期間情報の更新</td><td><code>periods</code>配列に新しい期間を追加、<code>currentPeriodId</code>と<code>previousPeriodId</code>を更新、<code>reportMeta.reportMonth</code>を更新</td></tr>
+        <tr><td>2</td><td>SOVデータの追加</td><td><code>sovTimeSeries</code>に新期間のデータを追加</td></tr>
+        <tr><td>3</td><td>観測量データの追加</td><td><code>volumeTimeSeries</code>に新期間のデータを追加</td></tr>
+        <tr><td>4</td><td>配信構造データの追加</td><td><code>dimTimeSeries</code>に新期間のデータを追加</td></tr>
+        <tr><td>5</td><td>クロスデータの追加</td><td><code>crossTimeSeries</code>に新期間のデータを追加</td></tr>
+        <tr><td>6</td><td>CEPマスター更新（四半期のみ）</td><td><code>cepMaster</code>の優位スコア・ステータスを更新。<code>quarterlyStrategy</code>も合わせて更新</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:0.72rem;color:var(--muted);margin-top:8px">※ インテリジェンスアラート、サマリーのTop3変化、CEPアクション方針はデータから自動生成されるため、手動更新は不要です。</p>
+  </div>
+
+  <div class="card">
+    <h2>6. Q&A</h2>
+    <div style="font-size:0.78rem">
+      <div style="margin-bottom:12px">
+        <div style="font-weight:700;margin-bottom:2px">Q. SOVが高いのに良くないケースはありますか？</div>
+        <div style="color:var(--muted)">A. CEP劣位（消費者イメージでチェルラーブリリオが弱い領域）なのにSOVが高い場合は「過剰投資」の可能性があります。消費者の認知と広告訴求がミスマッチしている状態です。この予算をCEP優位のある領域に再配分する方が効率的です。</div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-weight:700;margin-bottom:2px">Q. CEP優位スコア（メンタルアドバンテージ）はどうやって決まりますか？</div>
+        <div style="color:var(--muted)">A. kaname.axのCEPsリスニング®の分析結果から算出されるメンタルアドバンテージスコアです。各CEPについてチェルラーブリリオの相対的な想起優位度を示します。四半期ごとに更新されます。</div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-weight:700;margin-bottom:2px">Q. 市場規模の「大/中/小」の基準は？</div>
+        <div style="color:var(--muted)">A. 全ブランド合計のCEP言及数（広告クリエイティブ内でのキーワード言及数）に基づきます。大＝500件以上、中＝200〜499件、小＝199件以下です。CEPマスタータブでも確認できます。</div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-weight:700;margin-bottom:2px">Q. データ更新頻度は？</div>
+        <div style="color:var(--muted)">A. SOV・観測量・配信構造データは半月ごと（月初と月中の2回）に更新されます。CEPマスター（優位スコア等）と四半期戦略は四半期ごとの更新です。</div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-weight:700;margin-bottom:2px">Q. ポジショニングマップのバブルサイズは何を表していますか？</div>
+        <div style="color:var(--muted)">A. CEPの市場全体の言及数（市場規模）を表しています。バブルが大きいほど、そのCEPに関する広告が市場全体で多いことを意味します。</div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-weight:700;margin-bottom:2px">Q. SOVの合計は100%になりますか？</div>
+        <div style="color:var(--muted)">A. はい。SOVはあるCEPキーワードを含む広告全体のうち、各ブランドが占めるシェアです。同一CEPの9社合計は100%になります。</div>
+      </div>
+      <div>
+        <div style="font-weight:700;margin-bottom:2px">Q. アラートが多すぎる場合はどうすれば？</div>
+        <div style="color:var(--muted)">A. まずHIGHのアラートを優先的に対応してください。MEDは状況把握の参考情報です。アラートは施策の効果でデータが変われば自然に解消されるため、全てに同時対応する必要はありません。</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="dashboard-footer">
+  Kaname MMaaS Dashboard v5 — Almard チェルラーブリリオ | シワ化粧品カテゴリー分析 | Generated 2026-03
+</div>
+</body>
+</html>
